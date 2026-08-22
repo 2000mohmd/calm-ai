@@ -4,6 +4,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/integrations/supabase/types";
 import { severityIndex } from "./screeners";
 import { generateNudgeMessage, type CompanionContext } from "./ai-companion.server";
+import { normalizeLanguage } from "./i18n/languages";
 
 type Client = SupabaseClient<Database>;
 
@@ -57,7 +58,7 @@ export async function evaluateNudgesFor(supabase: Client, userId: string) {
       .gte("created_at", daysAgo(NUDGE_COOLDOWN_DAYS).toISOString()),
     supabase
       .from("profiles")
-      .select("preferred_name, account_type, ai_context_consent")
+      .select("preferred_name, account_type, ai_context_consent, language")
       .eq("id", userId)
       .maybeSingle(),
     supabase
@@ -153,6 +154,7 @@ export async function evaluateNudgesFor(supabase: Client, userId: string) {
   const baseContext: CompanionContext = {
     preferredName: profile.data?.preferred_name ?? null,
     accountType: profile.data?.account_type ?? null,
+    language: normalizeLanguage(profile.data?.language),
     introText: consented ? (intro.data?.intro_text ?? null) : null,
     goals: consented ? (intro.data?.goals ?? []) : [],
     stressors: consented ? (intro.data?.stressors ?? []) : [],

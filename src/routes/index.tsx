@@ -2,6 +2,8 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { Leaf, MessageCircleHeart, LineChart, Sparkles, ShieldCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { SafetyFooter } from "@/components/SafetyFooter";
+import { LanguageSwitcher } from "@/components/LanguageSwitcher";
+import { useTranslation } from "@/lib/i18n";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -23,50 +25,47 @@ export const Route = createFileRoute("/")({
   component: Index,
 });
 
-const PILLARS = [
-  {
-    icon: MessageCircleHeart,
-    title: "A companion that remembers",
-    body: "Your self-introduction, goals and recent check-ins shape every conversation from the first message.",
-  },
-  {
-    icon: LineChart,
-    title: "Gentle tracking",
-    body: "Mood and habit check-ins that surface patterns — never streak guilt or shame nudges.",
-  },
-  {
-    icon: Sparkles,
-    title: "Guided practice",
-    body: "Short CBT reframes, grounding and journaling flows you can finish in a few quiet minutes.",
-  },
-];
+const PILLAR_KEYS = [
+  { icon: MessageCircleHeart, key: "companion" },
+  { icon: LineChart, key: "tracking" },
+  { icon: Sparkles, key: "practice" },
+] as const;
 
 function Index() {
+  const { t } = useTranslation();
+  const PILLARS = PILLAR_KEYS.map((pillar) => ({
+    icon: pillar.icon,
+    title: t(`landing.pillars.${pillar.key}.title`),
+    body: t(`landing.pillars.${pillar.key}.body`),
+  }));
+
   return (
     <div className="flex min-h-screen flex-col">
       <main className="flex-1">
         <section className="breathe-gradient">
-          <div className="mx-auto max-w-4xl px-6 py-24 text-center sm:py-32">
+          <div className="mx-auto flex max-w-4xl justify-end px-6 pt-6">
+            <LanguageSwitcher className="w-auto" />
+          </div>
+          <div className="mx-auto max-w-4xl px-6 pb-24 pt-6 text-center sm:pb-32">
             <p className="mx-auto mb-8 inline-flex items-center gap-2 rounded-full border border-border bg-card/70 px-4 py-1.5 text-sm text-muted-foreground">
               <Leaf className="size-4 text-primary" aria-hidden />
               Kalm
             </p>
             <h1 className="text-balance text-5xl leading-[1.05] sm:text-6xl">
-              A quieter place to check in with yourself.
+              {t("landing.heroTitle")}
             </h1>
             <p className="mx-auto mt-6 max-w-xl text-pretty text-lg text-muted-foreground">
-              Kalm is a wellness support companion — AI conversation, mood tracking and guided
-              exercises, built around what you tell it about your life.
+              {t("landing.heroBody")}
             </p>
             <div className="mt-10 flex justify-center">
               <Button asChild size="lg" className="rounded-full px-8">
-                <Link to="/auth">Create your account</Link>
+                <Link to="/auth">{t("landing.createAccount")}</Link>
               </Button>
             </div>
             <p className="mt-6 text-sm text-muted-foreground">
-              Already here?{" "}
+              {t("landing.alreadyHere")}{" "}
               <Link to="/auth" className="font-semibold text-primary underline underline-offset-4">
-                Sign in
+                {t("landing.signIn")}
               </Link>
             </p>
           </div>
@@ -88,18 +87,20 @@ function Index() {
           <div className="surface-soft flex flex-col gap-4 p-8 sm:flex-row sm:items-start">
             <ShieldCheck className="size-7 shrink-0 text-primary" aria-hidden />
             <div>
-              <h2 className="text-xl">Support, not treatment</h2>
-              <p className="mt-2 text-base text-muted-foreground">
-                Kalm is a wellness support tool. It is not therapy, not a diagnosis, and not an
-                emergency service. Every conversation is screened for crisis language, and crisis
-                resources are always one tap away and never behind a paywall.
-              </p>
+              <h2 className="text-xl">{t("landing.supportTitle")}</h2>
+              <p className="mt-2 text-base text-muted-foreground">{t("landing.supportBody")}</p>
               <div className="mt-4 flex flex-wrap gap-4 text-sm">
-                <Link to="/crisis" className="font-semibold text-primary underline underline-offset-4">
-                  Crisis resources
+                <Link
+                  to="/crisis"
+                  className="font-semibold text-primary underline underline-offset-4"
+                >
+                  {t("landing.crisisResources")}
                 </Link>
-                <Link to="/legal" className="font-semibold text-primary underline underline-offset-4">
-                  Privacy &amp; disclaimers
+                <Link
+                  to="/legal"
+                  className="font-semibold text-primary underline underline-offset-4"
+                >
+                  {t("landing.privacyDisclaimers")}
                 </Link>
               </div>
             </div>

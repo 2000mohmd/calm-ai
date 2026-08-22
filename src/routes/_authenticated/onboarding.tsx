@@ -4,7 +4,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { ArrowLeft, ArrowRight, Check, Leaf } from "lucide-react";
-import { completeOnboarding, getMyProfile } from "@/lib/onboarding.functions";
+import { completeOnboarding, getMyProfile, updateMyLanguage } from "@/lib/onboarding.functions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -12,6 +12,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Progress } from "@/components/ui/progress";
 import { SafetyFooter } from "@/components/SafetyFooter";
+import { LanguageSwitcher } from "@/components/LanguageSwitcher";
+import { useTranslation, type Language } from "@/lib/i18n";
 
 export const Route = createFileRoute("/_authenticated/onboarding")({
   head: () => ({
@@ -31,59 +33,69 @@ export const Route = createFileRoute("/_authenticated/onboarding")({
   component: OnboardingPage,
 });
 
-const MODES = [
-  {
-    value: "general" as const,
-    title: "Everyday stress & low mood",
-    body: "General support for anxiety, stress and difficult days.",
-  },
-  {
-    value: "condition" as const,
-    title: "Managing a diagnosed condition",
-    body: "For people in or seeking professional care alongside Kalm.",
-  },
-  {
-    value: "teen" as const,
-    title: "Teen / student mode",
-    body: "Simpler language, school and social scenarios, stricter safety guardrails. Ages 13+.",
-  },
-  {
-    value: "org_member" as const,
-    title: "Through my workplace",
-    body: "Employer wellness plan. Your employer only ever sees anonymized totals.",
-  },
+const MODE_DEFS = [
+  { value: "general" as const, titleKey: "general", bodyKey: "general" },
+  { value: "condition" as const, titleKey: "condition", bodyKey: "condition" },
+  { value: "teen" as const, titleKey: "teen", bodyKey: "teen" },
+  { value: "org_member" as const, titleKey: "orgMember", bodyKey: "orgMember" },
 ];
 
-const GOALS = [
-  "Feel less anxious",
-  "Sleep better",
-  "Build a daily habit",
-  "Understand my patterns",
-  "Handle work stress",
-  "Be kinder to myself",
-];
+const GOAL_KEYS = [
+  "lessAnxious",
+  "sleepBetter",
+  "dailyHabit",
+  "understandPatterns",
+  "workStress",
+  "beKinder",
+] as const;
 
-const STRESSORS = ["Work", "School", "Family", "Money", "Health", "Relationships", "Loneliness"];
+const STRESSOR_KEYS = [
+  "work",
+  "school",
+  "family",
+  "money",
+  "health",
+  "relationships",
+  "loneliness",
+] as const;
 
-const MOODS = [
-  { score: 1, label: "Really low" },
-  { score: 2, label: "Low" },
-  { score: 3, label: "Okay" },
-  { score: 4, label: "Good" },
-  { score: 5, label: "Great" },
-];
-
-const STEPS = ["Consent", "Mode", "About you", "First check-in"];
+const MOOD_DEFS = [
+  { score: 1, key: "reallyLow" },
+  { score: 2, key: "low" },
+  { score: 3, key: "okay" },
+  { score: 4, key: "good" },
+  { score: 5, key: "great" },
+] as const;
 
 function toggle(list: string[], value: string) {
   return list.includes(value) ? list.filter((item) => item !== value) : [...list, value];
 }
 
 function OnboardingPage() {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const fetchProfile = useServerFn(getMyProfile);
   const saveOnboarding = useServerFn(completeOnboarding);
+  const saveLanguage = useServerFn(updateMyLanguage);
+
+  const MODES = MODE_DEFS.map((mode) => ({
+    value: mode.value,
+    title: t(`onboarding.modeStep.${mode.titleKey}.title`),
+    body: t(`onboarding.modeStep.${mode.bodyKey}.body`),
+  }));
+  const GOALS = GOAL_KEYS.map((key) => t(`onboarding.aboutStep.goals.${key}`));
+  const STRESSORS = STRESSOR_KEYS.map((key) => t(`onboarding.aboutStep.stressors.${key}`));
+  const MOODS = MOOD_DEFS.map((mood) => ({
+    score: mood.score,
+    label: t(`onboarding.moodStep.options.${mood.key}`),
+  }));
+  const STEPS = [
+    t("onboarding.steps.consent"),
+    t("onboarding.steps.mode"),
+    t("onboarding.steps.aboutYou"),
+    t("onboarding.steps.firstCheckIn"),
+  ];
 
   const { data } = useQuery({ queryKey: ["my-profile"], queryFn: () => fetchProfile() });
 
@@ -112,6 +124,11 @@ function OnboardingPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [data]);
 
+  const languageMutation = useMutation({
+    mutationFn: (language: Language) => saveLanguage({ data: { language } }),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["my-profile"] }),
+  });
+
   const mutation = useMutation({
     mutationFn: () =>
       saveOnboarding({
@@ -134,10 +151,10 @@ function OnboardingPage() {
       }),
     onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey: ["my-profile"] });
-      toast.success("You're all set. Welcome to Kalm.");
+      toast.success(t("onboarding.successToast"));
       navigate({ to: "/chat", replace: true });
     },
-    onError: () => toast.error("We couldn't save your profile. Please try again."),
+    onError: () => toast.error(t("onboarding.errorToast")),
   });
 
   const canContinue = [
@@ -150,26 +167,32 @@ function OnboardingPage() {
   return (
     <div className="flex min-h-screen flex-col breathe-gradient">
       <main className="mx-auto w-full max-w-2xl flex-1 px-5 py-12">
-        <div className="mb-8 flex items-center gap-2 font-display text-xl">
-          <Leaf className="size-5 text-primary" aria-hidden />
-          Kalm
+        <div className="mb-8 flex items-center justify-between gap-3">
+          <div className="flex items-center gap-2 font-display text-xl">
+            <Leaf className="size-5 text-primary" aria-hidden />
+            Kalm
+          </div>
+          <LanguageSwitcher
+            className="w-auto"
+            onChange={(language) => languageMutation.mutate(language)}
+          />
         </div>
 
         <Progress value={((step + 1) / STEPS.length) * 100} className="h-1.5" />
         <p className="mt-3 text-sm text-muted-foreground">
-          Step {step + 1} of {STEPS.length} · {STEPS[step]}
+          {t("onboarding.stepLabel", {
+            current: step + 1,
+            total: STEPS.length,
+            name: STEPS[step] ?? "",
+          })}
         </p>
 
         <div className="surface-soft mt-6 p-7">
           {step === 0 && (
             <div className="space-y-6">
               <div>
-                <h1 className="text-3xl">Before we start</h1>
-                <p className="mt-3 text-muted-foreground">
-                  Kalm is a wellness support tool — not therapy, not a diagnosis, and not an
-                  emergency service. Everything you write stays yours: you can export or delete it
-                  whenever you like.
-                </p>
+                <h1 className="text-3xl">{t("onboarding.consentStep.title")}</h1>
+                <p className="mt-3 text-muted-foreground">{t("onboarding.consentStep.body")}</p>
               </div>
               <label className="flex cursor-pointer items-start gap-3">
                 <Checkbox
@@ -177,10 +200,7 @@ function OnboardingPage() {
                   onCheckedChange={(value) => setPrivacyConsent(value === true)}
                   className="mt-1"
                 />
-                <span>
-                  I understand Kalm is wellness support, not medical care, and I agree to the privacy
-                  notice and terms.
-                </span>
+                <span>{t("onboarding.consentStep.privacyLabel")}</span>
               </label>
               <label className="flex cursor-pointer items-start gap-3">
                 <Checkbox
@@ -188,7 +208,7 @@ function OnboardingPage() {
                   onCheckedChange={(value) => setAgeConfirmed(value === true)}
                   className="mt-1"
                 />
-                <span>I am 13 years old or older.</span>
+                <span>{t("onboarding.consentStep.ageLabel")}</span>
               </label>
               <label className="flex cursor-pointer items-start gap-3">
                 <Checkbox
@@ -196,10 +216,7 @@ function OnboardingPage() {
                   onCheckedChange={(value) => setAiContextConsent(value === true)}
                   className="mt-1"
                 />
-                <span>
-                  Optional: let Kalm use my check-ins and self-introduction to personalize
-                  conversations. You can turn this off at any time.
-                </span>
+                <span>{t("onboarding.consentStep.aiConsentLabel")}</span>
               </label>
             </div>
           )}
@@ -207,10 +224,8 @@ function OnboardingPage() {
           {step === 1 && (
             <div className="space-y-5">
               <div>
-                <h1 className="text-3xl">What brings you here?</h1>
-                <p className="mt-3 text-muted-foreground">
-                  This sets the tone, content and safety guardrails Kalm uses with you.
-                </p>
+                <h1 className="text-3xl">{t("onboarding.modeStep.title")}</h1>
+                <p className="mt-3 text-muted-foreground">{t("onboarding.modeStep.body")}</p>
               </div>
               <div className="space-y-3">
                 {MODES.map((option) => (
@@ -226,7 +241,9 @@ function OnboardingPage() {
                   >
                     <span className="flex-1">
                       <span className="block font-semibold">{option.title}</span>
-                      <span className="mt-1 block text-sm text-muted-foreground">{option.body}</span>
+                      <span className="mt-1 block text-sm text-muted-foreground">
+                        {option.body}
+                      </span>
                     </span>
                     {accountType === option.value && (
                       <Check className="mt-1 size-5 text-primary" aria-hidden />
@@ -240,38 +257,35 @@ function OnboardingPage() {
           {step === 2 && (
             <div className="space-y-6">
               <div>
-                <h1 className="text-3xl">Introduce yourself</h1>
-                <p className="mt-3 text-muted-foreground">
-                  Kalm carries this into every conversation, so it never starts from zero. Share as
-                  much or as little as you want.
-                </p>
+                <h1 className="text-3xl">{t("onboarding.aboutStep.title")}</h1>
+                <p className="mt-3 text-muted-foreground">{t("onboarding.aboutStep.body")}</p>
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="name">What should Kalm call you?</Label>
+                <Label htmlFor="name">{t("onboarding.aboutStep.nameLabel")}</Label>
                 <Input
                   id="name"
                   value={preferredName}
                   maxLength={60}
                   onChange={(event) => setPreferredName(event.target.value)}
-                  placeholder="Preferred name"
+                  placeholder={t("onboarding.aboutStep.namePlaceholder")}
                 />
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="intro">In your own words, what's going on right now?</Label>
+                <Label htmlFor="intro">{t("onboarding.aboutStep.introLabel")}</Label>
                 <Textarea
                   id="intro"
                   value={introText}
                   maxLength={2000}
                   rows={5}
                   onChange={(event) => setIntroText(event.target.value)}
-                  placeholder="I've been feeling stretched thin at work and my sleep has slipped…"
+                  placeholder={t("onboarding.aboutStep.introPlaceholder")}
                 />
               </div>
 
               <div className="space-y-2">
-                <Label>What would you like to work on?</Label>
+                <Label>{t("onboarding.aboutStep.goalsLabel")}</Label>
                 <div className="flex flex-wrap gap-2">
                   {GOALS.map((goal) => (
                     <Chip
@@ -285,7 +299,7 @@ function OnboardingPage() {
               </div>
 
               <div className="space-y-2">
-                <Label>What's weighing on you?</Label>
+                <Label>{t("onboarding.aboutStep.stressorsLabel")}</Label>
                 <div className="flex flex-wrap gap-2">
                   {STRESSORS.map((item) => (
                     <Chip
@@ -299,35 +313,37 @@ function OnboardingPage() {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="communication">How do you like to be spoken to? (optional)</Label>
+                <Label htmlFor="communication">
+                  {t("onboarding.aboutStep.communicationLabel")}
+                </Label>
                 <Input
                   id="communication"
                   value={communication}
                   maxLength={120}
                   onChange={(event) => setCommunication(event.target.value)}
-                  placeholder="Gentle and direct, no toxic positivity"
+                  placeholder={t("onboarding.aboutStep.communicationPlaceholder")}
                 />
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="avoid">Anything Kalm should avoid bringing up? (optional)</Label>
+                <Label htmlFor="avoid">{t("onboarding.aboutStep.avoidLabel")}</Label>
                 <Input
                   id="avoid"
                   value={avoid}
                   maxLength={500}
                   onChange={(event) => setAvoid(event.target.value)}
-                  placeholder="Please don't ask about my father"
+                  placeholder={t("onboarding.aboutStep.avoidPlaceholder")}
                 />
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="diagnosis">Existing diagnosis, if you'd like to share (optional)</Label>
+                <Label htmlFor="diagnosis">{t("onboarding.aboutStep.diagnosisLabel")}</Label>
                 <Input
                   id="diagnosis"
                   value={diagnosis}
                   maxLength={200}
                   onChange={(event) => setDiagnosis(event.target.value)}
-                  placeholder="e.g. generalized anxiety"
+                  placeholder={t("onboarding.aboutStep.diagnosisPlaceholder")}
                 />
               </div>
 
@@ -337,7 +353,7 @@ function OnboardingPage() {
                   onCheckedChange={(value) => setInCare(value === true)}
                   className="mt-1"
                 />
-                <span>I'm currently working with a therapist, counselor or doctor.</span>
+                <span>{t("onboarding.aboutStep.inCareLabel")}</span>
               </label>
             </div>
           )}
@@ -345,10 +361,8 @@ function OnboardingPage() {
           {step === 3 && (
             <div className="space-y-6">
               <div>
-                <h1 className="text-3xl">How are you right now?</h1>
-                <p className="mt-3 text-muted-foreground">
-                  This is your baseline. No wrong answer, and nothing here is a test.
-                </p>
+                <h1 className="text-3xl">{t("onboarding.moodStep.title")}</h1>
+                <p className="mt-3 text-muted-foreground">{t("onboarding.moodStep.body")}</p>
               </div>
               <div className="grid grid-cols-5 gap-2">
                 {MOODS.map((option) => (
@@ -378,7 +392,7 @@ function OnboardingPage() {
               onClick={() => setStep((value) => Math.max(0, value - 1))}
             >
               <ArrowLeft className="size-4" aria-hidden />
-              Back
+              {t("common.back")}
             </Button>
             {step < STEPS.length - 1 ? (
               <Button
@@ -386,7 +400,7 @@ function OnboardingPage() {
                 disabled={!canContinue}
                 onClick={() => setStep((value) => value + 1)}
               >
-                Continue
+                {t("common.continue")}
                 <ArrowRight className="size-4" aria-hidden />
               </Button>
             ) : (
@@ -395,7 +409,7 @@ function OnboardingPage() {
                 disabled={!canContinue || mutation.isPending}
                 onClick={() => mutation.mutate()}
               >
-                {mutation.isPending ? "Saving…" : "Finish setup"}
+                {mutation.isPending ? t("common.saving") : t("onboarding.finishSetup")}
               </Button>
             )}
           </div>
@@ -406,15 +420,7 @@ function OnboardingPage() {
   );
 }
 
-function Chip({
-  label,
-  active,
-  onClick,
-}: {
-  label: string;
-  active: boolean;
-  onClick: () => void;
-}) {
+function Chip({ label, active, onClick }: { label: string; active: boolean; onClick: () => void }) {
   return (
     <button
       type="button"

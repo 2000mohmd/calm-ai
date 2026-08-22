@@ -2,9 +2,11 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
-import { deleteMyData, getMyProfile } from "@/lib/onboarding.functions";
+import { deleteMyData, getMyProfile, updateMyLanguage } from "@/lib/onboarding.functions";
 import { AppShell } from "@/components/AppShell";
 import { YourDataSection } from "@/components/YourDataSection";
+import { LanguageSwitcher } from "@/components/LanguageSwitcher";
+import { useTranslation, type Language } from "@/lib/i18n";
 
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -26,7 +28,8 @@ export const Route = createFileRoute("/_authenticated/settings")({
       { title: "Your profile & data — Kalm" },
       {
         name: "description",
-        content: "Review what Kalm knows about you, your account mode, and delete your data anytime.",
+        content:
+          "Review what Kalm knows about you, your account mode, and delete your data anytime.",
       },
       { property: "og:title", content: "Your profile & data — Kalm" },
       {
@@ -38,17 +41,19 @@ export const Route = createFileRoute("/_authenticated/settings")({
   component: SettingsPage,
 });
 
-const MODE_LABELS: Record<string, string> = {
-  general: "Everyday stress & low mood",
-  condition: "Managing a diagnosed condition",
-  teen: "Teen / student mode",
-  org_member: "Workplace plan",
-};
-
 function SettingsPage() {
+  const { t } = useTranslation();
   const queryClient = useQueryClient();
   const fetchProfile = useServerFn(getMyProfile);
   const wipeData = useServerFn(deleteMyData);
+  const saveLanguage = useServerFn(updateMyLanguage);
+
+  const MODE_LABELS: Record<string, string> = {
+    general: t("settings.modes.general"),
+    condition: t("settings.modes.condition"),
+    teen: t("settings.modes.teen"),
+    org_member: t("settings.modes.orgMember"),
+  };
 
   const { data, isPending } = useQuery({
     queryKey: ["my-profile"],
@@ -59,9 +64,18 @@ function SettingsPage() {
     mutationFn: () => wipeData(),
     onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey: ["my-profile"] });
-      toast.success("Your check-ins and self-introduction have been deleted.");
+      toast.success(t("settings.deleteData.successToast"));
     },
-    onError: () => toast.error("We couldn't delete that right now. Please try again."),
+    onError: () => toast.error(t("settings.deleteData.errorToast")),
+  });
+
+  const languageMutation = useMutation({
+    mutationFn: (language: Language) => saveLanguage({ data: { language } }),
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: ["my-profile"] });
+      toast.success(t("language.saved"));
+    },
+    onError: () => toast.error(t("language.saveFailed")),
   });
 
   const profile = data?.profile;
@@ -77,26 +91,39 @@ function SettingsPage() {
       ) : (
         <div className="space-y-6">
           <header>
-            <h1 className="text-3xl sm:text-4xl">Your profile &amp; data</h1>
-            <p className="mt-2 text-muted-foreground">
-              Everything Kalm knows about you, in one place.
-            </p>
+            <h1 className="text-3xl sm:text-4xl">{t("settings.title")}</h1>
+            <p className="mt-2 text-muted-foreground">{t("settings.subtitle")}</p>
           </header>
 
           <section className="surface-soft p-6">
-            <h2 className="text-lg">Account</h2>
+            <h2 className="text-lg">{t("language.sectionTitle")}</h2>
+            <p className="mt-2 text-sm text-muted-foreground">{t("language.sectionDescription")}</p>
+            <div className="mt-4">
+              <LanguageSwitcher onChange={(language) => languageMutation.mutate(language)} />
+            </div>
+            <p className="mt-3 text-xs text-muted-foreground">{t("language.companionNote")}</p>
+            <p className="mt-1 text-xs text-muted-foreground">{t("language.reviewNotice")}</p>
+          </section>
+
+          <section className="surface-soft p-6">
+            <h2 className="text-lg">{t("settings.account.title")}</h2>
             <dl className="mt-4 grid gap-4 sm:grid-cols-2">
-              <Row label="Preferred name" value={profile?.preferred_name ?? "—"} />
               <Row
-                label="Mode"
+                label={t("settings.account.preferredName")}
+                value={profile?.preferred_name ?? "—"}
+              />
+              <Row
+                label={t("settings.account.mode")}
                 value={MODE_LABELS[profile?.account_type ?? ""] ?? profile?.account_type ?? "—"}
               />
               <Row
-                label="AI personalization"
-                value={profile?.ai_context_consent ? "On" : "Off"}
+                label={t("settings.account.aiPersonalization")}
+                value={
+                  profile?.ai_context_consent ? t("settings.account.on") : t("settings.account.off")
+                }
               />
               <Row
-                label="Consent accepted"
+                label={t("settings.account.consentAccepted")}
                 value={
                   profile?.consent_accepted_at
                     ? new Date(profile.consent_accepted_at).toLocaleDateString()
@@ -107,39 +134,51 @@ function SettingsPage() {
           </section>
 
           <section className="surface-soft p-6">
-            <h2 className="text-lg">Your self-introduction</h2>
+            <h2 className="text-lg">{t("settings.intro.title")}</h2>
             <p className="mt-3 whitespace-pre-wrap text-muted-foreground">
-              {intro?.intro_text || "You haven't written an introduction yet."}
+              {intro?.intro_text || t("settings.intro.empty")}
             </p>
             <div className="mt-5 grid gap-4 sm:grid-cols-2">
-              <Row label="Goals" value={(intro?.goals ?? []).join(", ") || "—"} />
-              <Row label="Stressors" value={(intro?.stressors ?? []).join(", ") || "—"} />
               <Row
-                label="Communication preference"
+                label={t("settings.intro.goals")}
+                value={(intro?.goals ?? []).join(", ") || "—"}
+              />
+              <Row
+                label={t("settings.intro.stressors")}
+                value={(intro?.stressors ?? []).join(", ") || "—"}
+              />
+              <Row
+                label={t("settings.intro.communicationPreference")}
                 value={intro?.communication_preference || "—"}
               />
-              <Row label="Topics to avoid" value={intro?.topics_to_avoid || "—"} />
               <Row
-                label="Working with a professional"
-                value={intro?.in_professional_care ? "Yes" : "Not currently"}
+                label={t("settings.intro.topicsToAvoid")}
+                value={intro?.topics_to_avoid || "—"}
               />
-              <Row label="Shared diagnosis" value={intro?.existing_diagnosis || "—"} />
+              <Row
+                label={t("settings.intro.workingWithProfessional")}
+                value={
+                  intro?.in_professional_care
+                    ? t("settings.intro.yes")
+                    : t("settings.intro.notCurrently")
+                }
+              />
+              <Row
+                label={t("settings.intro.sharedDiagnosis")}
+                value={intro?.existing_diagnosis || "—"}
+              />
             </div>
           </section>
 
           <section className="surface-soft p-6">
-            <h2 className="text-lg">Contact support</h2>
-            <p className="mt-2 text-sm text-muted-foreground">
-              Questions about your account, billing, a bug, or feedback for us? Send a message and
-              we'll reply right inside Kalm. For anything urgent about how you're feeling, use the
-              support resources page instead.
-            </p>
+            <h2 className="text-lg">{t("settings.support.title")}</h2>
+            <p className="mt-2 text-sm text-muted-foreground">{t("settings.support.body")}</p>
             <div className="mt-5 flex flex-wrap gap-3">
               <Button asChild className="rounded-full">
-                <Link to="/support">Message support</Link>
+                <Link to="/support">{t("settings.support.messageButton")}</Link>
               </Button>
               <Button asChild variant="secondary" className="rounded-full">
-                <Link to="/care">Support resources</Link>
+                <Link to="/care">{t("settings.support.resourcesButton")}</Link>
               </Button>
             </div>
           </section>
@@ -147,32 +186,30 @@ function SettingsPage() {
           <YourDataSection />
 
           <section className="surface-soft p-6">
-
-            <h2 className="text-lg">Delete your data</h2>
-            <p className="mt-2 text-sm text-muted-foreground">
-              This removes every check-in and clears your self-introduction. Your account stays, so
-              you can start fresh whenever you want. This can't be undone.
-            </p>
+            <h2 className="text-lg">{t("settings.deleteData.title")}</h2>
+            <p className="mt-2 text-sm text-muted-foreground">{t("settings.deleteData.body")}</p>
             <AlertDialog>
               <AlertDialogTrigger asChild>
                 <Button variant="destructive" className="mt-5 rounded-full">
-                  Delete my check-ins &amp; introduction
+                  {t("settings.deleteData.button")}
                 </Button>
               </AlertDialogTrigger>
               <AlertDialogContent>
                 <AlertDialogHeader>
-                  <AlertDialogTitle>Delete your wellness data?</AlertDialogTitle>
+                  <AlertDialogTitle>{t("settings.deleteData.dialogTitle")}</AlertDialogTitle>
                   <AlertDialogDescription>
-                    Every mood check-in and your self-introduction will be permanently removed.
+                    {t("settings.deleteData.dialogBody")}
                   </AlertDialogDescription>
                 </AlertDialogHeader>
                 <AlertDialogFooter>
-                  <AlertDialogCancel>Keep my data</AlertDialogCancel>
+                  <AlertDialogCancel>{t("settings.deleteData.keep")}</AlertDialogCancel>
                   <AlertDialogAction
                     onClick={() => mutation.mutate()}
                     disabled={mutation.isPending}
                   >
-                    {mutation.isPending ? "Deleting…" : "Delete permanently"}
+                    {mutation.isPending
+                      ? t("settings.deleteData.deleting")
+                      : t("settings.deleteData.confirm")}
                   </AlertDialogAction>
                 </AlertDialogFooter>
               </AlertDialogContent>
@@ -180,9 +217,9 @@ function SettingsPage() {
           </section>
 
           <p className="text-sm text-muted-foreground">
-            Read the{" "}
+            {t("settings.readLegalPrefix")}{" "}
             <Link to="/legal" className="font-semibold text-primary underline underline-offset-4">
-              disclaimers and privacy notice
+              {t("settings.legalLinkText")}
             </Link>
             .
           </p>

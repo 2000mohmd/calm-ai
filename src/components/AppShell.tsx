@@ -3,10 +3,12 @@ import { Leaf } from "lucide-react";
 import { useState, type ReactNode } from "react";
 import { SafetyFooter } from "./SafetyFooter";
 import { AppSidebar, SIDEBAR_NAV } from "./AppSidebar";
+import { useTranslation } from "@/lib/i18n";
 
 export function AppShell({ children }: { children: ReactNode }) {
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const pathname = useRouterState({ select: (s) => s.location.pathname });
+  const { t } = useTranslation();
 
   return (
     <div className="flex min-h-screen w-full bg-background">
@@ -19,11 +21,11 @@ export function AppShell({ children }: { children: ReactNode }) {
             <Leaf className="size-5 text-primary" aria-hidden />
             Kalm
           </Link>
-          {SIDEBAR_NAV.map(({ to, label, icon: Icon }) => (
+          {SIDEBAR_NAV.map(({ to, labelKey, icon: Icon }) => (
             <Link
               key={to}
               to={to}
-              aria-label={label}
+              aria-label={t(labelKey)}
               className={`rounded-full p-2 ${
                 pathname === to
                   ? "bg-secondary text-secondary-foreground"

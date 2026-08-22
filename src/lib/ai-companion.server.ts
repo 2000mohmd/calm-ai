@@ -2,11 +2,8 @@
 // with native Claude tool use. The deterministic crisis gate (detectCrisis in
 // crisis.ts) runs BEFORE any of this and is never delegated to the model.
 import { CRISIS_DISCLAIMER } from "./crisis";
-import {
-  callCompanionModel,
-  type LlmContentBlock,
-  type LlmMessage,
-} from "./llm-provider.server";
+import { languageName, type Language } from "./i18n/languages";
+import { callCompanionModel, type LlmContentBlock, type LlmMessage } from "./llm-provider.server";
 import {
   CHAT_TOOLS,
   NUDGE_TOOLS,
@@ -20,10 +17,10 @@ const MODEL = "claude-sonnet-5";
 const MAX_TOKENS = 1024;
 const MAX_TOOL_ITERATIONS = 3;
 
-
 export type CompanionContext = {
   preferredName: string | null;
   accountType: string | null;
+  language?: Language;
   introText: string | null;
   goals: string[];
   stressors: string[];
@@ -39,7 +36,6 @@ export type CompanionContext = {
   dailyPromptResponses?: { prompt: string; response: string; when: string }[];
 };
 
-
 const QUICK_ACTION_GUIDANCE: Record<string, string> = {
   anxious:
     "The person selected 'I'm feeling anxious'. Start by slowing the pace: validate the anxiety, then offer one small, concrete regulating step (breath, body, or naming what's happening) before any exploration.",
@@ -49,8 +45,7 @@ const QUICK_ACTION_GUIDANCE: Record<string, string> = {
     "The person selected 'I need a grounding exercise'. Guide one short grounding practice step by step (e.g. 5-4-3-2-1 senses or feet-on-floor), one instruction per line, and check in at the end.",
   sleep:
     "The person selected 'I can't sleep'. Keep the reply short, low-stimulation and soothing. Offer one wind-down practice and avoid problem-solving spirals.",
-  vent:
-    "The person selected 'I just want to vent'. Mostly listen and reflect. Do not offer exercises or advice unless they ask.",
+  vent: "The person selected 'I just want to vent'. Mostly listen and reflect. Do not offer exercises or advice unless they ask.",
 };
 
 export function buildSystemPrompt(ctx: CompanionContext): string {
@@ -58,6 +53,8 @@ export function buildSystemPrompt(ctx: CompanionContext): string {
     "You are Kalm, a warm, steady mental wellness companion inside the Kalm app.",
     "",
     "TONE: warm, validating, human and unhurried. Short paragraphs. Plain language. Reflect feelings before offering anything. Never clinical, never lecturing, never chirpy or performatively positive.",
+    "",
+    `LANGUAGE: Reply in ${languageName(ctx.language ?? "en")}, since that's this person's chosen app language. If they write to you in a different language, match theirs for that reply instead.`,
     "",
     "HOW YOU TALK: You are running a conversation, not answering a question. Most replies should do ONE of these, not several at once: reflect what they said, ask one specific follow-up question, or guide one small step of something — then stop and wait for them. Do not deliver multi-point advice lists or fully resolve something in a single reply unless they've explicitly asked for a direct answer or summary. Read what kind of message this is before deciding how to respond:\n\nIf it's a direct question or a request for information/help with something concrete (\"what's box breathing?\", \"how do I fall asleep faster?\", \"can you explain X?\"), answer it directly and completely — don't deflect with a question instead of answering. You can still add a brief, genuinely relevant follow-up question at the end if it would meaningfully help (e.g. personalizing the answer to their situation), but it's optional here, not required.\n\nIf it's an emotional, exploratory, or ambiguous share (how they're feeling, something going on in their life, a vague opener), keep using the conversational coaching style: reflect, ask one specific question before advising, one step at a time — a real question is usually the right move here, not optional.\n\nIf they're clearly winding down (thanking you, saying goodbye, topic resolved), let it close naturally instead of asking anything further. The judgment call is: are they asking you to explain/help with something concrete, or are they processing something with you? Answer the first plainly; explore the second with them.",
     "",
@@ -81,7 +78,6 @@ export function buildSystemPrompt(ctx: CompanionContext): string {
     "--- PERSON CONTEXT ---",
   ];
 
-
   if (ctx.preferredName) lines.push(`Preferred name: ${ctx.preferredName}`);
   if (ctx.accountType === "teen") {
     lines.push(
@@ -93,8 +89,7 @@ export function buildSystemPrompt(ctx: CompanionContext): string {
   if (ctx.stressors.length) lines.push(`Current stressors: ${ctx.stressors.join(", ")}`);
   if (ctx.communicationPreference)
     lines.push(`How they like to be spoken to: ${ctx.communicationPreference}`);
-  if (ctx.topicsToAvoid)
-    lines.push(`NEVER bring up these topics unprompted: ${ctx.topicsToAvoid}`);
+  if (ctx.topicsToAvoid) lines.push(`NEVER bring up these topics unprompted: ${ctx.topicsToAvoid}`);
   if (ctx.inProfessionalCare)
     lines.push(
       "They are already working with a professional — support that relationship, never contradict or replace it.",
@@ -169,7 +164,6 @@ export function buildSystemPrompt(ctx: CompanionContext): string {
     "- Never announce that you are using a tool. Just do it, then mention plainly what you saved or opened.",
   );
 
-
   if (ctx.quickAction && QUICK_ACTION_GUIDANCE[ctx.quickAction]) {
     lines.push("", `QUICK ACTION: ${QUICK_ACTION_GUIDANCE[ctx.quickAction]}`);
   } else if (ctx.history.length === 0) {
@@ -178,7 +172,6 @@ export function buildSystemPrompt(ctx: CompanionContext): string {
       "SESSION START: This is the start of a new conversation. Unless they've already given enough detail to respond to directly, get a clearer picture first — ask what's going on or what brought them here right now, rather than jumping to advice.",
     );
   }
-
 
   return lines.join("\n");
 }
@@ -195,7 +188,6 @@ async function callAnthropic(
 ): Promise<AnthropicResponse> {
   return callCompanionModel({ model: MODEL, maxTokens: MAX_TOKENS, system, messages, tools });
 }
-
 
 function collectText(blocks: AnthropicContentBlock[] | undefined) {
   return (blocks ?? [])
@@ -237,11 +229,17 @@ export async function generateCompanionReply(
     if (text) lastText = text;
 
     const toolUses = blocks.filter(
-      (block): block is { type: "tool_use"; id: string; name: string; input: Record<string, unknown> } =>
+      (
+        block,
+      ): block is { type: "tool_use"; id: string; name: string; input: Record<string, unknown> } =>
         block.type === "tool_use",
     );
 
-    if (payload.stop_reason !== "tool_use" || toolUses.length === 0 || iteration === MAX_TOOL_ITERATIONS) {
+    if (
+      payload.stop_reason !== "tool_use" ||
+      toolUses.length === 0 ||
+      iteration === MAX_TOOL_ITERATIONS
+    ) {
       if (lastText) return { text: lastText, actions };
       break;
     }
@@ -301,7 +299,9 @@ export async function generateNudgeMessage(
     if (text) lastText = text;
 
     const toolUses = blocks.filter(
-      (block): block is { type: "tool_use"; id: string; name: string; input: Record<string, unknown> } =>
+      (
+        block,
+      ): block is { type: "tool_use"; id: string; name: string; input: Record<string, unknown> } =>
         block.type === "tool_use",
     );
 
@@ -332,4 +332,3 @@ export async function generateNudgeMessage(
   if (!lastText) throw new Error("Could not generate a nudge right now.");
   return lastText;
 }
-

@@ -5,13 +5,17 @@ import { triageCrisis, type CrisisResponse } from "./crisis";
 import { QUICK_ACTION_IDS } from "./quick-actions";
 import { checkRateLimit, RATE_LIMIT_MESSAGE } from "./chat-rate-limit";
 import type { CompanionAction } from "./companion-tools.server";
+import { normalizeLanguage } from "./i18n/languages";
 
 const HISTORY_LIMIT = 20;
 
 const SendInput = z.object({
   thread_id: z.string().uuid().optional(),
   content: z.string().trim().min(1).max(4000),
-  quick_action: z.string().refine((value) => QUICK_ACTION_IDS.includes(value)).nullish(),
+  quick_action: z
+    .string()
+    .refine((value) => QUICK_ACTION_IDS.includes(value))
+    .nullish(),
 });
 
 export const listThreads = createServerFn({ method: "GET" })
@@ -54,7 +58,9 @@ export const getThreadHistory = createServerFn({ method: "POST" })
         .maybeSingle(),
       supabase
         .from("chat_messages")
-        .select("id, sender, content, content_type, exercise_slug, flagged_crisis, quick_action, created_at")
+        .select(
+          "id, sender, content, content_type, exercise_slug, flagged_crisis, quick_action, created_at",
+        )
         .eq("thread_id", data.thread_id)
         .eq("user_id", userId)
         .order("created_at", { ascending: true }),
@@ -130,6 +136,15 @@ export const sendMessage = createServerFn({ method: "POST" })
     // per-user rate limiter (see crisis-gate.server.ts). DO NOT REORDER. ---
     const triage = triageCrisis(data.content);
 
+    // Fetched once, up front, so the crisis copy below and the companion
+    // reply later both speak the person's selected language.
+    const profileForLanguage = await supabase
+      .from("profiles")
+      .select("preferred_name, account_type, ai_context_consent, language")
+      .eq("id", userId)
+      .maybeSingle();
+    const language = normalizeLanguage(profileForLanguage.data?.language);
+
     const savedUser = await supabase
       .from("chat_messages")
       .insert({
@@ -162,6 +177,7 @@ export const sendMessage = createServerFn({ method: "POST" })
       recentTurns: (recentTurns.data ?? [])
         .reverse()
         .map((row) => ({ sender: row.sender, content: row.content })),
+      language,
     });
 
     if (gated) {
@@ -179,7 +195,6 @@ export const sendMessage = createServerFn({ method: "POST" })
         },
       };
     }
-
 
     // --- Per-user rate limit (normal chat path only; never gates crisis).
     // Both crisis checks above have already run and come up clear. ---
@@ -211,9 +226,8 @@ export const sendMessage = createServerFn({ method: "POST" })
     }
 
     // --- Cross-session memory: summarize the thread they just left, once ---
-    const { ensureThreadSummary, fetchRecentSummaries, findPreviousThread } = await import(
-      "./thread-summary.server"
-    );
+    const { ensureThreadSummary, fetchRecentSummaries, findPreviousThread } =
+      await import("./thread-summary.server");
     try {
       const previousThreadId = await findPreviousThread(supabase, userId, threadId);
       if (previousThreadId) {
@@ -228,52 +242,48 @@ export const sendMessage = createServerFn({ method: "POST" })
     const { getScreenersDue } = await import("./screeners.server");
     const { computeEngagementStreak } = await import("./streak.server");
 
-    const [profile, intro, moods, history, pastSummaries, screeners, streakDays, dailyPrompts] =
+    const [intro, moods, history, pastSummaries, screeners, streakDays, dailyPrompts] =
       await Promise.all([
-      supabase
-        .from("profiles")
-        .select("preferred_name, account_type, ai_context_consent")
-        .eq("id", userId)
-        .maybeSingle(),
-      supabase
-        .from("user_profiles")
-        .select(
-          "intro_text, goals, stressors, communication_preference, topics_to_avoid, in_professional_care",
-        )
-        .eq("user_id", userId)
-        .maybeSingle(),
-      supabase
-        .from("mood_logs")
-        .select("score, note, tags, logged_at")
-        .eq("user_id", userId)
-        .order("logged_at", { ascending: false })
-        .limit(7),
-      supabase
-        .from("chat_messages")
-        .select("sender, content, created_at")
-        .eq("thread_id", threadId)
-        .eq("user_id", userId)
-        .neq("id", savedUser.data.id)
-        .order("created_at", { ascending: false })
-        .limit(HISTORY_LIMIT),
-      fetchRecentSummaries(supabase, userId, threadId).catch(() => []),
-      getScreenersDue(supabase, userId).catch(() => []),
-      computeEngagementStreak(supabase, userId).catch(() => 0),
-      supabase
-        .from("daily_prompt_responses")
-        .select("response_text, responded_at, daily_prompts(prompt_text)")
-        .eq("user_id", userId)
-        .order("responded_at", { ascending: false })
-        .limit(3),
-    ]);
+        supabase
+          .from("user_profiles")
+          .select(
+            "intro_text, goals, stressors, communication_preference, topics_to_avoid, in_professional_care",
+          )
+          .eq("user_id", userId)
+          .maybeSingle(),
+        supabase
+          .from("mood_logs")
+          .select("score, note, tags, logged_at")
+          .eq("user_id", userId)
+          .order("logged_at", { ascending: false })
+          .limit(7),
+        supabase
+          .from("chat_messages")
+          .select("sender, content, created_at")
+          .eq("thread_id", threadId)
+          .eq("user_id", userId)
+          .neq("id", savedUser.data.id)
+          .order("created_at", { ascending: false })
+          .limit(HISTORY_LIMIT),
+        fetchRecentSummaries(supabase, userId, threadId).catch(() => []),
+        getScreenersDue(supabase, userId).catch(() => []),
+        computeEngagementStreak(supabase, userId).catch(() => 0),
+        supabase
+          .from("daily_prompt_responses")
+          .select("response_text, responded_at, daily_prompts(prompt_text)")
+          .eq("user_id", userId)
+          .order("responded_at", { ascending: false })
+          .limit(3),
+      ]);
 
-    const consented = profile.data?.ai_context_consent !== false;
+    const consented = profileForLanguage.data?.ai_context_consent !== false;
     const { generateCompanionReply } = await import("./ai-companion.server");
 
     const reply = await generateCompanionReply(
       {
-        preferredName: profile.data?.preferred_name ?? null,
-        accountType: profile.data?.account_type ?? null,
+        preferredName: profileForLanguage.data?.preferred_name ?? null,
+        accountType: profileForLanguage.data?.account_type ?? null,
+        language,
         introText: consented ? (intro.data?.intro_text ?? null) : null,
         goals: consented ? (intro.data?.goals ?? []) : [],
         stressors: consented ? (intro.data?.stressors ?? []) : [],
@@ -304,7 +314,6 @@ export const sendMessage = createServerFn({ method: "POST" })
       data.content,
       { supabase, userId, threadId },
     );
-
 
     // Make tool-driven actions visible in the transcript, never silent.
     const actionLines = reply.actions.map((action) => `• ${action.summary}`);

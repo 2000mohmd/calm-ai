@@ -5,18 +5,24 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/integrations/supabase/types";
 import { callCompanionModel } from "./llm-provider.server";
+import { languageName, normalizeLanguage } from "./i18n/languages";
 
 type Client = SupabaseClient<Database>;
 
 const DIGEST_MODEL = "claude-sonnet-5";
 const DIGEST_MAX_TOKENS = 600;
-const DIGEST_SYSTEM = `You write a short weekly recap for someone using a mental wellness app. You are warm, plain-spoken and honest — never clinical, never a report, never relentlessly positive.
+
+function digestSystemPrompt(language: string): string {
+  return `You write a short weekly recap for someone using a mental wellness app. You are warm, plain-spoken and honest — never clinical, never a report, never relentlessly positive.
+
+Write in ${languageName(normalizeLanguage(language))}.
 
 Write JSON only, with exactly two keys:
 - "narrative": 4-7 sentences of plain prose. If a previous focus is given, OPEN by referencing whether it happened, the way a coach starts a session ("Last week we talked about X — looks like…"). Then reflect what actually happened this week in ordinary language, and name ONE honest pattern worth noticing. If the week was hard or thin on activity, say so kindly instead of inventing progress. No headings, no bullets, no diagnosis, no medical advice.
 - "focus": one specific, small, achievable focus for the coming week, in one sentence, written to the person ("you").
 
 Return raw JSON with no code fences.`;
+}
 
 function isoDay(date: Date) {
   return date.toISOString().slice(0, 10);
@@ -30,7 +36,13 @@ export function weekStartOf(date: Date) {
   return isoDay(copy);
 }
 
-type MoodSummary = { count: number; average: number | null; low: number | null; high: number | null; tags: string[] };
+type MoodSummary = {
+  count: number;
+  average: number | null;
+  low: number | null;
+  high: number | null;
+  tags: string[];
+};
 type HabitsSummary = { habit: string; completed: number; target: number }[];
 type ExercisesTried = { name: string; count: number; moodDelta: number | null }[];
 type ScreenerSummary = { type: string; score: number; severity: string; takenAt: string }[];
@@ -63,8 +75,9 @@ export async function generateWeeklyDigestFor(
     return { created: false };
   }
 
-  const [moods, habits, habitLogs, completions, screeners, insights, commitments] =
+  const [profile, moods, habits, habitLogs, completions, screeners, insights, commitments] =
     await Promise.all([
+      supabase.from("profiles").select("language").eq("id", userId).maybeSingle(),
       supabase
         .from("mood_logs")
         .select("score, tags, note, logged_at")
@@ -210,7 +223,7 @@ export async function generateWeeklyDigestFor(
     const payload = await callCompanionModel({
       model: DIGEST_MODEL,
       maxTokens: DIGEST_MAX_TOKENS,
-      system: DIGEST_SYSTEM,
+      system: digestSystemPrompt(profile.data?.language ?? "en"),
       messages: [{ role: "user", content: facts }],
     });
     const text = payload.content

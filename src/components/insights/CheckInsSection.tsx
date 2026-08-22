@@ -4,22 +4,27 @@ import { useServerFn } from "@tanstack/react-start";
 import { useState } from "react";
 import { toast } from "sonner";
 import { getScreenerState, submitScreener } from "@/lib/screeners.functions";
-import {
-  SCREENERS,
-  SCREENER_CHOICES,
-  SCREENER_FRAMING,
-  maxScore,
-  type ScreenerType,
-} from "@/lib/screeners";
+import { SCREENERS, SCREENER_CHOICES, maxScore, type ScreenerType } from "@/lib/screeners";
 import type { CrisisResponse } from "@/lib/crisis";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useTranslation } from "@/lib/i18n";
+
+const SEVERITY_KEYS: Record<string, string> = {
+  minimal: "screeners.severity.minimal",
+  mild: "screeners.severity.mild",
+  moderate: "screeners.severity.moderate",
+  "moderately severe": "screeners.severity.moderatelySevere",
+  severe: "screeners.severity.severe",
+};
 
 /**
  * PHQ-9 / GAD-7 check-ins, history and the item-9 crisis view.
  * Shared by /check-ins and the "Check-ins" tab of /insights.
  */
 export function CheckInsSection({ showHeader = true }: { showHeader?: boolean }) {
+  const { t } = useTranslation();
+  const severityLabel = (severity: string) => t(SEVERITY_KEYS[severity] ?? severity);
   const queryClient = useQueryClient();
   const fetchState = useServerFn(getScreenerState);
   const submit = useServerFn(submitScreener);
@@ -50,16 +55,21 @@ export function CheckInsSection({ showHeader = true }: { showHeader?: boolean })
         setCrisis(result.crisis);
         return;
       }
-      toast.success(`Saved — ${result.total_score} (${result.severity} range).`);
+      toast.success(
+        t("screeners.savedToast", {
+          score: result.total_score,
+          severity: severityLabel(result.severity),
+        }),
+      );
     },
-    onError: () => toast.error("We couldn't save that. Please try again."),
+    onError: () => toast.error(t("common.saveFailed")),
   });
 
   if (crisis) {
     return (
       <div className="mx-auto max-w-2xl space-y-6">
         <div className="rounded-3xl border border-crisis/40 bg-crisis-surface p-6 text-crisis">
-          <h2 className="text-2xl">You don't have to sit with this alone</h2>
+          <h2 className="text-2xl">{t("screeners.crisis.title")}</h2>
           <p className="mt-3">{crisis.message}</p>
         </div>
         <ul className="space-y-3">
@@ -74,10 +84,10 @@ export function CheckInsSection({ showHeader = true }: { showHeader?: boolean })
         <p className="text-sm text-muted-foreground">{crisis.disclaimer}</p>
         <div className="flex flex-wrap gap-3">
           <Button asChild className="rounded-full px-6">
-            <Link to="/crisis">See all crisis resources</Link>
+            <Link to="/crisis">{t("screeners.crisis.seeAllResources")}</Link>
           </Button>
           <Button variant="ghost" className="rounded-full" onClick={() => setCrisis(null)}>
-            Back to check-ins
+            {t("screeners.crisis.backToCheckIns")}
           </Button>
         </div>
       </div>
@@ -99,16 +109,16 @@ export function CheckInsSection({ showHeader = true }: { showHeader?: boolean })
     return (
       <div className="mx-auto max-w-2xl space-y-6">
         <header>
-          <h2 className="text-2xl sm:text-3xl">{screener.label}</h2>
-          <p className="mt-2 text-muted-foreground">{screener.prompt}</p>
-          <p className="mt-2 text-sm text-muted-foreground">{SCREENER_FRAMING}</p>
+          <h2 className="text-2xl sm:text-3xl">{t(`screeners.${activeType}.label`)}</h2>
+          <p className="mt-2 text-muted-foreground">{t(`screeners.${activeType}.prompt`)}</p>
+          <p className="mt-2 text-sm text-muted-foreground">{t("screeners.framing")}</p>
         </header>
 
         <ol className="space-y-4">
-          {screener.items.map((item, index) => (
-            <li key={item} className="surface-soft p-5">
+          {screener.items.map((_item, index) => (
+            <li key={index} className="surface-soft p-5">
               <p className="text-sm">
-                {index + 1}. {item}
+                {index + 1}. {t(`screeners.${activeType}.items.${index}`)}
               </p>
               <div className="mt-3 grid gap-2 sm:grid-cols-4">
                 {SCREENER_CHOICES.map((choice) => (
@@ -129,7 +139,7 @@ export function CheckInsSection({ showHeader = true }: { showHeader?: boolean })
                         : "border-border bg-card hover:bg-muted"
                     }`}
                   >
-                    {choice.label}
+                    {t(`screeners.choices.${choice.value}`)}
                   </button>
                 ))}
               </div>
@@ -143,7 +153,7 @@ export function CheckInsSection({ showHeader = true }: { showHeader?: boolean })
             disabled={!complete || save.isPending}
             onClick={() => save.mutate()}
           >
-            {save.isPending ? "Saving…" : "Save check-in"}
+            {save.isPending ? t("common.saving") : t("screeners.saveButton")}
           </Button>
           <Button
             variant="ghost"
@@ -153,7 +163,7 @@ export function CheckInsSection({ showHeader = true }: { showHeader?: boolean })
               setAnswers([]);
             }}
           >
-            Cancel
+            {t("common.cancel")}
           </Button>
         </div>
       </div>
@@ -164,9 +174,9 @@ export function CheckInsSection({ showHeader = true }: { showHeader?: boolean })
     <div className="space-y-8">
       {showHeader && (
         <header>
-          <h1 className="text-3xl sm:text-4xl">Periodic check-ins</h1>
+          <h1 className="text-3xl sm:text-4xl">{t("screeners.title")}</h1>
           <p className="mt-2 max-w-2xl text-muted-foreground">
-            Two short, well-established questionnaires, suggested every two weeks. {SCREENER_FRAMING}
+            {t("screeners.subtitle")} {t("screeners.framing")}
           </p>
         </header>
       )}
@@ -175,15 +185,22 @@ export function CheckInsSection({ showHeader = true }: { showHeader?: boolean })
         {(data?.screeners ?? []).map((entry) => (
           <div key={entry.type} className="surface-soft space-y-4 p-6">
             <div>
-              <h2 className="text-lg">{entry.label}</h2>
+              <h2 className="text-lg">{t(`screeners.${entry.type}.label`)}</h2>
               <p className="mt-1 text-sm text-muted-foreground">
                 {entry.latest
-                  ? `Last taken ${new Date(entry.latest.taken_at).toLocaleDateString()} — ${entry.latest.total_score} of ${maxScore(entry.type)} (${entry.latest.severity} range).`
-                  : "Not taken yet."}
+                  ? t("screeners.lastTaken", {
+                      date: new Date(entry.latest.taken_at).toLocaleDateString(),
+                      score: entry.latest.total_score,
+                      max: maxScore(entry.type),
+                      severity: severityLabel(entry.latest.severity),
+                    })
+                  : t("screeners.notTakenYet")}
               </p>
               {entry.dueAt && !entry.due && (
                 <p className="mt-1 text-xs text-muted-foreground">
-                  Next suggested {new Date(entry.dueAt).toLocaleDateString()}.
+                  {t("screeners.nextSuggested", {
+                    date: new Date(entry.dueAt).toLocaleDateString(),
+                  })}
                 </p>
               )}
             </div>
@@ -213,7 +230,7 @@ export function CheckInsSection({ showHeader = true }: { showHeader?: boolean })
                 setAnswers(new Array(SCREENERS[entry.type].items.length).fill(null));
               }}
             >
-              {entry.due ? "Take it now" : "Take it again"}
+              {entry.due ? t("screeners.takeNow") : t("screeners.takeAgain")}
             </Button>
           </div>
         ))}

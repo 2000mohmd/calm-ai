@@ -4,6 +4,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { listCareResources } from "@/lib/nudges.functions";
 import { AppShell } from "@/components/AppShell";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useTranslation } from "@/lib/i18n";
 
 export const Route = createFileRoute("/_authenticated/care")({
   head: () => ({
@@ -26,14 +27,15 @@ export const Route = createFileRoute("/_authenticated/care")({
   component: CarePage,
 });
 
-const GROUPS = [
-  { type: "directory", label: "Find a therapist" },
-  { type: "low_cost", label: "Lower-cost options" },
-  { type: "employer_eap", label: "Through your workplace" },
-  { type: "crisis", label: "If things feel unsafe right now" },
+const GROUP_KEYS = [
+  { type: "directory", labelKey: "carePage.groups.directory" },
+  { type: "low_cost", labelKey: "carePage.groups.lowCost" },
+  { type: "employer_eap", labelKey: "carePage.groups.employerEap" },
+  { type: "crisis", labelKey: "carePage.groups.crisis" },
 ] as const;
 
 function CarePage() {
+  const { t } = useTranslation();
   const fetchResources = useServerFn(listCareResources);
   const { data, isPending } = useQuery({
     queryKey: ["care-resources"],
@@ -44,22 +46,19 @@ function CarePage() {
     <AppShell>
       <div className="space-y-8">
         <header>
-          <h1 className="text-3xl sm:text-4xl">Talking to a person</h1>
-          <p className="mt-2 max-w-2xl text-muted-foreground">
-            Kalm is here for the day-to-day, but there are things a trained human does better. These
-            are places to start — no pressure, and no wrong time to use them.
-          </p>
+          <h1 className="text-3xl sm:text-4xl">{t("carePage.title")}</h1>
+          <p className="mt-2 max-w-2xl text-muted-foreground">{t("carePage.subtitle")}</p>
         </header>
 
         {isPending ? (
           <Skeleton className="h-64 w-full rounded-3xl" />
         ) : (
-          GROUPS.map((group) => {
+          GROUP_KEYS.map((group) => {
             const rows = (data ?? []).filter((row) => row.resource_type === group.type);
             if (rows.length === 0) return null;
             return (
               <section key={group.type} className="surface-soft p-6">
-                <h2 className="text-lg">{group.label}</h2>
+                <h2 className="text-lg">{t(group.labelKey)}</h2>
                 <ul className="mt-4 space-y-4 text-sm">
                   {rows.map((row) => (
                     <li key={row.id}>

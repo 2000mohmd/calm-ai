@@ -4,14 +4,15 @@ import type { ExerciseStep } from "@/lib/exercise-types";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { useTranslation } from "@/lib/i18n";
 
-const MOODS = [
-  { score: 1, label: "Really low" },
-  { score: 2, label: "Low" },
-  { score: 3, label: "Okay" },
-  { score: 4, label: "Good" },
-  { score: 5, label: "Great" },
-];
+const MOOD_KEYS = [
+  { score: 1, key: "reallyLow" },
+  { score: 2, key: "low" },
+  { score: 3, key: "okay" },
+  { score: 4, key: "good" },
+  { score: 5, key: "great" },
+] as const;
 
 export function MoodRow({
   value,
@@ -20,6 +21,11 @@ export function MoodRow({
   value: number | null;
   onChange: (score: number) => void;
 }) {
+  const { t } = useTranslation();
+  const MOODS = MOOD_KEYS.map((mood) => ({
+    score: mood.score,
+    label: t(`mood.options.${mood.key}`),
+  }));
   return (
     <div className="grid grid-cols-5 gap-2">
       {MOODS.map((mood) => (
@@ -108,6 +114,7 @@ export function ExerciseStepPlayer({
   saving = false,
   compact = false,
 }: ExerciseStepPlayerProps) {
+  const { t } = useTranslation();
   const [stepIndex, setStepIndex] = useState(0);
   const [answers, setAnswers] = useState<Record<string, string>>({});
   const [moodBefore, setMoodBefore] = useState<number | null>(null);
@@ -123,7 +130,7 @@ export function ExerciseStepPlayer({
     return (
       <section className={sectionClass}>
         <h3 className={compact ? "text-sm font-medium" : "text-lg"}>
-          Before we start — how are you feeling?
+          {t("exercisePlayer.beforeStartTitle")}
         </h3>
         <MoodRow value={moodBefore} onChange={setMoodBefore} />
         <button
@@ -131,7 +138,7 @@ export function ExerciseStepPlayer({
           className="text-sm text-muted-foreground underline underline-offset-4"
           onClick={() => setMoodBefore(3)}
         >
-          Skip this
+          {t("exercisePlayer.skip")}
         </button>
       </section>
     );
@@ -141,11 +148,9 @@ export function ExerciseStepPlayer({
     return (
       <section className={sectionClass}>
         <h3 className={compact ? "text-sm font-medium" : "text-lg"}>
-          And how are you feeling now?
+          {t("exercisePlayer.afterTitle")}
         </h3>
-        <p className="text-sm text-muted-foreground">
-          Optional — this feeds into your mood trend so patterns show up over time.
-        </p>
+        <p className="text-sm text-muted-foreground">{t("exercisePlayer.afterBody")}</p>
         <MoodRow value={moodAfter} onChange={setMoodAfter} />
         <div className="flex flex-wrap gap-3">
           <Button
@@ -153,7 +158,7 @@ export function ExerciseStepPlayer({
             disabled={saving}
             onClick={() => onComplete(moodBefore, moodAfter, answers)}
           >
-            {saving ? "Saving…" : "Finish"}
+            {saving ? t("common.saving") : t("exercisePlayer.finish")}
           </Button>
           <Button
             variant="ghost"
@@ -164,7 +169,7 @@ export function ExerciseStepPlayer({
               onComplete(moodBefore, null, answers);
             }}
           >
-            Finish without mood check
+            {t("exercisePlayer.finishWithoutMood")}
           </Button>
         </div>
       </section>
@@ -176,12 +181,13 @@ export function ExerciseStepPlayer({
   return (
     <section className={sectionClass}>
       <p className="text-xs uppercase tracking-wide text-muted-foreground">
-        Step {stepIndex + 1} of {steps.length}
+        {t("exercisePlayer.stepCounter", { current: stepIndex + 1, total: steps.length })}
       </p>
       <p className={compact ? "text-sm leading-relaxed" : "text-lg"}>{step.prompt}</p>
       {step.timer_seconds ? (
         <p className="flex items-center gap-2 text-sm text-muted-foreground">
-          <Timer className="size-4" aria-hidden /> Take about {step.timer_seconds} seconds here.
+          <Timer className="size-4" aria-hidden />{" "}
+          {t("exercisePlayer.timerNote", { seconds: step.timer_seconds })}
         </p>
       ) : null}
       <StepField
@@ -196,7 +202,7 @@ export function ExerciseStepPlayer({
             className="rounded-full"
             onClick={() => setStepIndex((index) => index - 1)}
           >
-            Back
+            {t("common.back")}
           </Button>
         )}
         <Button
@@ -206,7 +212,7 @@ export function ExerciseStepPlayer({
             else setDone(true);
           }}
         >
-          {stepIndex + 1 < steps.length ? "Next" : "Done"}
+          {stepIndex + 1 < steps.length ? t("common.next") : t("exercisePlayer.done")}
         </Button>
       </div>
     </section>

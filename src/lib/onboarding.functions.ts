@@ -1,6 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { z } from "zod";
+import { LANGUAGE_CODES } from "@/lib/i18n/languages";
 
 const AccountType = z.enum(["general", "condition", "teen", "org_member"]);
 
@@ -92,9 +93,7 @@ export const completeOnboarding = createServerFn({ method: "POST" })
     // The companion opens the conversation rather than dropping the person into
     // an empty chat: one warm, personal message waiting for them on /chat.
     try {
-      const { generateReaction, resolveActiveThread } = await import(
-        "./companion-reaction.server"
-      );
+      const { generateReaction, resolveActiveThread } = await import("./companion-reaction.server");
       const created = await supabase
         .from("chat_threads")
         .insert({ user_id: userId, title: "Getting started" })
@@ -145,18 +144,36 @@ export const completeOnboarding = createServerFn({ method: "POST" })
     return { ok: true };
   });
 
+export const updateMyLanguage = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: unknown) =>
+    z.object({ language: z.enum(LANGUAGE_CODES as [string, ...string[]]) }).parse(input),
+  )
+  .handler(async ({ data, context }) => {
+    const { supabase, userId } = context;
+    const { error } = await supabase
+      .from("profiles")
+      .update({ language: data.language })
+      .eq("id", userId);
+    if (error) throw error;
+    return { ok: true };
+  });
+
 export const deleteMyData = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
     const { supabase, userId } = context;
     await supabase.from("mood_logs").delete().eq("user_id", userId);
-    await supabase.from("user_profiles").update({
-      intro_text: null,
-      goals: [],
-      stressors: [],
-      existing_diagnosis: null,
-      communication_preference: null,
-      topics_to_avoid: null,
-    }).eq("user_id", userId);
+    await supabase
+      .from("user_profiles")
+      .update({
+        intro_text: null,
+        goals: [],
+        stressors: [],
+        existing_diagnosis: null,
+        communication_preference: null,
+        topics_to_avoid: null,
+      })
+      .eq("user_id", userId);
     return { ok: true };
   });

@@ -255,7 +255,8 @@ export type HabitMoodInsight = {
   avgMoodWithHabit: number | null;
   avgMoodWithoutHabit: number | null;
   delta: number | null;
-  headline: string;
+  /** Which headline copy to render; the client owns the localized wording. */
+  headlineKind: "not_enough_data" | "higher" | "lower" | "no_difference";
 };
 
 /** Correlates habit completion with mood scores over the last 30 days. */
@@ -317,15 +318,15 @@ export const getHabitMoodInsights = createServerFn({ method: "GET" })
       const enough = withHabit.length >= 3 && withoutHabit.length >= 3;
       const delta = enough && avgWith !== null && avgWithout !== null ? avgWith - avgWithout : null;
 
-      let headline: string;
+      let headlineKind: HabitMoodInsight["headlineKind"];
       if (!enough) {
-        headline = `Keep logging — a few more days of data and we can look at how "${habit.name}" lines up with your mood.`;
+        headlineKind = "not_enough_data";
       } else if (delta !== null && delta >= 0.4) {
-        headline = `Your mood averages ${delta.toFixed(1)} points higher on days you log "${habit.name}".`;
+        headlineKind = "higher";
       } else if (delta !== null && delta <= -0.4) {
-        headline = `Your mood averages ${Math.abs(delta).toFixed(1)} points lower on days you log "${habit.name}" — worth a gentle look at what else is going on.`;
+        headlineKind = "lower";
       } else {
-        headline = `No clear mood difference yet between days with and without "${habit.name}".`;
+        headlineKind = "no_difference";
       }
 
       insights.push({
@@ -336,7 +337,7 @@ export const getHabitMoodInsights = createServerFn({ method: "GET" })
         avgMoodWithHabit: avgWith,
         avgMoodWithoutHabit: avgWithout,
         delta,
-        headline,
+        headlineKind,
       });
     }
 
@@ -345,6 +346,5 @@ export const getHabitMoodInsights = createServerFn({ method: "GET" })
     return {
       insights,
       moodDaysTracked: moodDays.length,
-      note: "These are gentle observations, not clinical findings — correlation is not causation.",
     };
   });

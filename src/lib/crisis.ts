@@ -159,8 +159,6 @@ const TIERS: { severity: CrisisSeverity; patterns: RegExp[] }[] = [
   },
 ];
 
-
-
 export const CRISIS_RESOURCES: CrisisResource[] = [
   {
     name: "988 Suicide & Crisis Lifeline (US)",
@@ -262,8 +260,12 @@ const CRISIS_COPY: Record<
   },
 };
 
-export function crisisCopy(language: string | null | undefined) {
-  return CRISIS_COPY[language ?? "en"] ?? CRISIS_COPY.en;
+export function crisisCopy(language: string | null | undefined): {
+  message: string;
+  disclaimer: string;
+  resources: CrisisResource[];
+} {
+  return CRISIS_COPY[language ?? "en"] ?? CRISIS_COPY["en"]!;
 }
 
 /**
@@ -310,5 +312,3 @@ export function buildCrisisResponse(
     disclaimer: copy.disclaimer,
   };
 }
-
-

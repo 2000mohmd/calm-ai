@@ -11,15 +11,16 @@ import {
   Settings,
   Wind,
 } from "lucide-react";
-import type { ReactNode } from "react";
+import { useEffect, type ReactNode } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { getMyProfile } from "@/lib/onboarding.functions";
+import { normalizeLanguage, useTranslation } from "@/lib/i18n";
 
 export const SIDEBAR_NAV = [
-  { to: "/chat", label: "Companion", icon: MessageCircle },
-  { to: "/insights", label: "Progress", icon: LineChart },
-  { to: "/exercises", label: "Exercises", icon: Wind },
-  { to: "/settings", label: "Profile", icon: Settings },
+  { to: "/chat", labelKey: "nav.companion", icon: MessageCircle },
+  { to: "/insights", labelKey: "nav.progress", icon: LineChart },
+  { to: "/exercises", labelKey: "nav.exercises", icon: Wind },
+  { to: "/settings", labelKey: "nav.profile", icon: Settings },
 ] as const;
 
 type AppSidebarProps = {
@@ -47,11 +48,22 @@ export function AppSidebar({
   const queryClient = useQueryClient();
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const fetchProfile = useServerFn(getMyProfile);
+  const { t, language, setLanguage } = useTranslation();
   const { data: profileData } = useQuery({
     queryKey: ["my-profile"],
     queryFn: () => fetchProfile(),
   });
   const preferredName = profileData?.profile?.preferred_name;
+
+  // The DB profile is the source of truth for a signed-in person's language;
+  // keep the local context (and therefore document dir/lang) in sync with it.
+  const profileLanguage = profileData?.profile?.language;
+  useEffect(() => {
+    if (!profileLanguage) return;
+    const normalized = normalizeLanguage(profileLanguage);
+    if (normalized !== language) setLanguage(normalized);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [profileLanguage]);
 
   async function handleSignOut() {
     await queryClient.cancelQueries();
@@ -84,7 +96,7 @@ export function AppSidebar({
         )}
         <button
           type="button"
-          aria-label={open ? "Hide sidebar" : "Show sidebar"}
+          aria-label={open ? t("nav.collapseSidebar") : t("nav.expandSidebar")}
           onClick={onToggle}
           className="rounded-lg p-1.5 text-muted-foreground hover:bg-sidebar-accent hover:text-sidebar-foreground"
         >
@@ -98,7 +110,7 @@ export function AppSidebar({
             type="button"
             onClick={onNewChat}
             disabled={newChatDisabled}
-            title="New chat"
+            title={t("nav.newConversation")}
             className={`flex w-full items-center gap-2.5 rounded-xl py-2 text-sm text-sidebar-foreground hover:bg-sidebar-accent disabled:opacity-50 ${
               open ? "px-2.5" : "justify-center px-0"
             }`}
@@ -106,20 +118,22 @@ export function AppSidebar({
             <span className="flex size-6 shrink-0 items-center justify-center rounded-full bg-primary/15 text-primary">
               <Plus className="size-3.5" aria-hidden />
             </span>
-            {open && "New chat"}
+            {open && t("nav.newConversation")}
           </button>
         )}
-        {SIDEBAR_NAV.map(({ to, label, icon: Icon }) => (
-          <Link key={to} to={to} title={label} className={itemClass(pathname === to)}>
+        {SIDEBAR_NAV.map(({ to, labelKey, icon: Icon }) => (
+          <Link key={to} to={to} title={t(labelKey)} className={itemClass(pathname === to)}>
             <Icon className="size-4 shrink-0" aria-hidden />
-            {open && label}
+            {open && t(labelKey)}
           </Link>
         ))}
       </div>
 
       {recents && open ? (
         <>
-          <p className="px-4 pb-1 pt-6 text-xs font-medium text-muted-foreground">Recents</p>
+          <p className="px-4 pb-1 pt-6 text-xs font-medium text-muted-foreground">
+            {t("nav.recents")}
+          </p>
           <div className="min-h-0 flex-1 overflow-y-auto px-2 pb-2">{recents}</div>
         </>
       ) : (
@@ -137,11 +151,11 @@ export function AppSidebar({
         {open && (
           <>
             <span className="min-w-0 flex-1 truncate text-sm">
-              {preferredName ?? "Your account"}
+              {preferredName ?? t("nav.yourAccount")}
             </span>
             <button
               type="button"
-              aria-label="Sign out"
+              aria-label={t("nav.signOut")}
               onClick={handleSignOut}
               className="rounded-lg p-1.5 text-muted-foreground hover:bg-sidebar-accent hover:text-sidebar-foreground"
             >

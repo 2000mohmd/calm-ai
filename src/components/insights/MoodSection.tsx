@@ -10,31 +10,38 @@ import { NudgeFeed } from "@/components/NudgeFeed";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useTranslation } from "@/lib/i18n";
 
-const MOODS = [
-  { score: 1, label: "Really low" },
-  { score: 2, label: "Low" },
-  { score: 3, label: "Okay" },
-  { score: 4, label: "Good" },
-  { score: 5, label: "Great" },
-];
-
-function greeting() {
-  const hour = new Date().getHours();
-  if (hour < 12) return "Good morning";
-  if (hour < 18) return "Good afternoon";
-  return "Good evening";
-}
+const MOOD_KEYS = [
+  { score: 1, key: "reallyLow" },
+  { score: 2, key: "low" },
+  { score: 3, key: "okay" },
+  { score: 4, key: "good" },
+  { score: 5, key: "great" },
+] as const;
 
 /**
  * Mood check-in, nudges and recent trend. Shared by /dashboard and the
  * "Mood & Trends" tab of /insights.
  */
 export function MoodSection({ showGreeting = true }: { showGreeting?: boolean }) {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const fetchProfile = useServerFn(getMyProfile);
   const saveMood = useServerFn(logMood);
+
+  const MOODS = MOOD_KEYS.map((mood) => ({
+    score: mood.score,
+    label: t(`mood.options.${mood.key}`),
+  }));
+
+  function greeting() {
+    const hour = new Date().getHours();
+    if (hour < 12) return t("mood.checkIn.greetingMorning");
+    if (hour < 18) return t("mood.checkIn.greetingAfternoon");
+    return t("mood.checkIn.greetingEvening");
+  }
 
   const { data, isPending } = useQuery({
     queryKey: ["my-profile"],
@@ -56,9 +63,9 @@ export function MoodSection({ showGreeting = true }: { showGreeting?: boolean })
       await queryClient.invalidateQueries({ queryKey: ["my-profile"] });
       setScore(null);
       setNote("");
-      toast.success("Check-in saved. Thanks for showing up today.");
+      toast.success(t("mood.checkIn.savedToast"));
     },
-    onError: () => toast.error("We couldn't save that check-in. Please try again."),
+    onError: () => toast.error(t("mood.checkIn.errorToast")),
   });
 
   const moods = data?.recentMoods ?? [];
@@ -84,14 +91,14 @@ export function MoodSection({ showGreeting = true }: { showGreeting?: boolean })
             {greeting()}
             {data?.profile?.preferred_name ? `, ${data.profile.preferred_name}` : ""}
           </h1>
-          <p className="mt-2 text-muted-foreground">Take a breath. This space moves at your pace.</p>
+          <p className="mt-2 text-muted-foreground">{t("mood.checkIn.subtitle")}</p>
         </header>
       )}
 
       <NudgeFeed />
 
       <section className="surface-soft p-6 sm:p-8">
-        <h2 className="text-xl">How are you feeling right now?</h2>
+        <h2 className="text-xl">{t("mood.checkIn.prompt")}</h2>
         <div className="mt-5 grid grid-cols-5 gap-2">
           {MOODS.map((option) => (
             <button
@@ -115,14 +122,14 @@ export function MoodSection({ showGreeting = true }: { showGreeting?: boolean })
               maxLength={500}
               value={note}
               onChange={(event) => setNote(event.target.value)}
-              placeholder="Anything you want to add? (optional)"
+              placeholder={t("mood.checkIn.notePlaceholder")}
             />
             <Button
               className="rounded-full px-6"
               disabled={mutation.isPending}
               onClick={() => mutation.mutate()}
             >
-              {mutation.isPending ? "Saving…" : "Save check-in"}
+              {mutation.isPending ? t("common.saving") : t("mood.checkIn.saveButton")}
             </Button>
           </div>
         )}
@@ -130,11 +137,9 @@ export function MoodSection({ showGreeting = true }: { showGreeting?: boolean })
 
       <section className="grid gap-4 sm:grid-cols-2">
         <div className="surface-soft p-6">
-          <h2 className="text-lg">Your last {moods.length || 0} check-ins</h2>
+          <h2 className="text-lg">{t("mood.checkIn.recentTitle", { count: moods.length || 0 })}</h2>
           {moods.length === 0 ? (
-            <p className="mt-2 text-sm text-muted-foreground">
-              Nothing logged yet. Your first check-in shows up here.
-            </p>
+            <p className="mt-2 text-sm text-muted-foreground">{t("mood.checkIn.emptyTrend")}</p>
           ) : (
             <>
               <div className="mt-5 flex h-24 items-end gap-2">
@@ -155,42 +160,42 @@ export function MoodSection({ showGreeting = true }: { showGreeting?: boolean })
                 ))}
               </div>
               <p className="mt-4 text-sm text-muted-foreground">
-                Average mood {average} of 5. Patterns matter more than any single day.
+                {t("mood.checkIn.averageNote", { average: average ?? "" })}
               </p>
             </>
           )}
         </div>
 
         <div className="surface-soft p-6">
-          <h2 className="text-lg">Where to next</h2>
+          <h2 className="text-lg">{t("mood.checkIn.whereNextTitle")}</h2>
           <ul className="mt-4 space-y-3 text-sm text-muted-foreground">
             <li className="flex items-start gap-3">
               <Wind className="mt-0.5 size-4 shrink-0 text-primary" aria-hidden />
               <Link to="/exercises" className="underline underline-offset-4">
-                Guided exercises
+                {t("mood.checkIn.guidedExercisesLink")}
               </Link>{" "}
-              — thought records, behavioral activation, grounding, breathing
+              {t("mood.checkIn.guidedExercisesDesc")}
             </li>
             <li className="flex items-start gap-3">
               <ClipboardList className="mt-0.5 size-4 shrink-0 text-primary" aria-hidden />
               <Link to="/check-ins" className="underline underline-offset-4">
-                Periodic check-ins
+                {t("mood.checkIn.periodicCheckInsLink")}
               </Link>{" "}
-              — PHQ-9 and GAD-7 every couple of weeks, to see patterns
+              {t("mood.checkIn.periodicCheckInsDesc")}
             </li>
             <li className="flex items-start gap-3">
               <Sparkles className="mt-0.5 size-4 shrink-0 text-primary" aria-hidden />
               <Link to="/care" className="underline underline-offset-4">
-                Talking to a person
+                {t("mood.checkIn.talkToPersonLink")}
               </Link>{" "}
-              — therapist directories and lower-cost options
+              {t("mood.checkIn.talkToPersonDesc")}
             </li>
           </ul>
           <Link
             to="/settings"
             className="mt-5 inline-block text-sm font-semibold text-primary underline underline-offset-4"
           >
-            Review your profile and data
+            {t("mood.checkIn.reviewProfileLink")}
           </Link>
         </div>
       </section>
