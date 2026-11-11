@@ -21,14 +21,22 @@ export async function transcribeAudioCore(input: { audio_base64: string; mime_ty
   const apiKey = process.env["OPENAI_API_KEY"];
   if (!apiKey) throw new VoiceError("Voice messages aren't configured yet.");
 
-  const isMp3 = input.mime_type === "audio/mpeg" || input.mime_type === "audio/mp3";
-  const filename = isMp3 ? "note.mp3" : "note.wav";
-  const contentType = isMp3 ? "audio/mpeg" : "audio/wav";
+  // Web records WAV; the mobile app records AAC in an MP4 container (.m4a).
+  const format = /mpeg|mp3/.test(input.mime_type)
+    ? { filename: "note.mp3", contentType: "audio/mpeg" }
+    : /mp4|m4a|aac/.test(input.mime_type)
+      ? { filename: "note.m4a", contentType: "audio/mp4" }
+      : { filename: "note.wav", contentType: "audio/wav" };
+  const { filename, contentType } = format;
 
   const form = new FormData();
   form.append("model", OPENAI_TRANSCRIBE_MODEL);
   form.append("response_format", "json");
-  form.append("file", new Blob([base64ToBytes(input.audio_base64)], { type: contentType }), filename);
+  form.append(
+    "file",
+    new Blob([base64ToBytes(input.audio_base64)], { type: contentType }),
+    filename,
+  );
 
   const response = await fetch(OPENAI_TRANSCRIBE_URL, {
     method: "POST",
@@ -50,7 +58,6 @@ export async function transcribeAudioCore(input: { audio_base64: string; mime_ty
             : "Couldn't understand that recording. Try again or type instead.",
     );
   }
-
 
   const payload = (await response.json()) as { text?: string | null };
   const text = (payload.text ?? "").trim();

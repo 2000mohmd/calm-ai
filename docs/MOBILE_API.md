@@ -549,12 +549,12 @@ text in the composer for the person to review and send. Same on mobile:
 #### `POST /api/v1/voice/transcribe`
 
 ```json
-{ "audio_base64": "…", "mime_type": "audio/wav | audio/mpeg" }
+{ "audio_base64": "…", "mime_type": "audio/wav | audio/mpeg | audio/mp4" }
 ```
 
 → `{ "text": "the transcript" }`. Then send `text` through §5.1 like any
-typed message; this endpoint does not post anything. Record as **WAV or MP3**
-(anything other than `audio/mpeg`/`audio/mp3` is sent on as WAV). Returns
+typed message; this endpoint does not post anything. Record as **WAV, MP3 or
+AAC/M4A** (`audio/mp4`, what the phone recorders produce by default). Returns
 `500 { "error": "Internal error" }` if voice isn't configured on the server
 (`OPENAI_API_KEY`) or the provider is out of credits; show "voice notes
 aren't available right now" and let them type instead.
@@ -1176,6 +1176,16 @@ server-side by the time you get this response.
 ---
 
 ## 14. Push notifications
+
+**Two token kinds are accepted** by `POST /api/v1/push/register-token`:
+
+- **Expo push tokens** (`ExponentPushToken[…]`), what the Kalm Expo app
+  (`kalm-mobile`) registers. The backend sends these through Expo's push
+  service, which delivers to iOS and Android using the APNs key and FCM
+  credentials uploaded to the Expo project. No server-side key needed
+  (`EXPO_ACCESS_TOKEN` only if Expo "enhanced push security" is turned on).
+- **Raw FCM tokens**, for a native/Flutter client using `firebase_messaging`,
+  as described below.
 
 FCM (Firebase Cloud Messaging) — one integration covers both iOS and
 Android, so the Flutter side only needs `firebase_messaging`.

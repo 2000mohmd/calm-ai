@@ -158,13 +158,50 @@ type DevicePushTokensTable = {
   };
 };
 
+export function isExpoPushToken(token: string): boolean {
+  return /^Expo(nent)?PushToken\[.+\]$/.test(token);
+}
+
+/**
+ * Expo's push service delivers to iOS (APNs) and Android (FCM) with the
+ * credentials uploaded to the Expo project, so no server-side key is needed.
+ * EXPO_ACCESS_TOKEN is optional (only if "enhanced push security" is on).
+ */
+async function sendToExpo(
+  token: string,
+  notification: { title: string; body: string },
+): Promise<{ ok: boolean; shouldRemoveToken: boolean }> {
+  const accessToken = process.env["EXPO_ACCESS_TOKEN"];
+  const response = await fetch("https://exp.host/--/api/v2/push/send", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Accept: "application/json",
+      ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
+    },
+    body: JSON.stringify({
+      to: token,
+      title: notification.title,
+      body: notification.body,
+      sound: "default",
+    }),
+  });
+  const payload = (await response.json().catch(() => null)) as {
+    data?: { status?: string; details?: { error?: string } };
+  } | null;
+  if (response.ok && payload?.data?.status === "ok") return { ok: true, shouldRemoveToken: false };
+  // DeviceNotRegistered: the app was uninstalled or the token rotated.
+  const shouldRemoveToken = payload?.data?.details?.error === "DeviceNotRegistered";
+  console.error("Expo push send failed", response.status, JSON.stringify(payload).slice(0, 300));
+  return { ok: false, shouldRemoveToken };
+}
+
 export async function sendPushToUser(
   supabase: Client,
   userId: string,
   notification: { title: string; body: string },
 ): Promise<{ sent: number }> {
   const account = loadServiceAccount();
-  if (!account) return { sent: 0 }; // not configured yet — silent no-op by design
 
   const table = (supabase as unknown as DevicePushTokensTable).from("device_push_tokens");
   const { data: tokens, error } = await table.select("id, token").eq("user_id", userId);
@@ -178,7 +215,14 @@ export async function sendPushToUser(
   const staleIds: string[] = [];
   for (const row of tokens) {
     try {
-      const result = await sendToToken(account, row.token, notification);
+      // Expo push tokens (the Kalm mobile app) go through Expo's push service;
+      // raw FCM tokens need FCM_SERVICE_ACCOUNT_JSON (silent no-op without it).
+      const result = isExpoPushToken(row.token)
+        ? await sendToExpo(row.token, notification)
+        : account
+          ? await sendToToken(account, row.token, notification)
+          : null;
+      if (!result) continue;
       if (result.ok) sent += 1;
       else if (result.shouldRemoveToken) staleIds.push(row.id);
     } catch (err) {
