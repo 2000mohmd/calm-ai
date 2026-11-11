@@ -54,7 +54,7 @@ export async function sendGuardianConsentEmail(input: {
     "",
     "What we keep: their name, their age, what they choose to write in check-ins and conversations, and how they use the app. We do not sell their data. They can delete their account and data at any time from the app.",
     "",
-    `Give permission: ${consentLink(input.token, "approve")}`,
+    `Give permission (this link works for ${APPROVAL_VALID_DAYS} days): ${consentLink(input.token, "approve")}`,
     "",
     `Withdraw permission at any time (same link, works later too): ${consentLink(input.token, "withdraw")}`,
     "",
@@ -148,8 +148,11 @@ export async function sendGuardianPaymentEmail(input: {
   }
 }
 
+/** How long a parent has to act on the approve link; withdrawing never expires. */
+export const APPROVAL_VALID_DAYS = 14;
+
 export type ConsentActionResult =
-  { ok: true; action: "approve" | "withdraw" } | { ok: false; reason: "invalid" };
+  { ok: true; action: "approve" | "withdraw" } | { ok: false; reason: "invalid" | "expired" };
 
 /**
  * Applies the guardian's decision from the emailed link. Uses the service-role
@@ -167,7 +170,7 @@ export async function applyGuardianDecision(
   const hash = hashToken(input.token);
   const consent = await admin
     .from("guardian_consents")
-    .select("user_id, status")
+    .select("user_id, status, requested_at")
     .eq("token_hash", hash)
     .maybeSingle();
   if (consent.error) {
@@ -175,6 +178,13 @@ export async function applyGuardianDecision(
     return { ok: false, reason: "invalid" };
   }
   if (!consent.data) return { ok: false, reason: "invalid" };
+
+  // A stale approve link (a forwarded or long-forgotten email) must not grant
+  // consent; withdrawing is always allowed.
+  if (input.action === "approve" && consent.data.requested_at) {
+    const ageMs = Date.now() - new Date(consent.data.requested_at).getTime();
+    if (ageMs > APPROVAL_VALID_DAYS * 86_400_000) return { ok: false, reason: "expired" };
+  }
 
   const now = new Date().toISOString();
   const patch =

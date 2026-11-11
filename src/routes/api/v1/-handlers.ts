@@ -223,23 +223,14 @@ export function handleChatThreadMessages(request: Request, threadId: string): Pr
  */
 export function handleOnboarding(request: Request): Promise<Response> {
   return handle(async () => {
-    const { supabase, userId } = await requireAuth(request);
+    const { supabase, userId, email } = await requireAuth(request);
     let body: unknown;
     try {
       body = await request.json();
     } catch {
       throw new ApiError(400, "Invalid JSON body");
     }
-    try {
-      return json(await completeOnboardingCore(supabase, userId, body));
-    } catch (err) {
-      const message = err instanceof Error ? err.message : String(err);
-      // Age business-rule rejections are the caller's input problem, not a 500.
-      if (/aged \d+ and over|invalid date of birth/i.test(message)) {
-        throw new ApiError(400, message);
-      }
-      throw err;
-    }
+    return json(await completeOnboardingCore(supabase, userId, body, email ?? null));
   });
 }
 

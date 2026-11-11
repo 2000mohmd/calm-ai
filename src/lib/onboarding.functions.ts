@@ -4,6 +4,8 @@ import { z } from "zod";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/integrations/supabase/types";
 import { MINOR_AGE, MIN_AGE, ageFromDateOfBirth } from "./age";
+import { assertGuardianEmailAllowed } from "./guardian-email";
+import { UserInputError } from "./user-input-error";
 
 const AccountType = z.enum(["general", "condition", "teen", "org_member"]);
 
@@ -64,15 +66,40 @@ export async function completeOnboardingCore(
   supabase: SupabaseClient<Database>,
   userId: string,
   input: unknown,
+  accountEmail: string | null = null,
 ) {
   const data = OnboardingInput.parse(input);
+
+  // Onboarding runs once. Run again it must change nothing: otherwise a teen
+  // could resubmit with an adult date of birth and drop teen mode and the
+  // guardian-consent gate. Idempotent so a retry after a lost response is fine.
+  const existing = await supabase
+    .from("profiles")
+    .select("onboarding_completed")
+    .eq("id", userId)
+    .maybeSingle();
+  if (existing.data?.onboarding_completed) {
+    const stored = await supabase
+      .from("user_profiles")
+      .select("care_plan, care_plan_focus")
+      .eq("user_id", userId)
+      .maybeSingle();
+    return {
+      ok: true,
+      care_plan: stored.data?.care_plan ?? null,
+      care_plan_focus: stored.data?.care_plan_focus ?? [],
+    };
+  }
 
   {
     // Age is computed here, server-side — not trusted from the client.
     const age = ageFromDateOfBirth(data.date_of_birth);
-    if (age === null) throw new Error("Invalid date of birth");
+    if (age === null) throw new UserInputError("Invalid date of birth");
     if (age < MIN_AGE) {
-      throw new Error(`Kalm is for people aged ${MIN_AGE} and over.`);
+      throw new UserInputError(`Kalm is for people aged ${MIN_AGE} and over.`);
+    }
+    if (age < MINOR_AGE && data.guardian_email) {
+      assertGuardianEmailAllowed(data.guardian_email, accountEmail);
     }
     // Under 18 is locked to teen mode regardless of what the client selected.
     const resolvedAccountType = age < MINOR_AGE ? "teen" : data.account_type;
@@ -240,7 +267,9 @@ export async function completeOnboardingCore(
 export const completeOnboarding = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input: unknown) => OnboardingInput.parse(input))
-  .handler(({ data, context }) => completeOnboardingCore(context.supabase, context.userId, data));
+  .handler(({ data, context }) =>
+    completeOnboardingCore(context.supabase, context.userId, data, context.claims.email ?? null),
+  );
 
 /**
  * Proactive-email opt-out (Phase 2). One boolean; the full per-type preferences

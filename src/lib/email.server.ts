@@ -15,13 +15,13 @@ export { appBaseUrl };
 const RESEND_URL = "https://api.resend.com/emails";
 
 function unsubscribeSecret(): string {
-  // A dedicated secret if provided, else derive from the service-role key (which
-  // is always present server-side) so this works with no extra configuration.
-  return (
-    process.env["EMAIL_UNSUBSCRIBE_SECRET"] ??
-    process.env["SUPABASE_SERVICE_ROLE_KEY"] ??
-    "kalm-dev-unsubscribe-secret"
-  );
+  // A dedicated secret if provided, else derived from the service-role key (always
+  // present server-side). Never a built-in default: a guessable key would let anyone
+  // forge unsubscribe links.
+  const secret =
+    process.env["EMAIL_UNSUBSCRIBE_SECRET"] ?? process.env["SUPABASE_SERVICE_ROLE_KEY"];
+  if (!secret) throw new Error("Set EMAIL_UNSUBSCRIBE_SECRET to sign unsubscribe links.");
+  return secret;
 }
 
 async function hmacHex(key: string, message: string): Promise<string> {

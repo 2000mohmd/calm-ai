@@ -1,5 +1,5 @@
 // Checkout: a 3-day trial once per person; teens' links go to their guardian.
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 const m = vi.hoisted(() => ({
   createCheckoutSession: vi.fn(async (_input: Record<string, unknown>) => ({
@@ -47,9 +47,11 @@ const input = {
 };
 
 beforeEach(() => {
+  vi.stubEnv("APP_BASE_URL", "https://app.test");
   m.createCheckoutSession.mockClear();
   m.sendGuardianPaymentEmail.mockClear();
 });
+afterEach(() => vi.unstubAllEnvs());
 
 describe("startCheckoutCore", () => {
   it("never subscribed: Checkout starts with the 3-day trial", async () => {
@@ -84,6 +86,32 @@ describe("startCheckoutCore", () => {
     expect(m.createCheckoutSession.mock.calls[0]?.[0]).toMatchObject({
       successUrl: "https://app.test/",
       cancelUrl: "https://app.test/",
+    });
+  });
+
+  it("never sends Stripe's return to another site (open-redirect guard)", async () => {
+    await startCheckoutCore(fakeSupabase({ account_type: "general" }), "u1", {
+      ...input,
+      successUrl: "https://evil.example/phish",
+      cancelUrl: "javascript:alert(1)",
+    });
+
+    expect(m.createCheckoutSession.mock.calls[0]?.[0]).toMatchObject({
+      successUrl: "https://app.test/plans?checkout=success",
+      cancelUrl: "https://app.test/plans?checkout=cancelled",
+    });
+  });
+
+  it("allows the mobile app's deep link as the return target", async () => {
+    await startCheckoutCore(fakeSupabase({ account_type: "general" }), "u1", {
+      ...input,
+      successUrl: "kalm://billing/success",
+      cancelUrl: "kalm://billing/cancel",
+    });
+
+    expect(m.createCheckoutSession.mock.calls[0]?.[0]).toMatchObject({
+      successUrl: "kalm://billing/success",
+      cancelUrl: "kalm://billing/cancel",
     });
   });
 

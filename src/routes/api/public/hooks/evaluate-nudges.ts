@@ -1,4 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { safeEqual } from "@/lib/secure-compare";
 
 /**
  * Proactive-coaching sweep. Callable by pg_cron / Cloudflare Queues / an
@@ -34,7 +35,7 @@ export const Route = createFileRoute("/api/public/hooks/evaluate-nudges")({
       POST: async ({ request }) => {
         const provided = request.headers.get("x-sweep-secret");
         const expected = process.env["NUDGE_SWEEP_SECRET"];
-        if (!expected || !provided || provided !== expected) {
+        if (!expected || !provided || !(await safeEqual(provided, expected))) {
           return new Response(JSON.stringify({ error: "Unauthorized" }), {
             status: 401,
             headers: { "Content-Type": "application/json" },

@@ -26,6 +26,8 @@ export type ApiAuthSuccess = {
   ok: true;
   supabase: SupabaseClient<Database>;
   userId: string;
+  /** The account's email, when the auth server returned one. */
+  email?: string | null;
 };
 
 export type ApiAuthFailure = {
@@ -101,7 +103,7 @@ export async function authenticateBearer(request: Request): Promise<ApiAuthResul
   try {
     const { data, error } = await supabase.auth.getUser(token);
     if (error || !data?.user?.id) return fail("Invalid or expired token");
-    return { ok: true, supabase, userId: data.user.id };
+    return { ok: true, supabase, userId: data.user.id, email: data.user.email ?? null };
   } catch (err) {
     console.error("[api-auth] getUser threw:", err instanceof Error ? err.message : err);
     return fail("Invalid or expired token");

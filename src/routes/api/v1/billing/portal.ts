@@ -1,6 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { z } from "zod";
+import { appBaseUrl } from "@/lib/app-url";
 import { createBillingPortalSession } from "@/lib/billing/stripe.server";
+import { safeReturnUrl } from "@/lib/safe-url";
 import { ApiError, handle, json, readJson, requireAuth } from "../-shared";
 
 const Body = z.object({ returnUrl: z.string().url().optional() });
@@ -30,9 +32,7 @@ export const Route = createFileRoute("/api/v1/billing/portal")({
             throw new ApiError(400, "No billing account yet — subscribe first.");
           }
 
-          const origin = request.headers.get("origin") ?? process.env["APP_BASE_URL"];
-          const returnUrl = body.returnUrl ?? (origin ? `${origin}/settings` : undefined);
-          if (!returnUrl) throw new ApiError(400, "Could not determine a return URL.");
+          const returnUrl = safeReturnUrl(body.returnUrl, `${appBaseUrl()}/settings`);
 
           const session = await createBillingPortalSession({ customerId, returnUrl });
           return json({ portalUrl: session.url });

@@ -3,6 +3,11 @@
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { z } from "zod";
+import { assertGuardianEmailAllowed } from "./guardian-email";
+import { UserInputError } from "./user-input-error";
+
+/** Minimum gap between consent emails for one account. */
+const RESEND_COOLDOWN_MS = 5 * 60_000;
 
 export type GuardianConsentState = {
   required: boolean;
@@ -64,6 +69,7 @@ export const requestGuardianConsent = createServerFn({ method: "POST" })
   )
   .handler(async ({ data, context }) => {
     const { supabase, userId } = context;
+    assertGuardianEmailAllowed(data.guardian_email, context.claims.email ?? null);
 
     const profile = await supabase
       .from("profiles")
@@ -77,6 +83,25 @@ export const requestGuardianConsent = createServerFn({ method: "POST" })
 
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { newConsentToken, sendGuardianConsentEmail } = await import("./guardian-consent.server");
+
+    // Never overwrite a granted consent with a fresh "pending" one, and don't
+    // let the form be used to spam an inbox.
+    const current = await supabaseAdmin
+      .from("guardian_consents")
+      .select("status, requested_at")
+      .eq("user_id", userId)
+      .maybeSingle();
+    if (current.data?.status === "granted") {
+      throw new UserInputError("A parent or guardian has already given permission.");
+    }
+    if (
+      current.data?.requested_at &&
+      Date.now() - new Date(current.data.requested_at).getTime() < RESEND_COOLDOWN_MS
+    ) {
+      throw new UserInputError(
+        "We just sent that email. Please wait a few minutes before asking again.",
+      );
+    }
     const { token, hash } = newConsentToken();
 
     const saved = await supabaseAdmin.from("guardian_consents").upsert(

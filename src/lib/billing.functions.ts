@@ -6,7 +6,9 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import type { Database } from "@/integrations/supabase/types";
 import type { BillingInterval, PaidPlan } from "./billing/plans";
+import { appBaseUrl } from "./app-url";
 import { TRIAL_DAYS } from "./chat-limits";
+import { safeReturnUrl } from "./safe-url";
 
 export type CheckoutStart =
   | { checkoutUrl: string; trialDays: number }
@@ -62,14 +64,19 @@ export async function startCheckoutCore(
     userId,
     authUser.data.user?.email ?? null,
   );
-  const publicHome = `${new URL(input.successUrl).origin}/`;
+  // Return targets are checked here, for every caller: this app's own origin or
+  // the mobile deep-link scheme, nothing else. (A guardian has no account, so
+  // their link always lands on the public home page.)
+  const home = `${appBaseUrl()}/`;
+  const successUrl = safeReturnUrl(input.successUrl, `${appBaseUrl()}/plans?checkout=success`);
+  const cancelUrl = safeReturnUrl(input.cancelUrl, `${appBaseUrl()}/plans?checkout=cancelled`);
   const session = await createCheckoutSession({
     customerId,
     priceId,
     userId,
     trialDays,
-    successUrl: guardian ? publicHome : input.successUrl,
-    cancelUrl: guardian ? publicHome : input.cancelUrl,
+    successUrl: guardian ? home : successUrl,
+    cancelUrl: guardian ? home : cancelUrl,
   });
   if (!session.url) throw new Error("Stripe did not return a checkout URL.");
   if (!guardian) return { checkoutUrl: session.url, trialDays };
@@ -133,7 +140,7 @@ export const openBillingPortal = createServerFn({ method: "POST" })
       if (!customerId) return { error: "no-subscription" };
       const session = await createBillingPortalSession({
         customerId,
-        returnUrl: `${data.origin}/plans`,
+        returnUrl: safeReturnUrl(`${data.origin}/plans`, `${appBaseUrl()}/plans`),
       });
       return { portalUrl: session.url };
     } catch (err) {

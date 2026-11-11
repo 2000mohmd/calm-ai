@@ -11,6 +11,7 @@
 // behaviour testable without a running server.
 import { z } from "zod";
 import { authenticateBearer, type ApiAuthSuccess } from "@/lib/api-auth.server";
+import { UserInputError } from "@/lib/user-input-error";
 
 export function json(body: unknown, init: number | ResponseInit = 200): Response {
   const responseInit: ResponseInit = typeof init === "number" ? { status: init } : init;
@@ -68,6 +69,9 @@ export async function handle(fn: () => Promise<Response>): Promise<Response> {
       return json({ error: err.message, details: err.details ?? undefined }, err.status);
     }
     const message = err instanceof Error ? err.message : String(err);
+    if (err instanceof UserInputError) {
+      return json({ error: err.message }, 400);
+    }
     if (/^unauthorized/i.test(message)) {
       return json({ error: "Unauthorized" }, 401);
     }

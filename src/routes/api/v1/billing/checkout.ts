@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { z } from "zod";
+import { appBaseUrl } from "@/lib/app-url";
 import { startCheckoutCore } from "@/lib/billing.functions";
 import { ApiError, handle, json, readJson, requireAuth } from "../-shared";
 
@@ -8,23 +9,12 @@ const Body = z.object({
   // (which sent no plan at all) on the previous behaviour: premium monthly.
   plan: z.enum(["pro", "premium"]).default("premium"),
   interval: z.enum(["monthly", "yearly"]).default("monthly"),
-  // Where Stripe sends the browser back after checkout. Optional — falls back
-  // to the request's Origin header, then APP_BASE_URL, so this also works from
-  // a plain `curl` test against the deployed app with no body at all.
+  // Where Stripe sends the browser back after checkout. Optional, and only this
+  // app's origin or the kalm:// deep link is honoured (see lib/safe-url.ts);
+  // anything else falls back to the app's own settings page.
   successUrl: z.string().url().optional(),
   cancelUrl: z.string().url().optional(),
 });
-
-function defaultBaseUrl(request: Request): string {
-  const origin = request.headers.get("origin");
-  if (origin) return origin;
-  const base = process.env["APP_BASE_URL"];
-  if (base) return base;
-  throw new ApiError(
-    400,
-    "Could not determine a redirect URL — pass successUrl/cancelUrl or set APP_BASE_URL.",
-  );
-}
 
 /**
  * POST /api/v1/billing/checkout
@@ -54,7 +44,7 @@ export const Route = createFileRoute("/api/v1/billing/checkout")({
 
           const plan = body.plan ?? "premium";
           const interval = body.interval ?? "monthly";
-          const base = defaultBaseUrl(request);
+          const base = appBaseUrl();
 
           let result;
           try {

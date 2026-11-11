@@ -41,6 +41,16 @@ describe("verifyStripeWebhook", () => {
     expect(event.type).toBe("customer.subscription.updated");
   });
 
+  it("accepts when ANY of several v1 signatures matches (secret rotation)", async () => {
+    const body = JSON.stringify({ id: "evt_rot", type: "x", data: { object: {} } });
+    const timestamp = Math.floor(Date.now() / 1000);
+    const stale = await sign(body, timestamp, "whsec_old_secret");
+    const current = await sign(body, timestamp, SECRET);
+
+    const event = await verifyStripeWebhook(body, `t=${timestamp},v1=${stale},v1=${current}`);
+    expect(event.id).toBe("evt_rot");
+  });
+
   it("rejects a payload signed with the wrong secret", async () => {
     const body = JSON.stringify({ id: "evt_2", type: "x", data: { object: {} } });
     const timestamp = Math.floor(Date.now() / 1000);

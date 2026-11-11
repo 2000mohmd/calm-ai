@@ -253,15 +253,20 @@ export async function verifyStripeWebhook(
   if (!secret) throw new Error("Stripe webhook secret is not configured (STRIPE_WEBHOOK_SECRET).");
   if (!signatureHeader) throw new Error("Missing Stripe-Signature header");
 
-  const parts = Object.fromEntries(
-    signatureHeader.split(",").map((part) => {
-      const [key, value] = part.split("=");
-      return [key, value];
-    }),
-  );
-  const timestamp = parts["t"];
-  const providedSignature = parts["v1"];
-  if (!timestamp || !providedSignature) throw new Error("Malformed Stripe-Signature header");
+  // The header may carry several v1 signatures while a signing secret is rotating.
+  let timestamp: string | undefined;
+  const providedSignatures: string[] = [];
+  for (const part of signatureHeader.split(",")) {
+    const at = part.indexOf("=");
+    if (at === -1) continue;
+    const key = part.slice(0, at).trim();
+    const value = part.slice(at + 1).trim();
+    if (key === "t") timestamp = value;
+    else if (key === "v1") providedSignatures.push(value);
+  }
+  if (!timestamp || providedSignatures.length === 0) {
+    throw new Error("Malformed Stripe-Signature header");
+  }
 
   const age = Math.abs(Date.now() / 1000 - Number(timestamp));
   if (!Number.isFinite(age) || age > toleranceSeconds) {
@@ -282,7 +287,7 @@ export async function verifyStripeWebhook(
   );
   const expectedSignature = bytesToHex(signatureBytes);
 
-  if (!timingSafeEqual(expectedSignature, providedSignature)) {
+  if (!providedSignatures.some((provided) => timingSafeEqual(expectedSignature, provided))) {
     throw new Error("Stripe webhook signature mismatch");
   }
 
