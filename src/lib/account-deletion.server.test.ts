@@ -83,15 +83,16 @@ describe("deleteAccountCore", () => {
     expect(deleteUserCalls).toEqual(["user-2"]);
   });
 
-  it("still deletes the account when Stripe cancellation fails", async () => {
+  it("deletes NOTHING when Stripe cancellation fails (never leave a card billed)", async () => {
     h.cancelCalls.length = 0;
     h.cancelShouldThrow = true;
-    const { client, deleteUserCalls } = fakeAdmin({ subscriptionId: "sub_456" });
+    const { client, rpcCalls, deleteUserCalls } = fakeAdmin({ subscriptionId: "sub_456" });
 
-    await expect(deleteAccountCore(client, "user-3")).resolves.toBeUndefined();
+    await expect(deleteAccountCore(client, "user-3")).rejects.toThrow(/nothing was deleted/);
 
     expect(h.cancelCalls).toEqual(["sub_456"]);
-    expect(deleteUserCalls).toEqual(["user-3"]);
+    expect(rpcCalls).toEqual([]);
+    expect(deleteUserCalls).toEqual([]);
   });
 
   it("throws and never deletes the auth user if the delete_account RPC fails", async () => {

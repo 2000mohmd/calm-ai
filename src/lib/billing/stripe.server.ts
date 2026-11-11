@@ -32,6 +32,18 @@ function toForm(params: Record<string, string | number | undefined>): string {
   return search.toString();
 }
 
+/** A Stripe API error with its HTTP status and machine-readable code. */
+export class StripeApiError extends Error {
+  constructor(
+    readonly status: number,
+    readonly code: string | undefined,
+    message: string,
+  ) {
+    super(message);
+    this.name = "StripeApiError";
+  }
+}
+
 async function stripeRequest<T>(
   method: "GET" | "POST" | "DELETE",
   path: string,
@@ -52,11 +64,37 @@ async function stripeRequest<T>(
     ...(method !== "GET" ? { body: toForm(params ?? {}) } : {}),
   });
 
-  const payload = (await response.json()) as T & { error?: { message?: string } };
+  const payload = (await response.json()) as T & { error?: { message?: string; code?: string } };
   if (!response.ok) {
-    throw new Error(payload.error?.message ?? `Stripe API error (${response.status})`);
+    throw new StripeApiError(
+      response.status,
+      payload.error?.code,
+      payload.error?.message ?? `Stripe API error (${response.status})`,
+    );
   }
   return payload;
+}
+
+export type StripeSubscription = {
+  id: string;
+  customer: string;
+  status: string;
+  current_period_end: number;
+  items: {
+    data: {
+      price: {
+        id: string;
+        lookup_key?: string | null;
+        recurring?: { interval?: string | null } | null;
+      };
+    }[];
+  };
+  metadata?: { user_id?: string };
+};
+
+/** The subscription as Stripe has it right now (webhook payloads can be stale). */
+export function fetchStripeSubscription(id: string): Promise<StripeSubscription> {
+  return stripeRequest<StripeSubscription>("GET", `/subscriptions/${encodeURIComponent(id)}`);
 }
 
 export type StripePrice = {
@@ -162,6 +200,15 @@ export async function createCheckoutSession(input: {
  * catch and log rather than let a Stripe hiccup block account deletion.
  */
 export async function cancelStripeSubscription(subscriptionId: string): Promise<void> {
+  // Already gone or already canceled is success: the goal (no further billing)
+  // holds. Anything else (outage, bad key) must surface so the caller can stop.
+  try {
+    const current = await fetchStripeSubscription(subscriptionId);
+    if (current.status === "canceled") return;
+  } catch (error) {
+    if (error instanceof StripeApiError && error.status === 404) return;
+    throw error;
+  }
   await stripeRequest("DELETE", `/subscriptions/${subscriptionId}`);
 }
 

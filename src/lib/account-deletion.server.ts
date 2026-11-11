@@ -6,11 +6,11 @@
 //
 // Steps, in order:
 //   0. If the profile has a Stripe subscription on file, cancel it
-//      immediately via the Stripe API. Best-effort: deletion still proceeds
-//      even if Stripe is unreachable or unconfigured (STRIPE_SECRET_KEY
-//      unset throws immediately, caught and logged below) — but we never
-//      want to erase the account and leave a subscription silently billing
-//      someone who no longer has anywhere to cancel it from.
+//      immediately via the Stripe API. If that fails (outage, missing key),
+//      deletion STOPS with nothing erased: we never erase the account and
+//      leave a subscription silently billing someone who no longer has
+//      anywhere to cancel it from. An already-canceled or missing
+//      subscription counts as success (see cancelStripeSubscription).
 //   1. delete_account(uuid) RPC — explicit erasure of the tables with no FK
 //      to auth.users, and anonymizes crisis_events (user_id -> null; the row
 //      survives, per docs/DATA_RETENTION.md).
@@ -49,6 +49,9 @@ export async function deleteAccountCore(
       await cancelStripeSubscription(subscriptionId);
     } catch (err) {
       console.error("account deletion: failed to cancel Stripe subscription for", userId, err);
+      throw new Error(
+        "We couldn't cancel your subscription, so nothing was deleted. Please try again in a moment, or contact support.",
+      );
     }
   }
 
