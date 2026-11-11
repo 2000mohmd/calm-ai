@@ -4,6 +4,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { z } from "zod";
+import { enforceBurst } from "./burst-limit";
 
 export type SupportThreadSummary = {
   id: string;
@@ -110,6 +111,7 @@ export const createSupportThread = createServerFn({ method: "POST" })
   )
   .handler(async ({ data, context }) => {
     const { supabase, userId } = context;
+    enforceBurst(`support-new:${userId}`, 5, 3_600_000);
     const thread = await supabase
       .from("support_threads")
       .insert({ user_id: userId, subject: data.subject })

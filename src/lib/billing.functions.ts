@@ -7,6 +7,7 @@ import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import type { Database } from "@/integrations/supabase/types";
 import type { BillingInterval, PaidPlan } from "./billing/plans";
 import { appBaseUrl } from "./app-url";
+import { enforceBurst } from "./burst-limit";
 import { TRIAL_DAYS } from "./chat-limits";
 import { safeReturnUrl } from "./safe-url";
 
@@ -36,6 +37,7 @@ export async function startCheckoutCore(
 ): Promise<CheckoutStart> {
   const { createCheckoutSession, ensureStripeCustomer, resolvePlanPriceId } =
     await import("./billing/stripe.server");
+  enforceBurst(`checkout:${userId}`, 10, 600_000);
   const [profile, authUser] = await Promise.all([
     supabase
       .from("profiles")

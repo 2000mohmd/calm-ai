@@ -9,6 +9,7 @@ import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { z } from "zod";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/integrations/supabase/types";
+import { enforceBurst } from "./burst-limit";
 import { humanCoachAllowed } from "./chat-limits";
 
 /** Thrown for a new request without a paid (post-trial) plan. The API maps it to 402. */
@@ -72,6 +73,20 @@ export async function requestHumanSupportCore(
       });
     }
     return { request_id: open.data.id, already_open: true, status: open.data.status };
+  }
+
+  enforceBurst(`human-support:${userId}`, 5, 3_600_000);
+
+  // The thread must be theirs: it is summarised for staff and linked to the request.
+  if (data.thread_id) {
+    const owned = await supabase
+      .from("chat_threads")
+      .select("id")
+      .eq("id", data.thread_id)
+      .eq("user_id", userId)
+      .maybeSingle();
+    if (owned.error) throw owned.error;
+    if (!owned.data) throw new Error("Thread not found");
   }
 
   // New requests reach a paid coach: paid plans only, not during the trial.

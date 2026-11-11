@@ -15,6 +15,7 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/integrations/supabase/types";
 import { generateReaction } from "./companion-reaction.server";
+import { companionAllowed } from "./guardian-consent.server";
 
 type Client = SupabaseClient<Database>;
 
@@ -99,6 +100,9 @@ export async function runChatCheckinSweep(
   let sent = 0;
   for (const [userId, thread] of candidates) {
     try {
+      // No AI-written check-ins to a teen whose guardian hasn't approved.
+      const consent = await companionAllowed(supabase, userId).catch(() => ({ allowed: true }));
+      if (!consent.allowed) continue;
       if (await sendChatCheckinIfDue(supabase, userId, thread.id)) sent += 1;
     } catch (err) {
       console.error("chat check-in failed for user", userId, err);

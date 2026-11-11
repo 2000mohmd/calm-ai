@@ -9,3 +9,11 @@ export class UserInputError extends Error {
     this.name = "UserInputError";
   }
 }
+
+/** The person (or their client) is doing something too often. The REST API answers 429. */
+export class TooManyRequestsError extends Error {
+  constructor(message = "Too many requests. Please wait a moment and try again.") {
+    super(message);
+    this.name = "TooManyRequestsError";
+  }
+}

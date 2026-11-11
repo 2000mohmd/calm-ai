@@ -50,6 +50,7 @@ export const Route = createFileRoute("/api/public/hooks/evaluate-nudges")({
 
         const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
         const { evaluateNudgesFor } = await import("@/lib/nudges.server");
+        const { companionAllowed } = await import("@/lib/guardian-consent.server");
         const { generateWeeklyDigestFor } = await import("@/lib/weekly-digest.server");
         const { computeEffectivenessFor, hasNewActivitySince } =
           await import("@/lib/effectiveness.server");
@@ -181,6 +182,17 @@ export const Route = createFileRoute("/api/public/hooks/evaluate-nudges")({
             if (timeLeft() <= 0) {
               timedOut = true;
               break;
+            }
+
+            // A teen whose parent hasn't approved (or has withdrawn) gets nothing
+            // generated or sent: no nudges, no digests.
+            const consent = await companionAllowed(supabaseAdmin, row.id).catch(() => ({
+              allowed: true,
+            }));
+            if (!consent.allowed) {
+              lastId = row.id;
+              processed += 1;
+              continue;
             }
 
             try {

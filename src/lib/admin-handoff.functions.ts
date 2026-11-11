@@ -8,15 +8,7 @@ import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { z } from "zod";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/integrations/supabase/types";
-
-async function assertAdmin(supabase: SupabaseClient<Database>, userId: string): Promise<void> {
-  const [{ data, error }, superAdmin] = await Promise.all([
-    supabase.rpc("has_role", { _user_id: userId, _role: "admin" }),
-    supabase.rpc("has_role", { _user_id: userId, _role: "super_admin" }),
-  ]);
-  if (error) throw new Error(error.message);
-  if (!data && !superAdmin.data) throw new Error("Forbidden");
-}
+import { assertAdmin } from "./admin-guard.server";
 
 export const listHumanSupportRequests = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])

@@ -47,3 +47,4 @@ yarn.lock
 *.njsproj
 *.sln
 *.sw?
+graphify-out/

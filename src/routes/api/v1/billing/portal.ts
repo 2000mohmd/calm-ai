@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { z } from "zod";
 import { appBaseUrl } from "@/lib/app-url";
+import { enforceBurst } from "@/lib/burst-limit";
 import { createBillingPortalSession } from "@/lib/billing/stripe.server";
 import { safeReturnUrl } from "@/lib/safe-url";
 import { ApiError, handle, json, readJson, requireAuth } from "../-shared";
@@ -18,6 +19,7 @@ export const Route = createFileRoute("/api/v1/billing/portal")({
       POST: async ({ request }) =>
         handle(async () => {
           const { supabase, userId } = await requireAuth(request);
+          enforceBurst(`portal:${userId}`, 10, 600_000);
           const body = await readJson(request, Body);
 
           const profile = await supabase

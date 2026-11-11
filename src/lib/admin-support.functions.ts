@@ -4,28 +4,7 @@ import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { z } from "zod";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/integrations/supabase/types";
-
-async function assertAdmin(supabase: SupabaseClient<Database>, userId: string) {
-  const [admin, superAdmin] = await Promise.all([
-    supabase.rpc("has_role", { _user_id: userId, _role: "admin" }),
-    supabase.rpc("has_role", { _user_id: userId, _role: "super_admin" }),
-  ]);
-  if (admin.error) throw new Error(admin.error.message);
-  if (!admin.data && !superAdmin.data) throw new Error("Forbidden");
-}
-
-/**
- * Role management is a strictly higher privilege than day-to-day admin work:
- * an admin must not be able to grant themselves (or anyone) admin access.
- */
-async function assertSuperAdmin(supabase: SupabaseClient<Database>, userId: string) {
-  const { data, error } = await supabase.rpc("has_role", {
-    _user_id: userId,
-    _role: "super_admin",
-  });
-  if (error) throw new Error(error.message);
-  if (!data) throw new Error("Forbidden");
-}
+import { assertAdmin, assertSuperAdmin } from "./admin-guard.server";
 
 export const listSupportThreads = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])

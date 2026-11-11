@@ -3,6 +3,7 @@ import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { z } from "zod";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/integrations/supabase/types";
+import { assertAdmin } from "./admin-guard.server";
 import { severityRank } from "./crisis";
 
 export type CrisisReviewRow = {
@@ -16,15 +17,6 @@ export type CrisisReviewRow = {
   reviewed_at: string | null;
   preferred_name: string | null;
 };
-
-async function assertAdmin(supabase: SupabaseClient<Database>, userId: string): Promise<void> {
-  const [{ data, error }, superAdmin] = await Promise.all([
-    supabase.rpc("has_role", { _user_id: userId, _role: "admin" }),
-    supabase.rpc("has_role", { _user_id: userId, _role: "super_admin" }),
-  ]);
-  if (error) throw new Error(error.message);
-  if (!data && !superAdmin.data) throw new Error("Forbidden");
-}
 
 /** Cheap check the UI (and the sidebar badge) uses to decide what to render. */
 export const amIAdmin = createServerFn({ method: "GET" })
