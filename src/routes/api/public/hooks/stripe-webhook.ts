@@ -1,17 +1,13 @@
 import { createFileRoute } from "@tanstack/react-router";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { fetchStripePrice, verifyStripeWebhook } from "@/lib/billing/stripe.server";
-import {
-  intervalFromStripe,
-  planFromEnvPriceId,
-  planFromLookupKey,
-} from "@/lib/billing/plans";
+import { intervalFromStripe, planFromEnvPriceId, planFromLookupKey } from "@/lib/billing/plans";
 
 // stripe_webhook_events/profiles' new billing columns are added by the
 // billing_and_checkin migration and aren't in the generated Database types
 // yet (same situation date_of_birth was in — see onboarding.functions.ts).
 // Widening to the untyped SupabaseClient (generic defaults to `any`) keeps
-// this typechecking until Lovable regenerates types against the live schema.
+// this typechecking until the types are regenerated against the live schema.
 function loose(client: unknown): SupabaseClient {
   return client as SupabaseClient;
 }
@@ -167,7 +163,6 @@ async function handleStripeEvent(
       }
       break;
     }
-
 
     case "checkout.session.completed": {
       // Authoritative tier update happens on the subscription events above,

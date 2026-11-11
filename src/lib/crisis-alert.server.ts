@@ -9,19 +9,12 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/integrations/supabase/types";
 import type { CrisisSeverity } from "./crisis";
+import { appBaseUrl } from "./app-url";
 
 type Client = SupabaseClient<Database>;
 
 const RESEND_URL = "https://api.resend.com/emails";
 const FROM = "Kalm Safety <onboarding@resend.dev>";
-
-function appBaseUrl(): string {
-  return (
-    process.env["APP_BASE_URL"] ??
-    process.env["VITE_APP_BASE_URL"] ??
-    "https://inner-reach-buddy.lovable.app"
-  );
-}
 
 const SOURCE_LABELS: Record<string, string> = {
   chat: "Chat (regex gate)",

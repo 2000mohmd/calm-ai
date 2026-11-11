@@ -24,29 +24,29 @@ confirmed.** The draft migration
 
 ## Proposed windows
 
-| Table | Auto-delete after | Anchor | Rationale |
-|---|---|---|---|
-| `crisis_events` | **never** | — | safety / audit / legal |
-| `admin_audit_log` | **never** | — | compliance trail (append-only) |
-| `screener_responses` | **never** (fallback 5y) | `taken_at` | PHQ-9 / GAD-7 trends are meaningful over years |
-| `mood_logs` | **never** (fallback 5y) | `logged_at` | core self-tracking history |
-| `exercise_completions` | **never** (fallback 5y) | `completed_at` | core self-tracking history |
-| `chat_messages` | **26 months** | parent thread `updated_at` | bounded transcript retention |
-| `chat_threads` | **26 months** | `updated_at` | deleted once empty of messages |
-| `thread_summaries` | **26 months** | `created_at` | cross-session memory; worthless once the thread is gone |
-| `support_messages` / `support_threads` | **24 months** | thread `updated_at` | account-support history |
-| `weekly_digests` | **24 months** | `created_at` | progress recaps, rarely revisited |
-| `nudges` | **12 months** | `created_at` | ephemeral prompts; effectiveness lives in `effectiveness_insights` |
-| `notification_queue` | **90 days** after delivery (30 days if never delivered) | `delivered_at` / `created_at` | outbound queue, no long-term value |
-| `job_queue` | **14 days** | `completed_at` | transient work records |
-| `chat_rate_limits` | n/a | — | self-rolling window, nothing accumulates |
+| Table                                  | Auto-delete after                                       | Anchor                        | Rationale                                                          |
+| -------------------------------------- | ------------------------------------------------------- | ----------------------------- | ------------------------------------------------------------------ |
+| `crisis_events`                        | **never**                                               | —                             | safety / audit / legal                                             |
+| `admin_audit_log`                      | **never**                                               | —                             | compliance trail (append-only)                                     |
+| `screener_responses`                   | **never** (fallback 5y)                                 | `taken_at`                    | PHQ-9 / GAD-7 trends are meaningful over years                     |
+| `mood_logs`                            | **never** (fallback 5y)                                 | `logged_at`                   | core self-tracking history                                         |
+| `exercise_completions`                 | **never** (fallback 5y)                                 | `completed_at`                | core self-tracking history                                         |
+| `chat_messages`                        | **26 months**                                           | parent thread `updated_at`    | bounded transcript retention                                       |
+| `chat_threads`                         | **26 months**                                           | `updated_at`                  | deleted once empty of messages                                     |
+| `thread_summaries`                     | **26 months**                                           | `created_at`                  | cross-session memory; worthless once the thread is gone            |
+| `support_messages` / `support_threads` | **24 months**                                           | thread `updated_at`           | account-support history                                            |
+| `weekly_digests`                       | **24 months**                                           | `created_at`                  | progress recaps, rarely revisited                                  |
+| `nudges`                               | **12 months**                                           | `created_at`                  | ephemeral prompts; effectiveness lives in `effectiveness_insights` |
+| `notification_queue`                   | **90 days** after delivery (30 days if never delivered) | `delivered_at` / `created_at` | outbound queue, no long-term value                                 |
+| `job_queue`                            | **14 days**                                             | `completed_at`                | transient work records                                             |
+| `chat_rate_limits`                     | n/a                                                     | —                             | self-rolling window, nothing accumulates                           |
 
 ## How the purge job works
 
 `public.purge_expired_data(p_dry_run boolean default true)`:
 
 - **`p_dry_run = true` (default):** deletes nothing, returns a row per table with
-  the count that *would* be removed. Run this first, review the numbers.
+  the count that _would_ be removed. Run this first, review the numbers.
 - **`p_dry_run = false`:** performs the deletes, children before parents, in one
   transaction. Never touches the "never" tables above.
 - Windows are plain `interval` literals at the top of the function — edit and

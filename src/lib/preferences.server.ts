@@ -28,8 +28,8 @@ export type Preferences = {
 const DEFAULTS: Preferences = { companionPersona: "warm", theme: "system", language: "en" };
 
 // companion_persona / theme_preference are added by migration
-// 20260902000100 and are not in the generated Database types until Lovable
-// regenerates them; a loose view of the client keeps this file typechecking.
+// 20260902000100 and are not in the generated Database types until the
+// types are regenerated (`supabase gen types`); a loose view of the client keeps this file typechecking.
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type LooseClient = { from: (table: string) => any };
 

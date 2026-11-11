@@ -80,23 +80,24 @@ export async function completeOnboardingCore(
     // Upsert, not update: a freshly signed-up account may not have a profiles
     // row yet, and an UPDATE matching zero rows silently left
     // onboarding_completed false — which bounced the person back to step 1.
-    const { error: profileError } = await supabase
-      .from("profiles")
-      .upsert({
+    const { error: profileError } = await supabase.from("profiles").upsert(
+      {
         id: userId,
         preferred_name: data.preferred_name,
         account_type: resolvedAccountType,
         privacy_consent: data.privacy_consent,
         ai_context_consent: data.ai_context_consent,
         // date_of_birth is added by migration 20260902000200; not in the
-        // generated Database types until Lovable regenerates them.
+        // generated Database types until the types are regenerated (`supabase gen types`).
         date_of_birth: data.date_of_birth,
         age_confirmed_13_plus: age >= MIN_AGE,
         consent_accepted_at: new Date().toISOString(),
         onboarding_completed: true,
         // Under 18 needs a guardian's permission before the companion talks.
         guardian_consent_required: age < MINOR_AGE,
-      } as never, { onConflict: "id" });
+      } as never,
+      { onConflict: "id" },
+    );
     if (profileError) throw profileError;
 
     // Send the guardian their consent request straight away when we have the
@@ -105,9 +106,8 @@ export async function completeOnboardingCore(
     if (age < MINOR_AGE && data.guardian_email) {
       try {
         const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-        const { newConsentToken, sendGuardianConsentEmail } = await import(
-          "./guardian-consent.server"
-        );
+        const { newConsentToken, sendGuardianConsentEmail } =
+          await import("./guardian-consent.server");
         const { token, hash } = newConsentToken();
         await supabaseAdmin.from("guardian_consents").upsert(
           {

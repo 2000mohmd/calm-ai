@@ -117,7 +117,6 @@
   --sidebar-ring: oklch(0.6 0.14 288);
 }
 
-
 .dark {
   --background: oklch(0.19 0.025 285);
   --foreground: oklch(0.95 0.012 292);
@@ -164,7 +163,6 @@
   --sidebar-border: oklch(1 0 0 / 12%);
   --sidebar-ring: oklch(0.7 0.12 288);
 }
-
 
 @layer base {
   * {

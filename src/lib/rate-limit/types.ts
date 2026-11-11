@@ -26,7 +26,7 @@ export type RateLimitDecision = {
 export type UsageRecord = {
   inputTokens: number;
   outputTokens: number;
-  /** Provider that actually served the call ("openrouter" | "lovable"). */
+  /** Provider that actually served the call (currently always "openrouter"). */
   provider: string;
   /** App-level model id, e.g. "claude-sonnet-5". */
   model: string;

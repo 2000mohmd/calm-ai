@@ -9,15 +9,10 @@
 // token is an HMAC of the user id, verified by /api/public/unsubscribe, so the
 // link needs no login and can't be forged for another user.
 
-const RESEND_URL = "https://api.resend.com/emails";
+import { appBaseUrl } from "./app-url";
 
-export function appBaseUrl(): string {
-  return (
-    process.env["APP_BASE_URL"] ??
-    process.env["VITE_APP_BASE_URL"] ??
-    "https://inner-reach-buddy.lovable.app"
-  );
-}
+export { appBaseUrl };
+const RESEND_URL = "https://api.resend.com/emails";
 
 function unsubscribeSecret(): string {
   // A dedicated secret if provided, else derive from the service-role key (which

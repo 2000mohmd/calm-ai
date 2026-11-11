@@ -59,10 +59,7 @@ async function assertLiveSessionsAllowed(supabase: Client, userId: string): Prom
 
   const allowance = weeklyCallAllowance(profile?.subscription_tier);
   if (allowance === 0) {
-    throw new CallSessionError(
-      "Live voice sessions are part of the Pro and Premium plans.",
-      402,
-    );
+    throw new CallSessionError("Live voice sessions are part of the Pro and Premium plans.", 402);
   }
 
   const usage = await callWindowUsage(supabase, userId, allowance);
@@ -121,11 +118,7 @@ async function loadCallContext(
   threadId: string,
 ): Promise<CompanionContext> {
   const [profile, userProfile, moods, summaries] = await Promise.all([
-    supabase
-      .from("profiles")
-      .select("preferred_name, account_type")
-      .eq("id", userId)
-      .maybeSingle(),
+    supabase.from("profiles").select("preferred_name, account_type").eq("id", userId).maybeSingle(),
     supabase
       .from("user_profiles")
       .select(
@@ -161,8 +154,9 @@ async function loadCallContext(
     })),
     history: [],
     quickAction: null,
-    pastSummaries: (summaries as { summary: string; when: string; commitmentNote: string | null }[])
-      .slice(0, 2),
+    pastSummaries: (
+      summaries as { summary: string; when: string; commitmentNote: string | null }[]
+    ).slice(0, 2),
   };
 }
 
@@ -215,7 +209,10 @@ export async function startCallSessionCore(
     .eq("status", "active")
     .limit(1);
   if (active && active.length > 0) {
-    throw new CallSessionError("A call session is already active. End it before starting another.", 409);
+    throw new CallSessionError(
+      "A call session is already active. End it before starting another.",
+      409,
+    );
   }
 
   let threadId = input.thread_id ?? null;
@@ -238,7 +235,8 @@ export async function startCallSessionCore(
   }
 
   const voice = input.voice?.trim() || DEFAULT_VOICE;
-  const instructions = buildSystemPrompt(await loadCallContext(supabase, userId, threadId)) + VOICE_ADDENDUM;
+  const instructions =
+    buildSystemPrompt(await loadCallContext(supabase, userId, threadId)) + VOICE_ADDENDUM;
 
   const session = await supabase
     .from("call_sessions")
@@ -318,7 +316,6 @@ async function mintRealtimeSecret(
       502,
     );
   }
-
 
   const payload = (await response.json()) as {
     value?: string;
@@ -403,9 +400,7 @@ export async function appendCallTurnCore(
     .update({
       transcript,
       turn_count: transcript.length,
-      ...(crisis
-        ? { crisis_triggered: true, crisis_severity: crisis.severity }
-        : {}),
+      ...(crisis ? { crisis_triggered: true, crisis_severity: crisis.severity } : {}),
     })
     .eq("id", session.id)
     .select("turn_count")

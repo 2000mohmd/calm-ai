@@ -43,7 +43,6 @@ export function AppShell({ children }: { children: ReactNode }) {
     if (storedLanguage && storedLanguage !== language) setLanguage(storedLanguage);
   }, [storedLanguage, language, setLanguage]);
 
-
   return (
     <div className="flex min-h-screen w-full bg-background">
       <AppSidebar open={sidebarOpen} onToggle={() => setSidebarOpen((open) => !open)} />

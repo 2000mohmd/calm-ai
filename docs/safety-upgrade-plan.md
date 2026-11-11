@@ -9,6 +9,7 @@ the existing admin area.
 A member-owned crisis plan they build in calm moments and can reach instantly in hard ones.
 
 Sections (all optional, free text + list items):
+
 - My warning signs
 - What helps me settle
 - People I can reach (name + how to contact)
@@ -17,6 +18,7 @@ Sections (all optional, free text + list items):
 - My reason to stay
 
 Where it lives — entirely in chat:
+
 - A "My safety plan" button in the chat header opens the plan as a slide-over panel over the conversation, where they read and edit every section inline. No separate page, no route change.
 - The companion can offer to start or add to the plan mid-conversation, and a card in the transcript opens the same panel at the right section.
 - When crisis language is detected, the support card in the transcript gains an "Open my safety plan" button. With no plan yet, the same button gently offers to start one.

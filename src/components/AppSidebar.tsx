@@ -27,7 +27,6 @@ export const SIDEBAR_NAV = [
   { to: "/settings", labelKey: "nav.profile", icon: Settings },
 ] as const;
 
-
 type AppSidebarProps = {
   open: boolean;
   onToggle: () => void;

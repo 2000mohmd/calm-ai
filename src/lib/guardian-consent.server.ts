@@ -7,19 +7,14 @@
 import { createHash, randomBytes } from "node:crypto";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/integrations/supabase/types";
+import { appBaseUrl } from "./app-url";
+
+export { appBaseUrl };
 
 type Client = SupabaseClient<Database>;
 
 const RESEND_URL = "https://api.resend.com/emails";
 const FROM = "Kalm <onboarding@resend.dev>";
-
-export function appBaseUrl(): string {
-  return (
-    process.env["APP_BASE_URL"] ??
-    process.env["VITE_APP_BASE_URL"] ??
-    "https://soulshine-soothe.lovable.app"
-  );
-}
 
 export function hashToken(token: string): string {
   return createHash("sha256").update(token).digest("hex");

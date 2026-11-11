@@ -82,7 +82,7 @@ export async function generateCarePlan(input: CarePlanInput): Promise<CarePlan |
         "Reply with JSON only, no prose around it, in exactly this shape:",
         '{"plan": "4-6 sentences", "focus": ["short focus area", "short focus area", "short focus area"]}',
         "The plan covers: who they are and what they came for, what tone and pace suits them, 2-3 concrete things worth gently offering over the first weeks (check-ins, a specific kind of exercise, a habit), and anything to steer clear of.",
-        "Each focus item is 2-5 words, plain language, e.g. \"Sleep wind-down routine\".",
+        'Each focus item is 2-5 words, plain language, e.g. "Sleep wind-down routine".',
       ]
         .filter(Boolean)
         .join("\n"),

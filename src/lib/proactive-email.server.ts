@@ -13,7 +13,7 @@
 import { appBaseUrl, sendProactiveEmail } from "./email.server";
 
 // `emailed_at` / `email_opt_out` aren't in the generated Database types until
-// Lovable regenerates them; this module only chains .from().select/.update, so a
+// the types are regenerated (`supabase gen types`); this module only chains .from().select/.update, so a
 // loose client mirrors the pattern already used in rate-limit/postgres.ts.
 type AdminClient = {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any -- loose query builder

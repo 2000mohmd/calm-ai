@@ -11,7 +11,6 @@ import {
 import { useEffect, type ReactNode } from "react";
 
 import "../styles.css";
-import { reportLovableError } from "../lib/lovable-error-reporting";
 import { Toaster } from "@/components/ui/sonner";
 import { supabase } from "@/integrations/supabase/client";
 import {
@@ -71,9 +70,6 @@ function ErrorComponent({ error, reset }: ErrorComponentProps) {
   console.error(error);
   const router = useRouter();
   const { t } = useTranslation();
-  useEffect(() => {
-    reportLovableError(error, { boundary: "tanstack_root_error_component" });
-  }, [error]);
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-background px-4">
@@ -130,16 +126,6 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
         name: "twitter:description",
         content:
           "Kalm blends an AI companion, mood and habit tracking, and guided CBT exercises into one calm daily wellness practice.",
-      },
-      {
-        property: "og:image",
-        content:
-          "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/b8a8eb2d-a030-4e5c-83ae-7e57cff9537b/id-preview-3d90d89c--3ccb18b6-d5dd-414d-a598-ddc4028d95df.lovable.app-1785497759896.png",
-      },
-      {
-        name: "twitter:image",
-        content:
-          "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/b8a8eb2d-a030-4e5c-83ae-7e57cff9537b/id-preview-3d90d89c--3ccb18b6-d5dd-414d-a598-ddc4028d95df.lovable.app-1785497759896.png",
       },
     ],
     links: [

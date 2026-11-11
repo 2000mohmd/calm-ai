@@ -4,7 +4,6 @@ import { toast } from "sonner";
 import { z } from "zod";
 import { KalmLogo } from "@/components/KalmLogo";
 import { supabase } from "@/integrations/supabase/client";
-import { lovable } from "@/integrations/lovable/index";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -19,12 +18,14 @@ export const Route = createFileRoute("/auth")({
       { title: "Sign in to Kalm" },
       {
         name: "description",
-        content: "Get a secure sign-in link by email and start your private Kalm wellness check-ins.",
+        content:
+          "Get a secure sign-in link by email and start your private Kalm wellness check-ins.",
       },
       { property: "og:title", content: "Sign in to Kalm" },
       {
         property: "og:description",
-        content: "Get a secure sign-in link by email and start your private Kalm wellness check-ins.",
+        content:
+          "Get a secure sign-in link by email and start your private Kalm wellness check-ins.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
@@ -79,16 +80,16 @@ function AuthPage() {
 
   async function handleOAuth(provider: "google" | "apple") {
     setBusy(true);
-    const result = await lovable.auth.signInWithOAuth(provider, {
-      redirect_uri: window.location.origin,
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider,
+      options: { redirectTo: `${window.location.origin}/chat` },
     });
-    if (result.error) {
+    // On success the browser leaves for the provider; the session is picked up
+    // by the auth listener above when it returns.
+    if (error) {
       setBusy(false);
       toast.error(provider === "apple" ? t("auth.appleFailed") : t("auth.googleFailed"));
-      return;
     }
-    if (result.redirected) return;
-    navigate({ to: "/chat", replace: true });
   }
 
   return (

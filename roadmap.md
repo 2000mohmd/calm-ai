@@ -1,6 +1,7 @@
 # Roadmap
 
 ## In progress
+
 - [x] Tiers free/pro/premium/org with daily message caps (8 / 200 / 500)
 - [x] Weekly voice-call allowance (Pro 1, Premium 2) with rolling 7-day limiter
 - [x] Stripe Pro + Premium products, monthly + yearly prices

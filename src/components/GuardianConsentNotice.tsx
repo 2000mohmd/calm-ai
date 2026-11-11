@@ -5,10 +5,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
 import { Loader2, ShieldQuestion } from "lucide-react";
-import {
-  getMyGuardianConsent,
-  requestGuardianConsent,
-} from "@/lib/guardian-consent.functions";
+import { getMyGuardianConsent, requestGuardianConsent } from "@/lib/guardian-consent.functions";
 import { useTranslation } from "@/lib/i18n";
 import { useSignedIn } from "@/hooks/use-signed-in";
 

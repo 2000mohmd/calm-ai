@@ -11,7 +11,7 @@ const Body = z.object({
 // device_push_tokens is added by the billing_and_checkin migration and isn't
 // in the generated Database types yet (same situation date_of_birth was in —
 // see onboarding.functions.ts). A loosely-typed view of the client keeps this
-// typechecking until Lovable regenerates types against the live schema.
+// typechecking until the types are regenerated against the live schema.
 function pushTokensTable(supabase: SupabaseClient) {
   return (
     supabase as unknown as {

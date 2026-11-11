@@ -76,9 +76,7 @@ export const requestGuardianConsent = createServerFn({ method: "POST" })
     }
 
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const { newConsentToken, sendGuardianConsentEmail } = await import(
-      "./guardian-consent.server"
-    );
+    const { newConsentToken, sendGuardianConsentEmail } = await import("./guardian-consent.server");
     const { token, hash } = newConsentToken();
 
     const saved = await supabaseAdmin.from("guardian_consents").upsert(

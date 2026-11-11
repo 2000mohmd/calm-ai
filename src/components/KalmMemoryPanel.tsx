@@ -77,9 +77,7 @@ export function KalmMemoryPanel() {
                   <AlertDialogContent>
                     <AlertDialogHeader>
                       <AlertDialogTitle>{t("memory.confirmTitle")}</AlertDialogTitle>
-                      <AlertDialogDescription>
-                        {t("memory.confirmBody")}
-                      </AlertDialogDescription>
+                      <AlertDialogDescription>{t("memory.confirmBody")}</AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>
                       <AlertDialogCancel>{t("memory.keep")}</AlertDialogCancel>

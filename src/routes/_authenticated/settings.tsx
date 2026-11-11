@@ -120,11 +120,7 @@ function SettingsPage() {
               <Row label={t("settings.preferredName")} value={profile?.preferred_name ?? "—"} />
               <Row
                 label={t("settings.mode")}
-                value={
-                  profile?.account_type
-                    ? t(`settings.modes.${profile.account_type}`)
-                    : "—"
-                }
+                value={profile?.account_type ? t(`settings.modes.${profile.account_type}`) : "—"}
               />
               <Row
                 label={t("settings.aiPersonalization")}
@@ -169,8 +165,14 @@ function SettingsPage() {
               {intro?.intro_text || t("settings.intro.empty")}
             </p>
             <div className="mt-5 grid gap-4 sm:grid-cols-2">
-              <Row label={t("settings.intro.goals")} value={(intro?.goals ?? []).join(", ") || "—"} />
-              <Row label={t("settings.intro.stressors")} value={(intro?.stressors ?? []).join(", ") || "—"} />
+              <Row
+                label={t("settings.intro.goals")}
+                value={(intro?.goals ?? []).join(", ") || "—"}
+              />
+              <Row
+                label={t("settings.intro.stressors")}
+                value={(intro?.stressors ?? []).join(", ") || "—"}
+              />
               <Row
                 label={t("settings.intro.communication")}
                 value={intro?.communication_preference || "—"}
@@ -227,7 +229,9 @@ function SettingsPage() {
                     onClick={() => mutation.mutate()}
                     disabled={mutation.isPending}
                   >
-                    {mutation.isPending ? t("settings.deleteData.deleting") : t("settings.deleteData.confirm")}
+                    {mutation.isPending
+                      ? t("settings.deleteData.deleting")
+                      : t("settings.deleteData.confirm")}
                   </AlertDialogAction>
                 </AlertDialogFooter>
               </AlertDialogContent>
@@ -236,9 +240,7 @@ function SettingsPage() {
 
           <section className="surface-soft border border-destructive/30 p-6">
             <h2 className="text-lg text-destructive">{t("settings.deleteAccount.title")}</h2>
-            <p className="mt-2 text-sm text-muted-foreground">
-              {t("settings.deleteAccount.body")}
-            </p>
+            <p className="mt-2 text-sm text-muted-foreground">{t("settings.deleteAccount.body")}</p>
             <p className="mt-2 text-xs text-muted-foreground">{t("settings.deleteAccount.note")}</p>
             <AlertDialog onOpenChange={(open) => !open && setDeleteConfirmText("")}>
               <AlertDialogTrigger asChild>

@@ -14,32 +14,13 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { planLookupKey, planPriceIdFromEnv, type BillingInterval, type PaidPlan } from "./plans";
 
 const STRIPE_API = "https://api.stripe.com/v1";
-// Managed-connection fallback: when there is no own STRIPE_SECRET_KEY, the same
-// REST calls are proxied through Lovable's connector gateway, which attaches the
-// real Stripe secret. STRIPE_SANDBOX_API_KEY / STRIPE_LIVE_API_KEY are gateway
-// connection identifiers, not Stripe keys.
-const GATEWAY_API = "https://connector-gateway.lovable.dev/stripe/v1";
 
 type Transport = { base: string; headers: Record<string, string> };
 
 function transport(): Transport {
-  const own = process.env["STRIPE_SECRET_KEY"];
-  if (own) return { base: STRIPE_API, headers: { Authorization: `Bearer ${own}` } };
-
-  const connectionKey =
-    process.env["STRIPE_LIVE_API_KEY"] ?? process.env["STRIPE_SANDBOX_API_KEY"] ?? null;
-  const lovableKey = process.env["LOVABLE_API_KEY"] ?? null;
-  if (connectionKey && lovableKey) {
-    return {
-      base: GATEWAY_API,
-      headers: {
-        Authorization: `Bearer ${connectionKey}`,
-        "X-Connection-Api-Key": connectionKey,
-        "Lovable-API-Key": lovableKey,
-      },
-    };
-  }
-  throw new Error("Stripe is not configured yet (no STRIPE_SECRET_KEY or managed connection).");
+  const key = process.env["STRIPE_SECRET_KEY"];
+  if (!key) throw new Error("Stripe is not configured yet (set STRIPE_SECRET_KEY).");
+  return { base: STRIPE_API, headers: { Authorization: `Bearer ${key}` } };
 }
 
 /** Stripe's API takes classic `application/x-www-form-urlencoded`, including for nested objects. */

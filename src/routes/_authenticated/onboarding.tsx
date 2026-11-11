@@ -257,9 +257,7 @@ function OnboardingPage() {
               </div>
               {isMinor && (
                 <div className="space-y-2 rounded-2xl border border-primary/25 bg-primary/5 p-4">
-                  <Label htmlFor="guardian-email">
-                    {t("onboarding.consent.guardianTitle")}
-                  </Label>
+                  <Label htmlFor="guardian-email">{t("onboarding.consent.guardianTitle")}</Label>
                   <Input
                     id="guardian-email"
                     type="email"

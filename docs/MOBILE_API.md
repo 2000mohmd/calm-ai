@@ -17,11 +17,11 @@ screener escalation) is identical on both.
 
 ### 1.1 What you need from the backend team
 
-| Value | Where to get it |
-|---|---|
-| Supabase Project URL | `https://c--131e98f1-a346-4d26-80a3-2be1f7e5e55c-prod.lovable.cloud` |
-| Supabase publishable (anon) key | `sb_publishable_4wG145sBMTCz4HhD8VQzUA_VTSNAe8m` |
-| API base URL | `https://soulshine-soothe.lovable.app/api/v1` (the published app). Endpoints only exist there once the backend owner has **published** the version that adds them in Lovable; if one returns `404`, ask for a publish |
+| Value                           | Where to get it                                                                 |
+| ------------------------------- | ------------------------------------------------------------------------------- |
+| Supabase Project URL            | your Supabase project URL (`https://<ref>.supabase.co`)                         |
+| Supabase publishable (anon) key | your project's publishable key (Settings → API)                                 |
+| API base URL                    | `https://<your-domain>/api/v1`, the deployed web app (see docs/SELF_HOSTING.md) |
 
 The publishable key is meant to be embedded in a client app (it is the
 mobile/web equivalent of a public API key, not a secret) — safe to commit to
@@ -39,8 +39,8 @@ dependencies:
 ```dart
 // main.dart
 await Supabase.initialize(
-  url: 'https://c--131e98f1-a346-4d26-80a3-2be1f7e5e55c-prod.lovable.cloud',
-  anonKey: 'sb_publishable_4wG145sBMTCz4HhD8VQzUA_VTSNAe8m',
+  url: 'https://<ref>.supabase.co',
+  anonKey: '<publishable key>',
 );
 ```
 
@@ -82,7 +82,7 @@ Supabase's SDK auto-refreshes `currentSession` in the background, so re-read
 ### 1.5 End-to-end flow for a brand-new user
 
 1. `Supabase.instance.client.auth.signUp(email: ..., password: ...)` (SDK).
-2. Check the Lovable Cloud dashboard (Authentication → Providers → Email) to
+2. Check the Supabase dashboard (Authentication → Providers → Email) to
    know whether email confirmation is required before sign-in — **not
    verifiable from this repo**, confirm with the backend owner.
 3. `Supabase.instance.client.auth.signInWithPassword(...)` (SDK).
@@ -111,18 +111,18 @@ Supabase's SDK auto-refreshes `currentSession` in the background, so re-read
 Every error is `{ "error": string, "details"?: unknown }` with one of these
 statuses:
 
-| Status | Meaning |
-|---|---|
-| `400` | Invalid JSON body, failed validation, or a business-rule rejection (e.g. under-13 sign-up) |
-| `401` | Missing / malformed / expired / revoked bearer token |
-| `402` | Feature requires a paid plan (voice calls on Free; a new human-coach request on Free or during the trial) |
-| `403` | Forbidden (admin-only endpoint, or a guardian-consent hold on a teen account) |
-| `404` | Resource not found, or not owned by the caller |
-| `409` | Conflict (e.g. a call session is already active) |
-| `429` | Rate limit / plan usage limit hit |
-| `501` | Endpoint intentionally not implemented yet (receipt validation) |
-| `503` | Feature not configured on the server yet (voice calls with no API key set) |
-| `500` | Unexpected server error — details are logged server-side, not returned |
+| Status | Meaning                                                                                                   |
+| ------ | --------------------------------------------------------------------------------------------------------- |
+| `400`  | Invalid JSON body, failed validation, or a business-rule rejection (e.g. under-13 sign-up)                |
+| `401`  | Missing / malformed / expired / revoked bearer token                                                      |
+| `402`  | Feature requires a paid plan (voice calls on Free; a new human-coach request on Free or during the trial) |
+| `403`  | Forbidden (admin-only endpoint, or a guardian-consent hold on a teen account)                             |
+| `404`  | Resource not found, or not owned by the caller                                                            |
+| `409`  | Conflict (e.g. a call session is already active)                                                          |
+| `429`  | Rate limit / plan usage limit hit                                                                         |
+| `501`  | Endpoint intentionally not implemented yet (receipt validation)                                           |
+| `503`  | Feature not configured on the server yet (voice calls with no API key set)                                |
+| `500`  | Unexpected server error — details are logged server-side, not returned                                    |
 
 Auth is verified by `authenticateBearer` (`src/lib/api-auth.server.ts`),
 which does a **real round trip** to Supabase Auth (`auth.getUser(token)`), so
@@ -132,67 +132,67 @@ an expired or revoked token is rejected, not just a malformed one.
 
 ## 3. All endpoints at a glance
 
-| Method | Path | Auth | Purpose |
-|---|---|---|---|
-| POST | `/api/v1/chat/messages` | yes | send a message — crisis-gated, rate-limited |
-| POST | `/api/v1/chat/messages/stream` | yes | same, as a server-sent-events stream |
-| GET | `/api/v1/chat/threads` | yes | the caller's single ongoing conversation (always one item) |
-| GET | `/api/v1/chat/threads/primary` | yes | that conversation + its messages (created on first call) |
-| DELETE | `/api/v1/chat/threads/:id` | yes | delete the conversation (a fresh one starts next time) |
-| GET | `/api/v1/chat/threads/:id/messages` | yes | paginated message history (preferred) |
-| POST | `/api/v1/voice/transcribe` | yes | voice note → text (then send it as a chat message) |
-| GET | `/api/v1/human-support` | yes | in-chat "Talk to a human": current request + messages |
-| POST | `/api/v1/human-support` | yes | ask a human coach to join |
-| POST | `/api/v1/human-support/messages` | yes | member replies to the human coach |
-| GET | `/api/v1/chat/history?thread_id=` | yes | older, non-paginated history read (superseded) |
-| GET | `/api/v1/crisis-resources` | **no** | localized crisis resource list |
-| GET | `/api/v1/entitlements` | yes | plan tier, message/voice limits and usage |
-| POST | `/api/v1/onboarding` | yes | complete onboarding (server computes age) |
-| GET | `/api/v1/profile` | yes | profile + intro + recent moods |
-| GET | `/api/v1/preferences` | yes | companion persona, theme, language |
-| PATCH | `/api/v1/preferences` | yes | update persona / theme |
-| GET | `/api/v1/personas` | **no** | companion persona catalogue |
-| GET / PUT | `/api/v1/language` | yes | the member's language (`en` / `ar` / `fr`) |
-| PATCH | `/api/v1/email-preferences` | yes | proactive emails on/off |
-| GET / POST | `/api/v1/guardian-consent` | yes | under-18: consent state / (re)send the guardian email |
-| POST | `/api/v1/mood` | yes | log a mood check-in |
-| GET | `/api/v1/habits` | yes | list habits + last 30 days of logs |
-| POST | `/api/v1/habits` | yes | create a habit |
-| PATCH | `/api/v1/habits` | yes | log/unlog a habit for a day |
-| PATCH / DELETE | `/api/v1/habits/:id` | yes | edit / delete a habit |
-| POST | `/api/v1/habits/suggested` | yes | add the starter habit set |
-| GET | `/api/v1/habits/insights` | yes | habit vs mood observations |
-| GET | `/api/v1/exercises` | yes | list exercises + recent completions |
-| GET | `/api/v1/exercises/:slug` | yes | one exercise with its steps |
-| POST | `/api/v1/exercises` | yes | record a completion |
-| GET / PUT | `/api/v1/safety-plan` | yes | personal safety plan |
-| GET / POST | `/api/v1/daily-prompt` | yes | today's reflection prompt / answer it |
-| GET | `/api/v1/digests` | yes | weekly summaries |
-| GET / PATCH | `/api/v1/nudges` | yes | proactive coach cards / dismiss |
-| GET | `/api/v1/care-resources` | yes | professional-support options for their region |
-| GET | `/api/v1/memories` | yes | "What Kalm remembers about you" |
-| DELETE | `/api/v1/memories/:id` | yes | forget one memory |
-| GET | `/api/v1/data-summary` | yes | what data is stored about them (counts) |
-| GET | `/api/v1/screeners` | yes | PHQ-9/GAD-7 state (due dates, history) |
-| POST | `/api/v1/screeners` | yes | submit a screener (alt. to the path below) |
-| POST | `/api/v1/screeners/:type/responses` | yes | submit PHQ-9/GAD-7 — item-9 crisis escalation |
-| GET | `/api/v1/export` | yes | therapist-shareable plain-text report |
-| DELETE | `/api/v1/export` | yes | wipe wellness data (**not** account deletion) |
-| DELETE | `/api/v1/account` | yes | full, irreversible account deletion |
-| GET | `/api/v1/support/threads` | yes | list the caller's account/billing support threads |
-| POST | `/api/v1/support/threads` | yes | open a new support thread |
-| GET | `/api/v1/support/threads/:id` | yes | a thread + its messages |
-| POST | `/api/v1/support/threads/:id/messages` | yes | reply on a support thread |
-| POST | `/api/v1/calls/sessions` | yes | start a live voice session (Pro/Premium only) |
-| GET | `/api/v1/calls/sessions` | yes | voice call history |
-| POST | `/api/v1/calls/sessions/:id/turns` | yes | record one spoken turn — crisis-gated |
-| POST | `/api/v1/calls/sessions/:id/end` | yes | finalize a call session |
-| POST | `/api/v1/billing/checkout` | yes | Stripe Checkout session URL |
-| POST | `/api/v1/billing/portal` | yes | Stripe customer portal URL (manage/cancel) |
-| POST | `/api/v1/billing/verify-receipt` | yes | **stub — always 501**, see §7.3 |
-| POST | `/api/v1/push/register-token` | yes | register an FCM device token |
-| DELETE | `/api/v1/push/register-token` | yes | remove a device token (call on sign-out) |
-| GET | `/api/v1/admin/users/:userId/cost` | yes (admin) | internal only — not for the member app |
+| Method         | Path                                   | Auth        | Purpose                                                    |
+| -------------- | -------------------------------------- | ----------- | ---------------------------------------------------------- |
+| POST           | `/api/v1/chat/messages`                | yes         | send a message — crisis-gated, rate-limited                |
+| POST           | `/api/v1/chat/messages/stream`         | yes         | same, as a server-sent-events stream                       |
+| GET            | `/api/v1/chat/threads`                 | yes         | the caller's single ongoing conversation (always one item) |
+| GET            | `/api/v1/chat/threads/primary`         | yes         | that conversation + its messages (created on first call)   |
+| DELETE         | `/api/v1/chat/threads/:id`             | yes         | delete the conversation (a fresh one starts next time)     |
+| GET            | `/api/v1/chat/threads/:id/messages`    | yes         | paginated message history (preferred)                      |
+| POST           | `/api/v1/voice/transcribe`             | yes         | voice note → text (then send it as a chat message)         |
+| GET            | `/api/v1/human-support`                | yes         | in-chat "Talk to a human": current request + messages      |
+| POST           | `/api/v1/human-support`                | yes         | ask a human coach to join                                  |
+| POST           | `/api/v1/human-support/messages`       | yes         | member replies to the human coach                          |
+| GET            | `/api/v1/chat/history?thread_id=`      | yes         | older, non-paginated history read (superseded)             |
+| GET            | `/api/v1/crisis-resources`             | **no**      | localized crisis resource list                             |
+| GET            | `/api/v1/entitlements`                 | yes         | plan tier, message/voice limits and usage                  |
+| POST           | `/api/v1/onboarding`                   | yes         | complete onboarding (server computes age)                  |
+| GET            | `/api/v1/profile`                      | yes         | profile + intro + recent moods                             |
+| GET            | `/api/v1/preferences`                  | yes         | companion persona, theme, language                         |
+| PATCH          | `/api/v1/preferences`                  | yes         | update persona / theme                                     |
+| GET            | `/api/v1/personas`                     | **no**      | companion persona catalogue                                |
+| GET / PUT      | `/api/v1/language`                     | yes         | the member's language (`en` / `ar` / `fr`)                 |
+| PATCH          | `/api/v1/email-preferences`            | yes         | proactive emails on/off                                    |
+| GET / POST     | `/api/v1/guardian-consent`             | yes         | under-18: consent state / (re)send the guardian email      |
+| POST           | `/api/v1/mood`                         | yes         | log a mood check-in                                        |
+| GET            | `/api/v1/habits`                       | yes         | list habits + last 30 days of logs                         |
+| POST           | `/api/v1/habits`                       | yes         | create a habit                                             |
+| PATCH          | `/api/v1/habits`                       | yes         | log/unlog a habit for a day                                |
+| PATCH / DELETE | `/api/v1/habits/:id`                   | yes         | edit / delete a habit                                      |
+| POST           | `/api/v1/habits/suggested`             | yes         | add the starter habit set                                  |
+| GET            | `/api/v1/habits/insights`              | yes         | habit vs mood observations                                 |
+| GET            | `/api/v1/exercises`                    | yes         | list exercises + recent completions                        |
+| GET            | `/api/v1/exercises/:slug`              | yes         | one exercise with its steps                                |
+| POST           | `/api/v1/exercises`                    | yes         | record a completion                                        |
+| GET / PUT      | `/api/v1/safety-plan`                  | yes         | personal safety plan                                       |
+| GET / POST     | `/api/v1/daily-prompt`                 | yes         | today's reflection prompt / answer it                      |
+| GET            | `/api/v1/digests`                      | yes         | weekly summaries                                           |
+| GET / PATCH    | `/api/v1/nudges`                       | yes         | proactive coach cards / dismiss                            |
+| GET            | `/api/v1/care-resources`               | yes         | professional-support options for their region              |
+| GET            | `/api/v1/memories`                     | yes         | "What Kalm remembers about you"                            |
+| DELETE         | `/api/v1/memories/:id`                 | yes         | forget one memory                                          |
+| GET            | `/api/v1/data-summary`                 | yes         | what data is stored about them (counts)                    |
+| GET            | `/api/v1/screeners`                    | yes         | PHQ-9/GAD-7 state (due dates, history)                     |
+| POST           | `/api/v1/screeners`                    | yes         | submit a screener (alt. to the path below)                 |
+| POST           | `/api/v1/screeners/:type/responses`    | yes         | submit PHQ-9/GAD-7 — item-9 crisis escalation              |
+| GET            | `/api/v1/export`                       | yes         | therapist-shareable plain-text report                      |
+| DELETE         | `/api/v1/export`                       | yes         | wipe wellness data (**not** account deletion)              |
+| DELETE         | `/api/v1/account`                      | yes         | full, irreversible account deletion                        |
+| GET            | `/api/v1/support/threads`              | yes         | list the caller's account/billing support threads          |
+| POST           | `/api/v1/support/threads`              | yes         | open a new support thread                                  |
+| GET            | `/api/v1/support/threads/:id`          | yes         | a thread + its messages                                    |
+| POST           | `/api/v1/support/threads/:id/messages` | yes         | reply on a support thread                                  |
+| POST           | `/api/v1/calls/sessions`               | yes         | start a live voice session (Pro/Premium only)              |
+| GET            | `/api/v1/calls/sessions`               | yes         | voice call history                                         |
+| POST           | `/api/v1/calls/sessions/:id/turns`     | yes         | record one spoken turn — crisis-gated                      |
+| POST           | `/api/v1/calls/sessions/:id/end`       | yes         | finalize a call session                                    |
+| POST           | `/api/v1/billing/checkout`             | yes         | Stripe Checkout session URL                                |
+| POST           | `/api/v1/billing/portal`               | yes         | Stripe customer portal URL (manage/cancel)                 |
+| POST           | `/api/v1/billing/verify-receipt`       | yes         | **stub — always 501**, see §7.3                            |
+| POST           | `/api/v1/push/register-token`          | yes         | register an FCM device token                               |
+| DELETE         | `/api/v1/push/register-token`          | yes         | remove a device token (call on sign-out)                   |
+| GET            | `/api/v1/admin/users/:userId/cost`     | yes (admin) | internal only — not for the member app                     |
 
 ---
 
@@ -281,13 +281,19 @@ no pre-check ahead of it — this ordering is safety-critical and tested.
 ```json
 {
   "thread_id": "uuid",
-  "userMessage": { "id": "uuid", "sender": "user", "content": "…", "flagged_crisis": false, "created_at": "ISO-8601" },
+  "userMessage": {
+    "id": "uuid",
+    "sender": "user",
+    "content": "…",
+    "flagged_crisis": false,
+    "created_at": "ISO-8601"
+  },
   "reply": {
     "type": "message",
     "id": "uuid",
     "content": "…",
     "created_at": "ISO-8601",
-    "actions": [ /* see §5.4 */ ]
+    "actions": [/* see §5.4 */]
   }
 }
 ```
@@ -302,7 +308,7 @@ parse:
     "severity": "critical",
     "message": "localized supportive message",
     "matched": ["…"],
-    "resources": [ { "name": "…", "contact": "…", "detail": "…" } ],
+    "resources": [{ "name": "…", "contact": "…", "detail": "…" }],
     "disclaimer": "…",
     "id": "uuid",
     "created_at": "ISO-8601"
@@ -393,10 +399,16 @@ header.
   {
     "thread": { "id": "uuid", "title": "…", "created_at": "…", "updated_at": "…" },
     "messages": [
-      { "id": "uuid", "sender": "user | assistant | system", "content": "…",
+      {
+        "id": "uuid",
+        "sender": "user | assistant | system",
+        "content": "…",
         "content_type": "text | exercise_widget | activity | human_support | rate_limit",
-        "exercise_slug": null, "flagged_crisis": false, "quick_action": null,
-        "created_at": "ISO-8601" }
+        "exercise_slug": null,
+        "flagged_crisis": false,
+        "quick_action": null,
+        "created_at": "ISO-8601"
+      }
     ],
     "nextBefore": "ISO-8601 | null"
   }
@@ -476,9 +488,9 @@ reachable from the crisis card.
    - as a chat message with `content_type: "human_support"` in their
      conversation, **only if the request was opened with a `thread_id`**.
      Always send one.
-   A content-free push notification also goes out ("Kalm team" / "Someone
-   from the Kalm team replied to you."), once push is configured (§14). It
-   carries no data payload: on tap, open the chat and refresh this endpoint.
+     A content-free push notification also goes out ("Kalm team" / "Someone
+     from the Kalm team replied to you."), once push is configured (§14). It
+     carries no data payload: on tap, open the chat and refresh this endpoint.
 4. The member replies with `POST /api/v1/human-support/messages`.
 5. Staff close the request when done (status `closed`). The next
    `POST /api/v1/human-support` opens a new one.
@@ -490,7 +502,10 @@ push and refresh when the app comes to the foreground.
 #### `POST /api/v1/human-support`
 
 ```json
-{ "thread_id": "uuid, optional but send it", "note": "optional, ≤2000 chars, their first message to the coach" }
+{
+  "thread_id": "uuid, optional but send it",
+  "note": "optional, ≤2000 chars, their first message to the coach"
+}
 ```
 
 Body may be empty. If the member already has an open (`queued`/`claimed`)
@@ -579,7 +594,7 @@ valid token happens to be sent) → English.
 ```json
 {
   "language": "en",
-  "resources": [ { "name": "…", "contact": "…", "detail": "…" } ],
+  "resources": [{ "name": "…", "contact": "…", "detail": "…" }],
   "disclaimer": "…"
 }
 ```
@@ -632,17 +647,17 @@ drive your plan-limit UI instead of guessing from local state.
 
 **Plans at a glance (what to gate on):**
 
-| | Free | Trial (Pro/Premium, 3 days) | Pro / Premium (charged) |
-|---|---|---|---|
-| Onboarding + plan preview | ✓ | ✓ | ✓ |
-| AI chat | first conversation only (`chat.intro`) | ✓ | ✓ |
-| Voice calls | ✗ | ✓ | ✓ |
-| Human coach (§5.5) | ✗ | ✗ | ✓ (`features.humanCoach`) |
-| Crisis lines, crisis card, safety plan | **always** | **always** | **always** |
+|                                        | Free                                   | Trial (Pro/Premium, 3 days) | Pro / Premium (charged)   |
+| -------------------------------------- | -------------------------------------- | --------------------------- | ------------------------- |
+| Onboarding + plan preview              | ✓                                      | ✓                           | ✓                         |
+| AI chat                                | first conversation only (`chat.intro`) | ✓                           | ✓                         |
+| Voice calls                            | ✗                                      | ✓                           | ✓                         |
+| Human coach (§5.5)                     | ✗                                      | ✗                           | ✓ (`features.humanCoach`) |
+| Crisis lines, crisis card, safety plan | **always**                             | **always**                  | **always**                |
 
 - `chat.intro` (free only, `null` on paid): their one first conversation.
   When `remaining` hits 0 the next message returns `reply.limit.reason:
-  "intro"` (§5.1). Use it for a "N messages left in your first conversation"
+"intro"` (§5.1). Use it for a "N messages left in your first conversation"
   hint if you want one.
 - `trial.eligible`: checkout would start with the free trial (they've never
   subscribed); label the button "Start 3-day free trial" instead of "Choose".
@@ -666,13 +681,23 @@ drive your plan-limit UI instead of guessing from local state.
 ### 7.1 `POST /api/v1/billing/checkout`
 
 ```json
-{ "plan": "pro | premium", "interval": "monthly | yearly", "successUrl": "optional", "cancelUrl": "optional" }
+{
+  "plan": "pro | premium",
+  "interval": "monthly | yearly",
+  "successUrl": "optional",
+  "cancelUrl": "optional"
+}
 ```
 
 All fields optional (defaults: `premium` / `monthly`). Returns:
 
 ```json
-{ "checkoutUrl": "https://checkout.stripe.com/…", "trialDays": 3, "plan": "premium", "interval": "monthly" }
+{
+  "checkoutUrl": "https://checkout.stripe.com/…",
+  "trialDays": 3,
+  "plan": "premium",
+  "interval": "monthly"
+}
 ```
 
 - **Free trial:** someone who has never subscribed gets `trialDays: 3`.
@@ -731,17 +756,17 @@ Everything here is also available through an `/api/v1` endpoint (§3); use
 whichever is more convenient for reads. **For writes, follow the "one
 caveat" note below.**
 
-| Table | Direct access | Notes |
-|---|---|---|
-| `profiles` | select / update | one row per user |
-| `user_profiles` | select / upsert | free-text intro / goals / stressors |
-| `mood_logs` | select / insert | insert with `is_baseline: false` — only onboarding sets `true` |
-| `habits` | select / insert / update / delete | user-owned |
-| `habit_logs` | select / insert* | user-owned; upsert on `(habit_id, log_date)` |
-| `exercises` | select | read-only catalogue |
-| `exercise_completions` | select / insert* | user-owned |
-| `screener_responses` | **select only** | writes MUST go through `POST /api/v1/screeners/:type/responses` — a direct insert skips the PHQ-9 item-9 crisis escalation |
-| `chat_threads` / `chat_messages` | **select only** | sending MUST go through `POST /api/v1/chat/messages` — a direct insert skips the crisis gate and rate limiter |
+| Table                            | Direct access                     | Notes                                                                                                                      |
+| -------------------------------- | --------------------------------- | -------------------------------------------------------------------------------------------------------------------------- |
+| `profiles`                       | select / update                   | one row per user                                                                                                           |
+| `user_profiles`                  | select / upsert                   | free-text intro / goals / stressors                                                                                        |
+| `mood_logs`                      | select / insert                   | insert with `is_baseline: false` — only onboarding sets `true`                                                             |
+| `habits`                         | select / insert / update / delete | user-owned                                                                                                                 |
+| `habit_logs`                     | select / insert*                  | user-owned; upsert on `(habit_id, log_date)`                                                                               |
+| `exercises`                      | select                            | read-only catalogue                                                                                                        |
+| `exercise_completions`           | select / insert*                  | user-owned                                                                                                                 |
+| `screener_responses`             | **select only**                   | writes MUST go through `POST /api/v1/screeners/:type/responses` — a direct insert skips the PHQ-9 item-9 crisis escalation |
+| `chat_threads` / `chat_messages` | **select only**                   | sending MUST go through `POST /api/v1/chat/messages` — a direct insert skips the crisis gate and rate limiter              |
 
 \* **The one caveat.** A direct SDK insert into `habit_logs` /
 `exercise_completions` stores the row correctly, but the `/api/v1` endpoints
@@ -761,8 +786,8 @@ There is **no endpoint that returns the question text** — hardcode these
 (they're the standard, public-domain instruments) in the same order the
 `responses` array must use:
 
-**PHQ-9** (9 items, prompt: *"Over the last 2 weeks, how often have you been
-bothered by any of the following?"*):
+**PHQ-9** (9 items, prompt: _"Over the last 2 weeks, how often have you been
+bothered by any of the following?"_):
 
 1. Little interest or pleasure in doing things
 2. Feeling down, depressed, or hopeless
@@ -774,8 +799,8 @@ bothered by any of the following?"*):
 8. Moving or speaking so slowly that other people could have noticed — or the opposite, being fidgety or restless
 9. Thoughts that you would be better off dead or of hurting yourself in some way
 
-**GAD-7** (7 items, prompt: *"Over the last 2 weeks, how often have you been
-bothered by the following?"*):
+**GAD-7** (7 items, prompt: _"Over the last 2 weeks, how often have you been
+bothered by the following?"_):
 
 1. Feeling nervous, anxious, or on edge
 2. Not being able to stop or control worrying
@@ -798,7 +823,9 @@ Exactly 9 ints for `phq9`, 7 for `gad7`, each `0–3`.
 
 ```json
 {
-  "id": "uuid", "total_score": 4, "severity": "mild",
+  "id": "uuid",
+  "total_score": 4,
+  "severity": "mild",
   "taken_at": "ISO-8601",
   "crisisTriggered": false,
   "crisis": null
@@ -818,11 +845,19 @@ separate, deliberately more sensitive path.
 instruments in one call:
 
 ```json
-{ "screeners": [
-  { "type": "phq9", "label": "PHQ-9 (low mood)", "latest": { /* or null */ },
-    "due": true, "dueAt": "ISO-8601 | null", "history": [ /* past responses */ ] },
-  { "type": "gad7", "...": "..." }
-] }
+{
+  "screeners": [
+    {
+      "type": "phq9",
+      "label": "PHQ-9 (low mood)",
+      "latest": {/* or null */},
+      "due": true,
+      "dueAt": "ISO-8601 | null",
+      "history": [/* past responses */]
+    },
+    { "type": "gad7", "...": "..." }
+  ]
+}
 ```
 
 `POST /api/v1/screeners` also accepts `{ "screener_type": "phq9"|"gad7", "responses": [...] }`
@@ -837,101 +872,151 @@ and tested most thoroughly, so prefer it for new code.
 Straightforward CRUD-shaped wrappers — request/response bodies below.
 
 ### `POST /api/v1/mood`
+
 ```json
 { "score": 1, "note": "optional, ≤500 chars", "tags": ["optional", "≤10 items"] }
 ```
+
 → `{ "ok": true }`
 
 ### `GET /api/v1/habits`
+
 → `{ "habits": [...], "logs": [...last 30 days...], "today": "YYYY-MM-DD" }`
 
 ### `POST /api/v1/habits`
+
 ```json
 { "name": "string, 1-80 chars", "category": "optional", "frequency_target": 7 }
 ```
+
 → the created habit row.
 
 ### `PATCH /api/v1/habits`
+
 ```json
-{ "habit_id": "uuid", "log_date": "YYYY-MM-DD, optional (defaults today)", "completed": true, "note": "optional" }
+{
+  "habit_id": "uuid",
+  "log_date": "YYYY-MM-DD, optional (defaults today)",
+  "completed": true,
+  "note": "optional"
+}
 ```
+
 `completed: false` deletes that day's log (un-checking). → `{ "ok": true, "completed": true|false, "thread_id": "uuid | null" }`.
 
 ### `PATCH /api/v1/habits/:id`
+
 ```json
 { "name": "optional", "category": "optional", "frequency_target": 1-7, "is_active": true }
 ```
+
 Send only the fields that change. → `{ "ok": true }`
 
 ### `DELETE /api/v1/habits/:id`
+
 → `{ "ok": true }`
 
 ### `POST /api/v1/habits/suggested`
+
 No body. Adds the starter habit set, skipping any name they already have.
 → `{ "added": 3 }`
 
 ### `GET /api/v1/habits/insights`
+
 ```json
 {
   "insights": [
-    { "habit_id": "uuid", "habit_name": "…", "daysWithHabit": 6, "daysWithoutHabit": 9,
-      "avgMoodWithHabit": 3.8, "avgMoodWithoutHabit": 3.1, "delta": 0.7,
-      "headline": "Your mood averages 0.7 points higher on days you log \"…\"." }
+    {
+      "habit_id": "uuid",
+      "habit_name": "…",
+      "daysWithHabit": 6,
+      "daysWithoutHabit": 9,
+      "avgMoodWithHabit": 3.8,
+      "avgMoodWithoutHabit": 3.1,
+      "delta": 0.7,
+      "headline": "Your mood averages 0.7 points higher on days you log \"…\"."
+    }
   ],
   "moodDaysTracked": 15,
   "note": "These are gentle observations, not clinical findings — correlation is not causation."
 }
 ```
+
 Last 30 days. `delta` is `null` until there are 3+ days with and 3+ without
 the habit; show `headline` (already phrased for the member) and `note`.
 
 ### `GET /api/v1/exercises`
+
 → `{ "exercises": [ { id, slug, title, category, intro_text, steps, estimated_minutes } ], "completions": [...last 30...] }`
 Filtered server-side to age-appropriate content based on `account_type`.
 
 ### `GET /api/v1/exercises/:slug`
+
 → `{ id, slug, title, category, intro_text, steps, estimated_minutes }`, or
 `null` (with `200`) for an unknown slug. Use it to render the exercise behind
 an `exercise_launch` / `exercise_widget` action (§5.4).
 
 ### `POST /api/v1/exercises`
+
 ```json
-{ "exercise_id": "uuid", "mood_before": 3, "mood_after": 4, "response_data": {}, "log_mood_after": true, "thread_id": "optional" }
+{
+  "exercise_id": "uuid",
+  "mood_before": 3,
+  "mood_after": 4,
+  "response_data": {},
+  "log_mood_after": true,
+  "thread_id": "optional"
+}
 ```
+
 → `{ "ok": true, "id": "uuid", "thread_id": "uuid | null" }`
 
 ### `GET /api/v1/preferences`
+
 → `{ "companionPersona": "warm|direct|reflective", "theme": "system|light|dark", "language": "en|ar|fr" }`
 
 ### `PATCH /api/v1/preferences`
+
 ```json
 { "companionPersona": "direct", "theme": "dark" }
 ```
+
 At least one field required. → the full updated `Preferences` object.
 
 ### `GET /api/v1/personas` — **public, no auth**
+
 → `[ { "id": "warm", "description": "Gentle and validating. The default." }, ... ]`
 
 ### `GET /api/v1/language` · `PUT /api/v1/language`
+
 GET → `{ "language": "en" | "ar" | "fr" | null }` (`null` = never set).
 PUT `{ "language": "ar" }` → `{ "language": "ar" }`; anything else is `400`.
 Drives the companion's reply language, emails and crisis resources. `ar` is
 right-to-left.
 
 ### `PATCH /api/v1/email-preferences`
+
 `{ "opt_out": true }` → `{ "ok": true }`. Turns proactive emails (nudges,
 weekly digest) off/on. Current value: `GET /api/v1/profile` →
 `profile.email_opt_out`.
 
 ### `GET /api/v1/guardian-consent` · `POST /api/v1/guardian-consent`
+
 For under-18 accounts, the companion stays silent until a parent/guardian
 approves by email (crisis resources are never held back).
 
 GET →
+
 ```json
-{ "required": true, "status": "none | pending | granted | withdrawn",
-  "guardian_email": "…", "requested_at": "ISO-8601 | null", "granted_at": "ISO-8601 | null" }
+{
+  "required": true,
+  "status": "none | pending | granted | withdrawn",
+  "guardian_email": "…",
+  "requested_at": "ISO-8601 | null",
+  "granted_at": "ISO-8601 | null"
+}
 ```
+
 While `required && status != "granted"`, show a waiting state instead of the
 chat composer (with crisis resources visible), as the web chat does.
 
@@ -940,38 +1025,51 @@ POST `{ "guardian_email": "…", "guardian_name": "optional" }` →
 when `required` is `true` (otherwise it errors).
 
 ### `GET /api/v1/safety-plan` · `PUT /api/v1/safety-plan`
+
 A plan the member writes in calm moments and opens in hard ones (the shield
 button in the web chat header, and "Open my safety plan" on the crisis card).
 Owner-only; the companion sees it only if they consented to AI context.
 
 GET →
+
 ```json
 {
   "plan": {
-    "warning_signs": ["…"], "coping_steps": ["…"], "people": ["…"],
-    "professionals": ["…"], "safer_space": ["…"], "reasons_to_stay": ["…"],
-    "notes": "… | null", "updated_at": "ISO-8601 | null"
+    "warning_signs": ["…"],
+    "coping_steps": ["…"],
+    "people": ["…"],
+    "professionals": ["…"],
+    "safer_space": ["…"],
+    "reasons_to_stay": ["…"],
+    "notes": "… | null",
+    "updated_at": "ISO-8601 | null"
   },
   "exists": true
 }
 ```
+
 PUT replaces the whole plan: send all six lists (each ≤20 items, ≤240 chars
 per item) plus optional `notes` (≤2000). → `{ "ok": true }`. Web section
 labels: My warning signs · What helps me settle · People I can reach ·
 Professionals / lines · Making my space safer · My reason to stay.
 
 ### `GET /api/v1/daily-prompt` · `POST /api/v1/daily-prompt`
+
 GET →
+
 ```json
 { "prompt": { "id": "uuid", "prompt_text": "…", "prompt_type": "…" } | null,
   "response": { "id": "uuid", "response_text": "…", "responded_at": "ISO-8601" } | null }
 ```
+
 Same prompt for everyone all day (rotates daily, UTC). `response` is their
 answer from today, if any. POST `{ "prompt_id": "uuid", "response_text": "1-2000 chars" }`
 → `{ "ok": true }`.
 
 ### `GET /api/v1/digests`
+
 Weekly summaries, newest first (up to 26):
+
 ```json
 { "digests": [ { "id": "uuid", "week_start": "YYYY-MM-DD", "narrative_text": "…",
   "suggested_focus": "… | null", "previous_focus_followed_up": true | null,
@@ -979,19 +1077,40 @@ Weekly summaries, newest first (up to 26):
   "screener_summary": {…} | null, "effectiveness_highlights": …,
   "created_at": "ISO-8601" } ] }
 ```
+
 Show `narrative_text` and `suggested_focus`. The summary/highlight fields are
 free-form JSON (the numbers behind the narrative); don't hard-code their shape.
 
 ### `GET /api/v1/nudges` · `PATCH /api/v1/nudges`
+
 The proactive coach cards on the web dashboard ("I've noticed…"). GET first
 re-evaluates the member's recent data (may create a new nudge; each kind has
 a 7-day cooldown), then returns up to 3 live ones:
+
 ```json
-{ "nudges": [ { "id": "uuid", "trigger_type": "low_mood_streak | inactivity | screener_step_up | commitment_follow_up | …",
-  "message": "…", "suggested_exercise_slug": "… | null", "acted_on": false,
-  "created_at": "ISO-8601",
-  "resources": [ { "id": "uuid", "resource_type": "directory | low_cost | crisis", "name": "…", "description": "…", "contact_or_url": "…" } ] } ] }
+{
+  "nudges": [
+    {
+      "id": "uuid",
+      "trigger_type": "low_mood_streak | inactivity | screener_step_up | commitment_follow_up | …",
+      "message": "…",
+      "suggested_exercise_slug": "… | null",
+      "acted_on": false,
+      "created_at": "ISO-8601",
+      "resources": [
+        {
+          "id": "uuid",
+          "resource_type": "directory | low_cost | crisis",
+          "name": "…",
+          "description": "…",
+          "contact_or_url": "…"
+        }
+      ]
+    }
+  ]
+}
 ```
+
 Show `message`; offer the exercise if `suggested_exercise_slug` is set, and
 the `resources` when present (the "talk to someone" step-up). Treat
 `trigger_type` as open-ended, new kinds get added. PATCH
@@ -999,11 +1118,13 @@ the `resources` when present (the "talk to someone" step-up). Treat
 records that they used it. → `{ "ok": true }`
 
 ### `GET /api/v1/care-resources`
+
 Professional-support options for the member's region (by their language):
 `[ { "id", "resource_type", "name", "description", "contact_or_url", "region" } ]`
 (a bare array). Backs the web `/care` page.
 
 ### `GET /api/v1/memories` · `DELETE /api/v1/memories/:id`
+
 "What Kalm remembers about you" (Settings): short summaries the companion
 keeps of past conversations.
 GET → `[ { "id": "uuid", "summary_text": "…", "created_at": "ISO-8601" } ]`
@@ -1011,11 +1132,24 @@ GET → `[ { "id": "uuid", "summary_text": "…", "created_at": "ISO-8601" } ]`
 companion won't use that memory again.
 
 ### `GET /api/v1/data-summary`
+
 What's stored about them (Settings → Your data), for a transparency screen:
+
 ```json
-{ "items": [ { "key": "mood_logs", "label": "Mood check-ins", "description": "…",
-  "count": 42, "first": "YYYY-MM-DD | null", "last": "YYYY-MM-DD | null" } ] }
+{
+  "items": [
+    {
+      "key": "mood_logs",
+      "label": "Mood check-ins",
+      "description": "…",
+      "count": 42,
+      "first": "YYYY-MM-DD | null",
+      "last": "YYYY-MM-DD | null"
+    }
+  ]
+}
 ```
+
 Keys: `mood_logs`, `habit_logs`, `screener_responses`, `thread_summaries`,
 `exercise_completions`, `commitments`.
 
@@ -1066,11 +1200,19 @@ never a mental-health-support path. Backed by `support_threads` /
 The caller's support threads, most recently updated first.
 
 ```json
-{ "threads": [
-  { "id": "uuid", "subject": "…", "status": "open | in_progress | resolved",
-    "created_at": "…", "updated_at": "…",
-    "last_message": "string | null", "last_sender": "user | admin | null" }
-] }
+{
+  "threads": [
+    {
+      "id": "uuid",
+      "subject": "…",
+      "status": "open | in_progress | resolved",
+      "created_at": "…",
+      "updated_at": "…",
+      "last_message": "string | null",
+      "last_sender": "user | admin | null"
+    }
+  ]
+}
 ```
 
 ### `POST /api/v1/support/threads`
@@ -1080,6 +1222,7 @@ Opens a new thread.
 ```json
 { "subject": "string, 3-120 chars", "message": "string, 5-4000 chars" }
 ```
+
 → `{ "thread_id": "uuid" }`
 
 ### `GET /api/v1/support/threads/:id`
@@ -1089,9 +1232,10 @@ The full thread — status plus every message in order.
 ```json
 {
   "thread": { "id": "uuid", "subject": "…", "status": "…", "created_at": "…", "updated_at": "…" },
-  "messages": [ { "id": "uuid", "sender": "user | admin", "content": "…", "created_at": "…" } ]
+  "messages": [{ "id": "uuid", "sender": "user | admin", "content": "…", "created_at": "…" }]
 }
 ```
+
 `404` if not owned by the caller.
 
 ### `POST /api/v1/support/threads/:id/messages`
@@ -1101,6 +1245,7 @@ Adds a message to an existing thread (the member's side).
 ```json
 { "message": "string, 2-4000 chars" }
 ```
+
 → `{ "ok": true }`. An admin reply sends the member an email notification
 with a short excerpt and a link back into the app — never the full reply
 body, so nothing sensitive leaks through an inbox.
@@ -1116,7 +1261,10 @@ take this on; it needs a WebRTC client, not just HTTP.
 ### `POST /api/v1/calls/sessions`
 
 ```json
-{ "thread_id": "optional — attaches the call transcript to an existing chat thread", "voice": "optional voice id" }
+{
+  "thread_id": "optional — attaches the call transcript to an existing chat thread",
+  "voice": "optional voice id"
+}
 ```
 
 **Gating, in order:** `402` if the tier has 0 weekly calls (free), `429` if
@@ -1131,7 +1279,9 @@ configured on the server yet.
 {
   "session": { "id": "uuid", "thread_id": "uuid", "status": "active", "...": "..." },
   "realtime": {
-    "provider": "openai_realtime", "model": "…", "voice": "…",
+    "provider": "openai_realtime",
+    "model": "…",
+    "voice": "…",
     "client_secret": "short-lived — safe to use from the device",
     "expires_at": 1234567890,
     "webrtc_url": "…"
@@ -1213,10 +1363,10 @@ notifications to arrive until the backend owner confirms that's set.
 What gets pushed today (title / body; no data payload, so on tap just open
 the chat and refresh):
 
-| When | Notes |
-|---|---|
+| When                                         | Notes                                                                                   |
+| -------------------------------------------- | --------------------------------------------------------------------------------------- |
 | The companion checks in after ~12 h of quiet | body is the companion's message; off unless `CHAT_CHECKIN_ENABLED` is set on the server |
-| A human coach replies (§5.5) | content-free: "Kalm team" / "Someone from the Kalm team replied to you." |
+| A human coach replies (§5.5)                 | content-free: "Kalm team" / "Someone from the Kalm team replied to you."                |
 
 ---
 

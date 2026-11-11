@@ -6,20 +6,13 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/integrations/supabase/types";
 import { callCompanionModel } from "./llm-provider.server";
+import { appBaseUrl } from "./app-url";
 
 type Client = SupabaseClient<Database>;
 
 const RESEND_URL = "https://api.resend.com/emails";
 const FROM = "Kalm Safety <onboarding@resend.dev>";
 const MODEL = "claude-haiku-4-5";
-
-function appBaseUrl(): string {
-  return (
-    process.env["APP_BASE_URL"] ??
-    process.env["VITE_APP_BASE_URL"] ??
-    "https://soulshine-soothe.lovable.app"
-  );
-}
 
 export type HandoffRequestRow = {
   id: string;
@@ -72,7 +65,9 @@ export async function summarizeForHuman(
           role: "user",
           content: [
             context.preferredName ? `They go by ${context.preferredName}.` : "",
-            context.severity ? `An automated safety flag fired at "${context.severity}" level.` : "",
+            context.severity
+              ? `An automated safety flag fired at "${context.severity}" level.`
+              : "",
             `Conversation language code: ${context.language}.`,
             "",
             "Recent conversation:",

@@ -17,11 +17,7 @@ import {
   Square,
   UserRound,
 } from "lucide-react";
-import {
-  getPrimaryThread,
-  getThreadHistory,
-  sendMessage,
-} from "@/lib/chat.functions";
+import { getPrimaryThread, getThreadHistory, sendMessage } from "@/lib/chat.functions";
 import { transcribeVoiceNote } from "@/lib/voice.functions";
 import type { CompanionAction } from "@/lib/companion-tools.server";
 import { QUICK_ACTIONS } from "@/lib/quick-actions";
@@ -300,320 +296,319 @@ function ChatPage() {
 
   return (
     <div className="flex h-screen w-full overflow-hidden bg-background">
-      <AppSidebar
-        open={sidebarOpen}
-        onToggle={() => setSidebarOpen((open) => !open)}
-      />
+      <AppSidebar open={sidebarOpen} onToggle={() => setSidebarOpen((open) => !open)} />
 
       {viewMode === "support" ? (
         <HumanSupportPanel threadId={threadId} onBack={() => setViewMode("ai")} />
       ) : (
-      <section className="flex min-w-0 flex-1 flex-col">
-        {/* Thread header, mirroring Claude's title bar. */}
-        <header className="flex items-center gap-3 border-b border-border/70 px-4 py-3">
-          <button
-            type="button"
-            onClick={() => setSidebarOpen((open) => !open)}
-            aria-label={sidebarOpen ? t("chat.hideConversations") : t("chat.showConversations")}
-            className={`rounded-lg p-2 text-muted-foreground hover:bg-muted hover:text-foreground ${
-              sidebarOpen ? "md:hidden" : ""
-            }`}
-          >
-            <PanelLeft className="size-4" aria-hidden />
-          </button>
-          <h1 className="min-w-0 flex-1 truncate font-display text-base">
-            {activeThread?.title ?? t("nav.newConversation")}
-          </h1>
-          <button
-            type="button"
-            onClick={() => setPlanOpen(true)}
-            aria-label={t("safetyPlan.open")}
-            className="flex items-center gap-1.5 rounded-full border border-border bg-card px-3 py-1.5 text-xs text-muted-foreground hover:bg-muted hover:text-foreground"
-          >
-            <ShieldCheck className="size-3.5" aria-hidden />
-            <span className="hidden lg:inline">{t("safetyPlan.open")}</span>
-          </button>
-          <button
-            type="button"
-            onClick={() => setViewMode("support")}
-            aria-label={t("humanSupport.button")}
-            className="flex items-center gap-1.5 rounded-full border border-border bg-card px-3 py-1.5 text-xs text-muted-foreground hover:bg-muted hover:text-foreground"
-          >
-            <UserRound className="size-3.5" aria-hidden />
-            <span className="hidden lg:inline">{t("humanSupport.button")}</span>
-          </button>
-          <button
-            type="button"
-            onClick={() => setCallOpen(true)}
-            className="flex items-center gap-1.5 rounded-full border border-border bg-card px-3 py-1.5 text-xs text-muted-foreground hover:bg-muted hover:text-foreground"
-          >
-            <Phone className="size-3.5" aria-hidden />
-            <span className="hidden sm:inline">{t("call.start")}</span>
-          </button>
-        </header>
+        <section className="flex min-w-0 flex-1 flex-col">
+          {/* Thread header, mirroring Claude's title bar. */}
+          <header className="flex items-center gap-3 border-b border-border/70 px-4 py-3">
+            <button
+              type="button"
+              onClick={() => setSidebarOpen((open) => !open)}
+              aria-label={sidebarOpen ? t("chat.hideConversations") : t("chat.showConversations")}
+              className={`rounded-lg p-2 text-muted-foreground hover:bg-muted hover:text-foreground ${
+                sidebarOpen ? "md:hidden" : ""
+              }`}
+            >
+              <PanelLeft className="size-4" aria-hidden />
+            </button>
+            <h1 className="min-w-0 flex-1 truncate font-display text-base">
+              {activeThread?.title ?? t("nav.newConversation")}
+            </h1>
+            <button
+              type="button"
+              onClick={() => setPlanOpen(true)}
+              aria-label={t("safetyPlan.open")}
+              className="flex items-center gap-1.5 rounded-full border border-border bg-card px-3 py-1.5 text-xs text-muted-foreground hover:bg-muted hover:text-foreground"
+            >
+              <ShieldCheck className="size-3.5" aria-hidden />
+              <span className="hidden lg:inline">{t("safetyPlan.open")}</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => setViewMode("support")}
+              aria-label={t("humanSupport.button")}
+              className="flex items-center gap-1.5 rounded-full border border-border bg-card px-3 py-1.5 text-xs text-muted-foreground hover:bg-muted hover:text-foreground"
+            >
+              <UserRound className="size-3.5" aria-hidden />
+              <span className="hidden lg:inline">{t("humanSupport.button")}</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => setCallOpen(true)}
+              className="flex items-center gap-1.5 rounded-full border border-border bg-card px-3 py-1.5 text-xs text-muted-foreground hover:bg-muted hover:text-foreground"
+            >
+              <Phone className="size-3.5" aria-hidden />
+              <span className="hidden sm:inline">{t("call.start")}</span>
+            </button>
+          </header>
 
-        {/* Transcript: assistant text sits plain on the page, user text in a soft bubble. */}
-        <div className="min-h-0 flex-1 overflow-y-auto px-4">
-          <div className="mx-auto w-full max-w-2xl space-y-7 py-6">
-            <GuardianConsentNotice />
+          {/* Transcript: assistant text sits plain on the page, user text in a soft bubble. */}
+          <div className="min-h-0 flex-1 overflow-y-auto px-4">
+            <div className="mx-auto w-full max-w-2xl space-y-7 py-6">
+              <GuardianConsentNotice />
 
-            {empty && (
-              <div className="flex flex-col items-center gap-4 py-16 text-center">
-                <span className="flex size-12 items-center justify-center rounded-2xl bg-secondary">
-                  <KalmLogo className="size-6 text-primary" aria-hidden />
-                </span>
-                {profileLoading ? (
-                  <Skeleton className="h-9 w-52 rounded-lg" />
-                ) : (
-                  <h2 className="font-display text-3xl">
-                    {preferredName
-                      ? t("chat.greetingNamed", { name: preferredName })
-                      : t("chat.greeting")}
-                  </h2>
-                )}
-                <p className="max-w-sm text-sm text-muted-foreground">{t("chat.emptyPrompt")}</p>
-                <div className="w-full max-w-md pt-4 text-left">
-                  <DailyPromptCard />
+              {empty && (
+                <div className="flex flex-col items-center gap-4 py-16 text-center">
+                  <span className="flex size-12 items-center justify-center rounded-2xl bg-secondary">
+                    <KalmLogo className="size-6 text-primary" aria-hidden />
+                  </span>
+                  {profileLoading ? (
+                    <Skeleton className="h-9 w-52 rounded-lg" />
+                  ) : (
+                    <h2 className="font-display text-3xl">
+                      {preferredName
+                        ? t("chat.greetingNamed", { name: preferredName })
+                        : t("chat.greeting")}
+                    </h2>
+                  )}
+                  <p className="max-w-sm text-sm text-muted-foreground">{t("chat.emptyPrompt")}</p>
+                  <div className="w-full max-w-md pt-4 text-left">
+                    <DailyPromptCard />
+                  </div>
                 </div>
-              </div>
-            )}
+              )}
 
-            {messages.map((message) =>
-              message.content_type === "exercise_widget" ? (
-                <div key={message.id} className="ml-10">
-                  <InlineExerciseWidget slug={message.exercise_slug ?? ""} threadId={threadId} />
-                </div>
-              ) : message.content_type === "activity" ? (
-                <div
-                  key={message.id}
-                  className="mx-auto w-fit rounded-full border border-border bg-muted/50 px-3.5 py-1.5 text-xs text-muted-foreground"
-                >
-                  {message.content}
-                </div>
-              ) : message.content_type === "human_support" ? (
-                // A real person's reply, always labelled as such so it is never
-                // mistaken for the companion.
-                <div
-                  key={message.id}
-                  className="rounded-2xl border border-primary/25 bg-primary/5 p-4"
-                >
-                  <p className="flex items-center gap-1.5 text-[0.7rem] uppercase tracking-wide text-primary">
-                    <UserRound className="size-3.5" aria-hidden />
-                    {t("humanSupport.inChat")}
-                  </p>
-                  <p className="mt-2 whitespace-pre-line text-sm leading-relaxed">
-                    {message.content}
-                  </p>
-                  <button
-                    type="button"
-                    onClick={() => setViewMode("support")}
-                    className="mt-3 rounded-full border border-border bg-card px-3 py-1.5 text-xs hover:bg-muted"
+              {messages.map((message) =>
+                message.content_type === "exercise_widget" ? (
+                  <div key={message.id} className="ml-10">
+                    <InlineExerciseWidget slug={message.exercise_slug ?? ""} threadId={threadId} />
+                  </div>
+                ) : message.content_type === "activity" ? (
+                  <div
+                    key={message.id}
+                    className="mx-auto w-fit rounded-full border border-border bg-muted/50 px-3.5 py-1.5 text-xs text-muted-foreground"
                   >
-                    {t("humanSupport.send")}
-                  </button>
-                </div>
-              ) : message.content_type === "rate_limit" ? (
-                <div key={message.id} className="mx-auto w-fit max-w-[85%] text-center">
-                  <div className="space-y-3 rounded-2xl border border-primary/25 bg-primary/5 p-4">
-                    <p className="text-sm leading-relaxed">
-                      {onFreePlan
-                        ? t("chat.introLimitMessage", { days: trialDays })
-                        : t("chat.limitCoachMessage")}
+                    {message.content}
+                  </div>
+                ) : message.content_type === "human_support" ? (
+                  // A real person's reply, always labelled as such so it is never
+                  // mistaken for the companion.
+                  <div
+                    key={message.id}
+                    className="rounded-2xl border border-primary/25 bg-primary/5 p-4"
+                  >
+                    <p className="flex items-center gap-1.5 text-[0.7rem] uppercase tracking-wide text-primary">
+                      <UserRound className="size-3.5" aria-hidden />
+                      {t("humanSupport.inChat")}
                     </p>
+                    <p className="mt-2 whitespace-pre-line text-sm leading-relaxed">
+                      {message.content}
+                    </p>
+                    <button
+                      type="button"
+                      onClick={() => setViewMode("support")}
+                      className="mt-3 rounded-full border border-border bg-card px-3 py-1.5 text-xs hover:bg-muted"
+                    >
+                      {t("humanSupport.send")}
+                    </button>
+                  </div>
+                ) : message.content_type === "rate_limit" ? (
+                  <div key={message.id} className="mx-auto w-fit max-w-[85%] text-center">
+                    <div className="space-y-3 rounded-2xl border border-primary/25 bg-primary/5 p-4">
+                      <p className="text-sm leading-relaxed">
+                        {onFreePlan
+                          ? t("chat.introLimitMessage", { days: trialDays })
+                          : t("chat.limitCoachMessage")}
+                      </p>
+                      <Link
+                        to="/plans"
+                        className="inline-flex items-center gap-1.5 rounded-full bg-primary px-4 py-2 text-xs font-medium text-primary-foreground"
+                      >
+                        {onFreePlan
+                          ? t("plans.startTrial", { days: trialDays })
+                          : t("chat.upgradeCta")}
+                      </Link>
+                      <p className="text-xs text-muted-foreground">
+                        {onFreePlan ? t("chat.introStillHere") : t("chat.limitStillHere")}
+                      </p>
+                    </div>
+                  </div>
+                ) : message.sender === "system" ? (
+                  <div key={message.id} className="space-y-3">
+                    <p className="text-sm leading-relaxed">{message.content}</p>
+                    <CrisisCard onAskHuman={() => setViewMode("support")} />
+                  </div>
+                ) : message.sender === "user" ? (
+                  <div key={message.id} className="flex justify-end">
+                    <p className="max-w-[85%] whitespace-pre-line rounded-2xl bg-secondary px-4 py-2.5 text-sm leading-relaxed text-secondary-foreground">
+                      {message.content}
+                    </p>
+                  </div>
+                ) : (
+                  <div key={message.id} className="flex gap-3">
+                    <span className="mt-0.5 flex size-7 shrink-0 items-center justify-center rounded-full bg-primary/12">
+                      <KalmLogo className="size-3.5 text-primary" aria-hidden />
+                    </span>
+                    <p className="min-w-0 flex-1 whitespace-pre-line text-[0.95rem] leading-7">
+                      {message.content}
+                    </p>
+                  </div>
+                ),
+              )}
+
+              {actions.length > 0 && (
+                <div className="ml-10 space-y-2 rounded-2xl border border-primary/20 bg-primary/5 p-4">
+                  {actions.map((action, index) => (
+                    <div key={`${action.type}-${index}`} className="text-sm">
+                      <p>{action.summary}</p>
+                      {action.type === "exercise_launch" && (
+                        <Link
+                          to="/exercises"
+                          className="mt-1 inline-block rounded-full bg-primary px-3 py-1.5 text-xs text-primary-foreground"
+                        >
+                          Open {action.title}
+                        </Link>
+                      )}
+                      {action.type === "stepup_suggested" && (
+                        <Link
+                          to="/care"
+                          className="mt-1 inline-block rounded-full border border-border bg-card px-3 py-1.5 text-xs"
+                        >
+                          See support options
+                        </Link>
+                      )}
+                      {action.type === "screener_completed" && (
+                        <>
+                          <Link
+                            to="/insights"
+                            className="mt-1 inline-block rounded-full border border-border bg-card px-3 py-1.5 text-xs"
+                          >
+                            See your check-in history
+                          </Link>
+                          {action.crisis && (
+                            <div className="mt-3">
+                              <CrisisCard />
+                            </div>
+                          )}
+                        </>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {dailyLimit && (
+                <div className="mx-auto w-full max-w-sm space-y-2 rounded-2xl border border-primary/25 bg-primary/5 p-4 text-center">
+                  <p className="text-sm">
+                    {dailyLimit.tier === "premium" || dailyLimit.tier === "org"
+                      ? t("chat.dailyLimitReachedTop")
+                      : t("chat.dailyLimitUpgrade")}
+                  </p>
+                  {dailyLimit.tier !== "premium" && dailyLimit.tier !== "org" && (
                     <Link
                       to="/plans"
                       className="inline-flex items-center gap-1.5 rounded-full bg-primary px-4 py-2 text-xs font-medium text-primary-foreground"
                     >
-                      {onFreePlan ? t("plans.startTrial", { days: trialDays }) : t("chat.upgradeCta")}
+                      {t("chat.upgradeCta")}
                     </Link>
-                    <p className="text-xs text-muted-foreground">
-                      {onFreePlan ? t("chat.introStillHere") : t("chat.limitStillHere")}
-                    </p>
-                  </div>
+                  )}
                 </div>
-              ) : message.sender === "system" ? (
-                <div key={message.id} className="space-y-3">
-                  <p className="text-sm leading-relaxed">{message.content}</p>
-                  <CrisisCard onAskHuman={() => setViewMode("support")} />
-                </div>
-              ) : message.sender === "user" ? (
-                <div key={message.id} className="flex justify-end">
+              )}
+
+              {pending && (
+                <div className="flex justify-end">
                   <p className="max-w-[85%] whitespace-pre-line rounded-2xl bg-secondary px-4 py-2.5 text-sm leading-relaxed text-secondary-foreground">
-                    {message.content}
+                    {pending}
                   </p>
                 </div>
-              ) : (
-                <div key={message.id} className="flex gap-3">
-                  <span className="mt-0.5 flex size-7 shrink-0 items-center justify-center rounded-full bg-primary/12">
-                    <KalmLogo className="size-3.5 text-primary" aria-hidden />
-                  </span>
-                  <p className="min-w-0 flex-1 whitespace-pre-line text-[0.95rem] leading-7">
-                    {message.content}
-                  </p>
-                </div>
-              ),
-            )}
+              )}
 
-            {actions.length > 0 && (
-              <div className="ml-10 space-y-2 rounded-2xl border border-primary/20 bg-primary/5 p-4">
-                {actions.map((action, index) => (
-                  <div key={`${action.type}-${index}`} className="text-sm">
-                    <p>{action.summary}</p>
-                    {action.type === "exercise_launch" && (
-                      <Link
-                        to="/exercises"
-                        className="mt-1 inline-block rounded-full bg-primary px-3 py-1.5 text-xs text-primary-foreground"
-                      >
-                        Open {action.title}
-                      </Link>
-                    )}
-                    {action.type === "stepup_suggested" && (
-                      <Link
-                        to="/care"
-                        className="mt-1 inline-block rounded-full border border-border bg-card px-3 py-1.5 text-xs"
-                      >
-                        See support options
-                      </Link>
-                    )}
-                    {action.type === "screener_completed" && (
-                      <>
-                        <Link
-                          to="/insights"
-                          className="mt-1 inline-block rounded-full border border-border bg-card px-3 py-1.5 text-xs"
-                        >
-                          See your check-in history
-                        </Link>
-                        {action.crisis && (
-                          <div className="mt-3">
-                            <CrisisCard />
-                          </div>
-                        )}
-                      </>
-                    )}
-                  </div>
-                ))}
-              </div>
-            )}
-
-            {dailyLimit && (
-              <div className="mx-auto w-full max-w-sm space-y-2 rounded-2xl border border-primary/25 bg-primary/5 p-4 text-center">
-                <p className="text-sm">
-                  {dailyLimit.tier === "premium" || dailyLimit.tier === "org"
-                    ? t("chat.dailyLimitReachedTop")
-                    : t("chat.dailyLimitUpgrade")}
+              {busy && (
+                <p className="flex items-center gap-2 text-sm text-muted-foreground">
+                  <Loader2 className="size-3.5 animate-spin" aria-hidden />
+                  {voice.isPending ? t("chat.listening") : t("chat.thinking")}
                 </p>
-                {dailyLimit.tier !== "premium" && dailyLimit.tier !== "org" && (
-                  <Link
-                    to="/plans"
-                    className="inline-flex items-center gap-1.5 rounded-full bg-primary px-4 py-2 text-xs font-medium text-primary-foreground"
-                  >
-                    {t("chat.upgradeCta")}
-                  </Link>
-                )}
-              </div>
-            )}
+              )}
 
-            {pending && (
-              <div className="flex justify-end">
-                <p className="max-w-[85%] whitespace-pre-line rounded-2xl bg-secondary px-4 py-2.5 text-sm leading-relaxed text-secondary-foreground">
-                  {pending}
-                </p>
-              </div>
-            )}
-
-            {busy && (
-              <p className="flex items-center gap-2 text-sm text-muted-foreground">
-                <Loader2 className="size-3.5 animate-spin" aria-hidden />
-                {voice.isPending ? t("chat.listening") : t("chat.thinking")}
-              </p>
-            )}
-
-            <div ref={bottomRef} />
-          </div>
-        </div>
-
-        {/* Composer: single rounded card with mic + send inside, Claude-style. */}
-        <div className="shrink-0 px-4 pb-3">
-          <div className="mx-auto w-full max-w-2xl">
-            <div className="rounded-3xl border border-border bg-card p-2 shadow-sm focus-within:border-primary/40">
-              <textarea
-                ref={inputRef}
-                rows={2}
-                maxLength={4000}
-                value={input}
-                placeholder={t("chat.inputPlaceholder")}
-                onChange={(event) => setInput(event.target.value)}
-                onKeyDown={(event) => {
-                  if (event.key === "Enter" && !event.shiftKey) {
-                    event.preventDefault();
-                    submit(input);
-                  }
-                }}
-                className="max-h-40 w-full resize-none bg-transparent px-3 py-2 text-sm leading-6 outline-none placeholder:text-muted-foreground"
-              />
-              <div className="flex items-center justify-between gap-2 px-1 pb-0.5">
-                <span className="pl-2 text-[0.7rem] text-muted-foreground">
-                  {recorder.recording ? t("chat.recordingHint") : t("chat.enterToSend")}
-                </span>
-                <div className="flex items-center gap-1.5">
-                  <button
-                    type="button"
-                    aria-label={
-                      recorder.recording ? t("chat.stopRecording") : t("chat.recordVoice")
-                    }
-                    onClick={() => (recorder.recording ? recorder.stop() : recorder.start())}
-                    disabled={busy}
-                    className={`flex size-9 items-center justify-center rounded-full transition-colors disabled:opacity-40 ${
-                      recorder.recording
-                        ? "bg-destructive text-destructive-foreground"
-                        : "text-muted-foreground hover:bg-muted hover:text-foreground"
-                    }`}
-                  >
-                    {recorder.recording ? (
-                      <Square className="size-4" aria-hidden />
-                    ) : (
-                      <Mic className="size-4" aria-hidden />
-                    )}
-                  </button>
-                  <button
-                    type="button"
-                    aria-label={t("chat.sendMessage")}
-                    disabled={!input.trim() || busy || Boolean(dailyLimit)}
-                    onClick={() => submit(input)}
-                    className="flex size-9 items-center justify-center rounded-full bg-primary text-primary-foreground transition-opacity disabled:opacity-40"
-                  >
-                    <ArrowUp className="size-4" aria-hidden />
-                  </button>
-                </div>
-              </div>
+              <div ref={bottomRef} />
             </div>
-
-            {empty && (
-              <div className="mt-3 flex flex-wrap justify-center gap-2">
-                {QUICK_ACTIONS.map((action) => (
-                  <button
-                    key={action.id}
-                    type="button"
-                    disabled={busy || Boolean(dailyLimit)}
-                    onClick={() => {
-                      if (dailyLimit) return;
-                      setQuickAction(action.id);
-                      mutation.mutate(action.prompt);
-                    }}
-                    className="rounded-full border border-border bg-card px-3 py-1.5 text-xs text-muted-foreground hover:bg-muted hover:text-foreground disabled:opacity-50"
-                  >
-                    {t(`quickActions.${action.id}`)}
-                  </button>
-                ))}
-              </div>
-            )}
-
-            <p className="pt-2 text-center text-[0.7rem] text-muted-foreground">
-              {t("chat.disclaimer")}
-            </p>
           </div>
-        </div>
-      </section>
+
+          {/* Composer: single rounded card with mic + send inside, Claude-style. */}
+          <div className="shrink-0 px-4 pb-3">
+            <div className="mx-auto w-full max-w-2xl">
+              <div className="rounded-3xl border border-border bg-card p-2 shadow-sm focus-within:border-primary/40">
+                <textarea
+                  ref={inputRef}
+                  rows={2}
+                  maxLength={4000}
+                  value={input}
+                  placeholder={t("chat.inputPlaceholder")}
+                  onChange={(event) => setInput(event.target.value)}
+                  onKeyDown={(event) => {
+                    if (event.key === "Enter" && !event.shiftKey) {
+                      event.preventDefault();
+                      submit(input);
+                    }
+                  }}
+                  className="max-h-40 w-full resize-none bg-transparent px-3 py-2 text-sm leading-6 outline-none placeholder:text-muted-foreground"
+                />
+                <div className="flex items-center justify-between gap-2 px-1 pb-0.5">
+                  <span className="pl-2 text-[0.7rem] text-muted-foreground">
+                    {recorder.recording ? t("chat.recordingHint") : t("chat.enterToSend")}
+                  </span>
+                  <div className="flex items-center gap-1.5">
+                    <button
+                      type="button"
+                      aria-label={
+                        recorder.recording ? t("chat.stopRecording") : t("chat.recordVoice")
+                      }
+                      onClick={() => (recorder.recording ? recorder.stop() : recorder.start())}
+                      disabled={busy}
+                      className={`flex size-9 items-center justify-center rounded-full transition-colors disabled:opacity-40 ${
+                        recorder.recording
+                          ? "bg-destructive text-destructive-foreground"
+                          : "text-muted-foreground hover:bg-muted hover:text-foreground"
+                      }`}
+                    >
+                      {recorder.recording ? (
+                        <Square className="size-4" aria-hidden />
+                      ) : (
+                        <Mic className="size-4" aria-hidden />
+                      )}
+                    </button>
+                    <button
+                      type="button"
+                      aria-label={t("chat.sendMessage")}
+                      disabled={!input.trim() || busy || Boolean(dailyLimit)}
+                      onClick={() => submit(input)}
+                      className="flex size-9 items-center justify-center rounded-full bg-primary text-primary-foreground transition-opacity disabled:opacity-40"
+                    >
+                      <ArrowUp className="size-4" aria-hidden />
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              {empty && (
+                <div className="mt-3 flex flex-wrap justify-center gap-2">
+                  {QUICK_ACTIONS.map((action) => (
+                    <button
+                      key={action.id}
+                      type="button"
+                      disabled={busy || Boolean(dailyLimit)}
+                      onClick={() => {
+                        if (dailyLimit) return;
+                        setQuickAction(action.id);
+                        mutation.mutate(action.prompt);
+                      }}
+                      className="rounded-full border border-border bg-card px-3 py-1.5 text-xs text-muted-foreground hover:bg-muted hover:text-foreground disabled:opacity-50"
+                    >
+                      {t(`quickActions.${action.id}`)}
+                    </button>
+                  ))}
+                </div>
+              )}
+
+              <p className="pt-2 text-center text-[0.7rem] text-muted-foreground">
+                {t("chat.disclaimer")}
+              </p>
+            </div>
+          </div>
+        </section>
       )}
 
       {callOpen && (

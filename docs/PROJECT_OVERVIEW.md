@@ -1,10 +1,7 @@
 # Kalm — Project Documentation
 
-An AI mental wellness companion. Lovable hosts the backend + a full web reference UI;
-a separate mobile app is intended to consume the same backend later.
-
-- Preview: https://id-preview--3ccb18b6-d5dd-414d-a598-ddc4028d95df.lovable.app
-- Published: https://inner-reach-buddy.lovable.app
+An AI mental wellness companion: a full web app plus the `/api/v1` backend that the
+mobile app (`kalm-mobile/`) consumes. Self-hosted: see [SELF_HOSTING.md](SELF_HOSTING.md).
 
 ## 1. Product principles
 
@@ -16,17 +13,17 @@ a separate mobile app is intended to consume the same backend later.
 
 ## 2. Tech stack
 
-| Layer         | Choice                                                                                                                                                                                                                                                                                                                                                                                                                                                                     |
-| ------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Framework     | TanStack Start v1 (React 19, Vite), file-based routing in `src/routes`                                                                                                                                                                                                                                                                                                                                                                                                     |
-| Server logic  | `createServerFn` RPC in `src/lib/*.functions.ts`; server-only helpers in `*.server.ts`                                                                                                                                                                                                                                                                                                                                                                                     |
-| Backend       | Lovable Cloud (Supabase): Postgres + RLS, Auth (passwordless email magic link + Google/Apple)                                                                                                                                                                                                                                                                                                                                                                                                   |
-| Data fetching | TanStack Query                                                                                                                                                                                                                                                                                                                                                                                                                                                             |
-| Styling       | Tailwind v4 tokens in `src/styles.css` (Soft Glass lavender/blue-violet oklch palette, frosted surfaces, Fraunces + Nunito Sans)                                                                                                                                                                                                                                                                                                                                          |
-| Branding      | Shared `KalmLogo` abstract four-petal bloom used across landing, auth, onboarding, chat, and the collapsible member rail                                                                                                                                                                                                                                                                                                                                                   |
-| UI kit        | shadcn/ui + Radix, lucide icons, recharts, sonner                                                                                                                                                                                                                                                                                                                                                                                                                          |
-| LLM           | Provider layer in `src/lib/llm-provider.server.ts`: **OpenRouter only** (`OPENROUTER_API_KEY`, OpenAI-compatible) serving `anthropic/claude-sonnet-4.5` (companion, summaries, digests) and `anthropic/claude-haiku-4.5` (crisis classifier). Native tool use, streaming supported. No Lovable AI gateway, no direct Anthropic API call. Speech-to-text and live voice calls run on **OpenAI** (`OPENAI_API_KEY`): `gpt-4o-mini-transcribe` for voice notes, `gpt-realtime` for calls. |
-| Runtime       | Cloudflare Worker (edge); no Node-only packages                                                                                                                                                                                                                                                                                                                                                                                                                            |
+| Layer         | Choice                                                                                                                                                                                                                                                                                                                                                                                                                                                          |
+| ------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Framework     | TanStack Start v1 (React 19, Vite), file-based routing in `src/routes`                                                                                                                                                                                                                                                                                                                                                                                          |
+| Server logic  | `createServerFn` RPC in `src/lib/*.functions.ts`; server-only helpers in `*.server.ts`                                                                                                                                                                                                                                                                                                                                                                          |
+| Backend       | Supabase: Postgres + RLS, Auth (passwordless email magic link + Google/Apple)                                                                                                                                                                                                                                                                                                                                                                                   |
+| Data fetching | TanStack Query                                                                                                                                                                                                                                                                                                                                                                                                                                                  |
+| Styling       | Tailwind v4 tokens in `src/styles.css` (Soft Glass lavender/blue-violet oklch palette, frosted surfaces, Fraunces + Nunito Sans)                                                                                                                                                                                                                                                                                                                                |
+| Branding      | Shared `KalmLogo` abstract four-petal bloom used across landing, auth, onboarding, chat, and the collapsible member rail                                                                                                                                                                                                                                                                                                                                        |
+| UI kit        | shadcn/ui + Radix, lucide icons, recharts, sonner                                                                                                                                                                                                                                                                                                                                                                                                               |
+| LLM           | Provider layer in `src/lib/llm-provider.server.ts`: **OpenRouter only** (`OPENROUTER_API_KEY`, OpenAI-compatible) serving `anthropic/claude-sonnet-4.5` (companion, summaries, digests) and `anthropic/claude-haiku-4.5` (crisis classifier). Native tool use, streaming supported. No direct Anthropic API call. Speech-to-text and live voice calls run on **OpenAI** (`OPENAI_API_KEY`): `gpt-4o-mini-transcribe` for voice notes, `gpt-realtime` for calls. |
+| Runtime       | Nitro server; target chosen with `NITRO_PRESET` (default Cloudflare Workers, or `node-server`)                                                                                                                                                                                                                                                                                                                                                                  |
 
 ## 3. Routes
 
@@ -138,7 +135,6 @@ native reviewer.
 
 Not built yet:
 
-
 - **Workplace/org tier** — `org_id` and `employer_eap` placeholders exist; no
   `organizations` table, admin dashboard, aggregate analytics, or seat management.
 - **Data export as PDF** — a downloadable report exists
@@ -159,6 +155,7 @@ Not built yet:
   same time.
 
 Recently built (was on this list):
+
 - Continuous virtual coach: one ongoing conversation per member (older conversations merged; one-thread-per-member enforced), rolling long-term memory summaries, coach-style replies that always move forward with one question, proactive check-ins ON by default (12h quiet, max 1/day, stops after 3 unanswered, no 22:00–08:00 local), companion tool that hands off to a human coach and switches chat to human support, and a coach-voiced daily-limit card with an upgrade button. Email fallback for check-ins is not built yet (in-app + push only).
 
 - **Personal safety plan** — `safety_plans` (owner-only RLS) +
@@ -187,7 +184,6 @@ Recently built (was on this list):
   Until consent lands, `src/components/GuardianConsentNotice.tsx` shows a waiting
   state in chat and companion replies + voice calls are held back server-side —
   crisis resources are never gated. Consent state is visible in admin user detail.
-
 
 - **Voice notes** — the chat mic records, converts to mono 16 kHz WAV in the
   browser, and transcribes server-side through **OpenAI**
@@ -236,7 +232,6 @@ Recently built (was on this list):
   or inferring a condition, medication or risk rating, and only uses what the person
   said. Generation **fails open** — with no `OPENROUTER_API_KEY` the plan is simply
   absent and onboarding still completes.
-
 
 ## 7. Known risks / review areas for an outside reviewer
 

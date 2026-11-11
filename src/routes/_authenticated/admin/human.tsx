@@ -115,9 +115,7 @@ function HumanSupportDesk() {
                 }`}
               >
                 <div className="flex items-center gap-2">
-                  <span className="text-sm font-medium">
-                    {request.preferred_name ?? "Member"}
-                  </span>
+                  <span className="text-sm font-medium">{request.preferred_name ?? "Member"}</span>
                   {request.severity && (
                     <span
                       className={`rounded-full px-2 py-0.5 text-[0.65rem] uppercase ${

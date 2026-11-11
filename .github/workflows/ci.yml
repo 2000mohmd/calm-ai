@@ -21,8 +21,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      # bun.lock is the single source of truth (Lovable's platform package
-      # manager). Keep this in sync with the version Lovable builds with.
+      # bun.lock is the single source of truth for dependencies.
       - name: Set up Bun
         uses: oven-sh/setup-bun@v2
         with:
@@ -49,8 +48,8 @@ jobs:
       - name: Build
         run: bun run build
         env:
-          # Build-time placeholders only. The real values are injected by the
-          # deploy platform; these just let the client bundle compile in CI.
+          # Build-time placeholders only. The real values come from the deploy
+          # environment; these just let the client bundle compile in CI.
           VITE_SUPABASE_URL: https://ci-placeholder.supabase.co
           VITE_SUPABASE_PUBLISHABLE_KEY: sb_publishable_ci_placeholder
           VITE_SUPABASE_PROJECT_ID: ci-placeholder

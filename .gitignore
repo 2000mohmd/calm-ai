@@ -16,6 +16,11 @@ dist-ssr
 .nitro
 *.local
 
+# Secrets — copy .env.example to .env
+.env
+.env.*
+!.env.example
+
 # Wrangler / Cloudflare
 .wrangler/
 .dev.vars
@@ -26,8 +31,8 @@ dist-ssr
 /blob-report/
 /playwright/.cache/
 
-# Lock files — bun.lock is the single source of truth (Lovable's platform
-# package manager). Do not commit npm/pnpm/yarn lockfiles alongside it.
+# Lock files — bun.lock is the single source of truth.
+# Do not commit npm/pnpm/yarn lockfiles alongside it.
 package-lock.json
 pnpm-lock.yaml
 yarn.lock

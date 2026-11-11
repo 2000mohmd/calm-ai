@@ -6,19 +6,12 @@
 // link back into the app — never the full reply.
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/integrations/supabase/types";
+import { appBaseUrl } from "./app-url";
 
 type Client = SupabaseClient<Database>;
 
 const RESEND_URL = "https://api.resend.com/emails";
 const FROM = "Kalm Support <onboarding@resend.dev>";
-
-function appBaseUrl(): string {
-  return (
-    process.env["APP_BASE_URL"] ??
-    process.env["VITE_APP_BASE_URL"] ??
-    "https://inner-reach-buddy.lovable.app"
-  );
-}
 
 export type AdminSupportThread = {
   id: string;

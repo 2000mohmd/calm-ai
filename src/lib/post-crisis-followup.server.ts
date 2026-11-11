@@ -16,7 +16,7 @@
 //     in the product.
 
 // `follow_up_sent_at` / `follow_up_skipped_at` aren't in the generated Database
-// types until Lovable regenerates; this module only chains the query builder, so
+// types until the types are regenerated (`supabase gen types`); this module only chains the query builder, so
 // a loose client mirrors rate-limit/postgres.ts.
 type AdminClient = {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any -- loose query builder
