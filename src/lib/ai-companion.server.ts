@@ -9,7 +9,7 @@ import {
   type LlmMessage,
 } from "./llm-provider.server";
 import {
-  CHAT_TOOLS,
+  chatToolsFor,
   NUDGE_TOOLS,
   runCompanionTool,
   type AnthropicTool,
@@ -45,6 +45,12 @@ export type CompanionContext = {
   hasSafetyPlan?: boolean;
   safetyPlanWarningSigns?: string[];
   safetyPlanCopingSteps?: string[];
+  /**
+   * The crisis gate flagged this message (high/moderate: not severe enough to
+   * interrupt the chat, but possible risk). The companion leads with care and
+   * loses the tools that turn a worried message into a coaching task.
+   */
+  crisisFlagged?: boolean;
 };
 
 const QUICK_ACTION_GUIDANCE: Record<string, string> = {
@@ -84,6 +90,12 @@ export function buildSystemPrompt(ctx: CompanionContext): string {
     "",
     "HUMAN SUPPORT (anti-dependency): you are a companion, not the person's only support. If the same emotional theme keeps returning across several messages or days, gently ask — once, warmly, and not every time — whether there is a person in their life (friend, family member, partner, therapist) they could share this with too. Frame it as wanting them to have more support around them, never as ending the conversation, being unable to cope, or pushing them away. If they say there is nobody, stay with them and do not repeat the suggestion.",
     "",
+    ...(ctx.crisisFlagged
+      ? [
+          "SAFETY FLAG (this message only): our safety check flagged what the person just wrote as possible risk of harm to themselves or others. Do not move on to coaching, exercises, habits, screeners or plans. Respond with calm, direct care: acknowledge what they said without alarm, ask gently and plainly whether they are safe right now, and make clear that real people are available: crisis lines are shown in the app, and a human coach if they want one. Never minimise it, never lecture, one question at most.",
+          "",
+        ]
+      : []),
     "PERSONALIZATION: you have context about this person below. Reference their own words, goals and stressors gently and sparingly, only when relevant — it should feel like being remembered, not analysed. Never recite the context back at them.",
     "",
     "--- PERSON CONTEXT ---",
@@ -294,7 +306,7 @@ export async function generateCompanionReply(
   });
 
   for (let iteration = 0; iteration <= MAX_TOOL_ITERATIONS; iteration += 1) {
-    const payload = await callAnthropic(system, messages, CHAT_TOOLS);
+    const payload = await callAnthropic(system, messages, chatToolsFor(ctx));
     inputTokens += payload.usage.inputTokens;
     outputTokens += payload.usage.outputTokens;
     provider = payload.provider;
@@ -385,7 +397,7 @@ export async function generateCompanionReplyStream(
 
   for (let iteration = 0; iteration <= MAX_TOOL_ITERATIONS; iteration += 1) {
     const payload = await streamCompanionModel(
-      { model: MODEL, maxTokens: MAX_TOKENS, system, messages, tools: CHAT_TOOLS },
+      { model: MODEL, maxTokens: MAX_TOKENS, system, messages, tools: chatToolsFor(ctx) },
       onDelta,
     );
     inputTokens += payload.usage.inputTokens;

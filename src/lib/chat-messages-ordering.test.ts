@@ -17,7 +17,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 const h = vi.hoisted(() => {
   const touched: string[] = [];
   // Set when the gate marks the saved message flagged_crisis (semantic path).
-  const state = { flaggedRow: false, userMessageCount: 0 };
+  const state = { flaggedRow: false, userMessageCount: 0, lifetimeAnswered: 0, held: false };
   // eslint-disable-next-line @typescript-eslint/no-explicit-any -- self-referential test stub
   const chain: any = {
     insert: () => chain,
@@ -36,7 +36,13 @@ const h = vi.hoisted(() => {
     delete: () => chain,
     // thread ownership, profiles.language and the post-gate flagged re-read all land here.
     maybeSingle: async () => ({
-      data: { id: "thread-1", language: null, flagged_crisis: state.flaggedRow },
+      data: {
+        id: "thread-1",
+        language: null,
+        flagged_crisis: state.flaggedRow,
+        // chat_usage.lifetime_messages: replies ever given, survives deleted threads.
+        lifetime_messages: state.lifetimeAnswered,
+      },
       error: null,
     }),
     single: async () => ({
@@ -71,6 +77,14 @@ const h = vi.hoisted(() => {
 
 vi.mock("@/lib/api-auth.server", () => ({
   authenticateBearer: async () => ({ ok: true, userId: "user-1", supabase: h.fake }),
+}));
+
+// A teen whose guardian hasn't approved yet (toggled per test).
+vi.mock("./guardian-consent.server", () => ({
+  companionAllowed: async () =>
+    h.state.held
+      ? { allowed: false, reason: "awaiting_guardian_consent" }
+      : { allowed: true, reason: "ok" },
 }));
 
 vi.mock("./crisis-alert.server", () => ({
@@ -109,6 +123,8 @@ beforeEach(() => {
   h.touched.length = 0;
   h.state.flaggedRow = false;
   h.state.userMessageCount = 0;
+  h.state.lifetimeAnswered = 0;
+  h.state.held = false;
   classify.mockResolvedValue({ flagged: false, severity: null, reason: null });
 });
 
@@ -158,6 +174,32 @@ describe("POST /api/v1/chat/messages — crisis messages never reach the rate li
     const body = await (await post("I want to kill myself")).json();
     expect(body.reply.type).toBe("message");
     expect(body.reply.limit).toBeUndefined();
+  });
+
+  it("deleting the conversation does not reset the free allowance", async () => {
+    // Only the message in hand is stored (the rest were deleted), but the
+    // companion has already answered 15 times: the allowance is spent.
+    h.state.userMessageCount = 1;
+    h.state.lifetimeAnswered = 15;
+    const body = await (await post("hi again")).json();
+    expect(body.reply.type).toBe("message");
+    expect(body.reply.limit).toMatchObject({ reason: "intro", introLimit: 15 });
+  });
+
+  it("a teen awaiting guardian consent gets the hold message for an ordinary message", async () => {
+    h.state.held = true;
+    const body = await (await post("hello there")).json();
+    expect(body.reply.type).toBe("message"); // the hold notice, not a crisis card
+    expect(body.reply.actions).toEqual([]);
+  });
+
+  it("...but gets the crisis lines when the held message is worrying", async () => {
+    h.state.held = true;
+    const body = await (await post("I want to kill myself")).json();
+    expect(body.reply.type).toBe("crisis");
+    expect(body.reply.severity).toBe("high");
+    expect(body.reply.resources.length).toBeGreaterThan(0);
+    expect(h.touched).not.toContain("chat_rate_limits");
   });
 
   it("flagged only by the semantic classifier: rate limiter untouched", async () => {

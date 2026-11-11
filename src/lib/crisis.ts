@@ -40,8 +40,15 @@ const CRITICAL_PATTERNS: RegExp[] = [
   /\b(kill|end|die|suicide|overdose|hang|jump)\w*\b[^.]{0,40}\b(tonight|today|tomorrow|this\s+(weekend|week|evening)|in\s+an?\s+hour)\b/i,
   /\bi\s+(have|wrote|left)\s+a\s+(note|letter|will)\b/i,
   /\bmy\s+plan\s+is\b/i,
-  /\b(i'?m|im|about)\s+(going\s+to|gonna|about\s+to)\s+(kill\s+my ?self|end\s+it|end\s+my\s+life|overdose|hang\s+my ?self|jump)\b/i,
+  /\b(i'?m|im|i\s+am|about)\s+(going\s+to|gonna|about\s+to)\s+(kill\s+my ?self|end\s+it|end\s+my\s+life|overdose|hang\s+my ?self|jump)\b/i,
+  // Plain statements of intent ("I will kill myself"). Deliberately NOT "end it":
+  // "I'll end it" is too often about a relationship or a job.
+  /\b(i\s+will|i'?ll|i\s+am\s+going\s+to|i'?m\s+going\s+to)\s+(kill\s+my ?self|end\s+my\s+life|hang\s+my ?self|shoot\s+my ?self|take\s+my\s+own\s+life)\b/i,
+  /\b(i'?ve|i\s+have)\s+decided\s+to\s+(end\s+it|kill\s+my ?self|end\s+my\s+life)\b/i,
   /\bhang\s+my ?self\b/i,
+  /\bshoot(ing)?\s+my ?self\b/i,
+  /\bslit(ting)?\s+my\s+(wrists?|throat)\b/i,
+  /\bjump(ing)?\s+(off|from)\s+(a|the)\s+(bridge|building|roof|cliff|balcony)\b/i,
   /\bloaded\s+(gun|weapon)\b/i,
 ];
 
@@ -53,6 +60,9 @@ const HIGH_RISK_PATTERNS: RegExp[] = [
   /\btake\s+my\s+own\s+life\b/i,
   /\bsuicid(e|al)\b/i,
   /\bwant\s+to\s+die\b/i,
+  /\bwanna\s+die\b/i,
+  /\b(wanna|want\s+to)\s+be\s+dead\b/i,
+  /\bunaliv(e|ing)\s+my ?self\b/i,
   /\bdon'?t\s+want\s+to\s+(be\s+alive|live)\b/i,
   /\bno\s+reason\s+to\s+live\b/i,
   /\b(cut|cutting|hurt|hurting|harm|harming)\s+my ?self\b/i,
@@ -88,8 +98,10 @@ const CRITICAL_PATTERNS_AR: RegExp[] = [
 const HIGH_RISK_PATTERNS_AR: RegExp[] = [
   /(أقتل|اقتل|بقتل|رح أقتل|راح اقتل)\s*(نفسي|حالي)/,
   /(انتحار|الانتحار|أنتحر|انتحر|إنتحار)/,
+  /[أإا]نتحار/,
   /(أنهي|انهي|إنهاء|انهاء)\s*(حياتي|كل شي|كل شيء)/,
   /(بدي|أريد|اريد|نفسي)\s*(أ|ا)?موت/,
+  /(أبغى|أبغي|ابغى|ابغي|ودي|أبي|ابي)\s*[أا]موت/,
   /(ما بدي|لا أريد|لا اريد|ما بقى بدي)\s*(أعيش|اعيش|أكمل|احيا|أحيا)/,
   /(ما في|مافي|ليس هناك|ما عندي)\s*(سبب|معنى)\s*(لأعيش|للحياة|للعيش)/,
   /(أذي|اذي|بأذي|أجرح|اجرح|بجرح)\s*(نفسي|حالي)/,
@@ -117,10 +129,12 @@ const CRITICAL_PATTERNS_FR: RegExp[] = [
   /\bj'?ai\s+(écrit|laissé)\s+(une|un)\s+(lettre|mot|testament)\b/i,
   /\bmon\s+plan\s+(c'?est|est)\b/i,
   /\bje\s+vais\s+(me\s+tuer|me\s+suicider|en\s+finir|me\s+pendre|sauter)\b/i,
+  /\bme\s+pendre\b/i,
 ];
 
 const HIGH_RISK_PATTERNS_FR: RegExp[] = [
   /\bme\s+(tuer|suicider)\b/i,
+  /\bme\s+foutre\s+en\s+l'?air\b/i,
   /\bsuicid(e|aire|er)\b/i,
   /\ben\s+finir\s+(avec\s+(la\s+vie|tout|moi))?/i,
   /\bmettre\s+fin\s+à\s+(mes\s+jours|ma\s+vie)\b/i,
@@ -250,6 +264,37 @@ export function crisisCopy(language: string | null | undefined): CrisisCopy {
  * Deterministic regex gate with tiered triage. Patterns cover English, Arabic
  * and French; `matched` empty means no crisis language found in any of them.
  */
+/**
+ * Makes trivial formatting unable to dodge the patterns: Unicode compatibility
+ * forms, curly apostrophes (the iOS default), zero-width characters, Arabic
+ * diacritics and tatweel, and letters spaced apart ("s u i c i d e").
+ * Letters themselves are left alone, so Arabic spelling variants in the
+ * patterns keep working.
+ */
+export function normalizeForMatching(text: string): string {
+  return text
+    .normalize("NFKC")
+    .replace(/[\u2018\u2019\u02BC\u0060\u00B4]/g, "'")
+    .replace(/[\u201C\u201D]/g, '"')
+    .replace(/[\u200B-\u200D\u2060\uFEFF]/g, "")
+    .replace(/[\u064B-\u065F\u0670\u0640]/g, "")
+    .replace(/\b(?:[a-z]\s+){3,}[a-z]\b/gi, (spaced) => spaced.replace(/\s+/g, ""));
+}
+
+/** Common letter substitutions ("k1ll myself", "su1cide", "$uicide"). */
+function undoLeetspeak(text: string): string {
+  const map: Record<string, string> = {
+    "0": "o",
+    "1": "i",
+    "3": "e",
+    "4": "a",
+    "5": "s",
+    "@": "a",
+    $: "s",
+  };
+  return text.replace(/[01345@$]/g, (ch) => map[ch] ?? ch);
+}
+
 export function triageCrisis(text: string): {
   matched: string[];
   severity: CrisisSeverity | null;
@@ -257,12 +302,20 @@ export function triageCrisis(text: string): {
   const matched: string[] = [];
   let severity: CrisisSeverity | null = null;
 
+  // The text as typed, normalised, and normalised with leetspeak undone: a
+  // pattern hit on any of them counts (variants only ever add matches).
+  const normalized = normalizeForMatching(text);
+  const variants = [...new Set([text, normalized, undoLeetspeak(normalized)])];
+
   for (const tier of TIERS) {
     for (const pattern of tier.patterns) {
-      const hit = text.match(pattern);
-      if (hit) {
-        matched.push(hit[0].toLowerCase());
-        if (!severity) severity = tier.severity;
+      for (const variant of variants) {
+        const hit = variant.match(pattern);
+        if (hit) {
+          matched.push(hit[0].toLowerCase());
+          if (!severity) severity = tier.severity;
+          break;
+        }
       }
     }
   }

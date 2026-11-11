@@ -1,7 +1,8 @@
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { z } from "zod";
-import { triageCrisis, type CrisisResponse } from "./crisis";
+import { buildCrisisResponse, triageCrisis, type CrisisResponse } from "./crisis";
+import { introSpentWithCurrent, introUsage } from "./intro-usage.server";
 import { QUICK_ACTION_IDS } from "./quick-actions";
 import { getRateLimiter, RATE_LIMIT_MESSAGE, type RateLimitDecision } from "./rate-limit";
 import {
@@ -343,6 +344,22 @@ async function prepareChatTurn(
     };
   }
 
+  // Flagged = the regex matched, or the semantic classifier marked the saved
+  // message (runCrisisGate updates the row). High/moderate messages don't get
+  // the interrupting crisis card (only critical does) and continue as chat, but
+  // a flagged message is never answered with a limit notice, never gets a bare
+  // guardian-hold reply without resources, and tells the companion to lead with
+  // care (see crisisFlagged below).
+  const flagged =
+    triage.matched.length > 0 ||
+    (
+      await supabase
+        .from("chat_messages")
+        .select("flagged_crisis")
+        .eq("id", savedUser.data.id)
+        .maybeSingle()
+    ).data?.flagged_crisis === true;
+
   // --- Teen guardian consent: held AFTER the crisis gate on purpose, so a
   // teen waiting on a guardian still gets crisis resources, and only the
   // ordinary companion reply is withheld. ---
@@ -369,13 +386,25 @@ async function prepareChatTurn(
       result: {
         thread_id: threadId,
         userMessage: { ...savedUser.data, sender: "user" as const },
-        reply: {
-          type: "message",
-          id: savedHold.data.id,
-          content: savedHold.data.content,
-          created_at: savedHold.data.created_at,
-          actions: [],
-        },
+        // A held teen who writes something worrying still gets the crisis lines
+        // (the generic hold text only mentions that help exists).
+        reply: flagged
+          ? {
+              ...buildCrisisResponse(
+                triage.matched,
+                triage.severity ?? "high",
+                profileLang.data?.language ?? null,
+              ),
+              id: savedHold.data.id,
+              created_at: savedHold.data.created_at,
+            }
+          : {
+              type: "message",
+              id: savedHold.data.id,
+              content: savedHold.data.content,
+              created_at: savedHold.data.created_at,
+              actions: [],
+            },
       },
     };
   }
@@ -385,32 +414,15 @@ async function prepareChatTurn(
   // short sliding window AND a tier-aware daily message cap; fails open. The
   // daily cap comes from chat-limits.ts — the same source GET /api/v1/entitlements
   // reports from, so the advertised limit and the enforced limit cannot drift. ---
-  //
-  // High/moderate crisis messages don't get the crisis card (only critical
-  // does) and continue as normal chat — but they must never be answered with
-  // "you've hit your limit". Flagged = the regex matched, or the semantic
-  // classifier marked the saved message (runCrisisGate updates the row).
-  const flagged =
-    triage.matched.length > 0 ||
-    (
-      await supabase
-        .from("chat_messages")
-        .select("flagged_crisis")
-        .eq("id", savedUser.data.id)
-        .maybeSingle()
-    ).data?.flagged_crisis === true;
   const tier = profileLang.data?.subscription_tier ?? "free";
 
   // Free tier: one first conversation (FREE_INTRO_MESSAGE_CAP messages over
   // their whole history, this one included), then the trial. No daily refill.
+  // Deleting the conversation doesn't reset it (see intro-usage.server.ts).
   let introUsedUp = false;
   if (!flagged && !isUnlimitedishTier(tier)) {
-    const { count } = await supabase
-      .from("chat_messages")
-      .select("id", { count: "exact", head: true })
-      .eq("user_id", userId)
-      .eq("sender", "user");
-    introUsedUp = (count ?? 0) > FREE_INTRO_MESSAGE_CAP;
+    introUsedUp =
+      introSpentWithCurrent(await introUsage(supabase, userId)) > FREE_INTRO_MESSAGE_CAP;
   }
 
   const rateLimiter = getRateLimiter(supabase);
@@ -595,6 +607,7 @@ async function prepareChatTurn(
     hasSafetyPlan: hasPlan,
     safetyPlanWarningSigns: consented ? planWarningSigns : [],
     safetyPlanCopingSteps: consented ? planCopingSteps : [],
+    crisisFlagged: flagged,
   };
 
   return {

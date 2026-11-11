@@ -221,6 +221,27 @@ export const CHAT_TOOLS: AnthropicTool[] = [
   REQUEST_HUMAN_SUPPORT,
 ];
 
+/**
+ * Tools that turn a message into a coaching task. Withheld while the crisis
+ * gate has flagged the person's message: they must not be offered an exercise
+ * or a commitment in the middle of a safety moment.
+ */
+const WITHHELD_WHEN_FLAGGED = new Set([
+  "create_commitment",
+  "complete_commitment",
+  "launch_exercise",
+  "show_exercise_widget",
+  "complete_exercise_in_chat",
+  "get_screener_questions",
+  "submit_screener_in_chat",
+]);
+
+export function chatToolsFor(ctx: { crisisFlagged?: boolean }): AnthropicTool[] {
+  return ctx.crisisFlagged
+    ? CHAT_TOOLS.filter((tool) => !WITHHELD_WHEN_FLAGGED.has(tool.name))
+    : CHAT_TOOLS;
+}
+
 /** Nudges are one-shot generations: read-only tools only. */
 export const NUDGE_TOOLS: AnthropicTool[] = [GET_EFFECTIVENESS_INSIGHTS];
 

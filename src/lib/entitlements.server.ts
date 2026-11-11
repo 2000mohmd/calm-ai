@@ -11,6 +11,7 @@
 // weeklyCallAllowance(tier) plus a count of calls in the rolling 7-day window.
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/integrations/supabase/types";
+import { introSpent, introUsage } from "./intro-usage.server";
 import {
   CALL_WINDOW_DAYS,
   CALL_WINDOW_MS,
@@ -108,12 +109,7 @@ export async function getEntitlementsFor(supabase: Client, userId: string): Prom
 
   let intro: Entitlements["chat"]["intro"] = null;
   if (!unlimited) {
-    const { count } = await supabase
-      .from("chat_messages")
-      .select("id", { count: "exact", head: true })
-      .eq("user_id", userId)
-      .eq("sender", "user");
-    const used = Math.min(count ?? 0, FREE_INTRO_MESSAGE_CAP);
+    const used = Math.min(introSpent(await introUsage(supabase, userId)), FREE_INTRO_MESSAGE_CAP);
     intro = { limit: FREE_INTRO_MESSAGE_CAP, used, remaining: FREE_INTRO_MESSAGE_CAP - used };
   }
 
