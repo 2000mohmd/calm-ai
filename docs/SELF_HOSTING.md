@@ -109,3 +109,17 @@ deleted`. Put its signing secret in `STRIPE_WEBHOOK_SECRET`.
 In `kalm-mobile/src/lib/config.ts` set `WEB_BASE` (your domain),
 `SUPABASE_URL` and `SUPABASE_PUBLISHABLE_KEY` to the new values, and update
 the addresses in `docs/MOBILE_API.md` for your developer.
+
+## Deploy on Vercel
+
+`vercel.json` already sets the build (`NITRO_PRESET=vercel`) and a once-a-minute cron that calls
+`/api/public/hooks/evaluate-nudges`.
+
+1. Import the repo in Vercel (Framework: Other). Add every variable from `.env.example` under
+   Project → Settings → Environment Variables.
+2. Set `CRON_SECRET` **and** `NUDGE_SWEEP_SECRET` to the same long random value. Vercel sends
+   `CRON_SECRET` as a bearer token and the app checks it against `NUDGE_SWEEP_SECRET`.
+3. Set `APP_BASE_URL` to the final public URL, then add that URL to Supabase → Auth → URL
+   configuration, and point the Stripe webhook at `<url>/api/public/hooks/stripe-webhook`.
+4. Cron every minute needs the Vercel **Pro** plan (Hobby only allows once a day, which delays
+   crisis follow-ups and nudges).
