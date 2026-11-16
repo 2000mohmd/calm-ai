@@ -42,7 +42,20 @@ export default defineConfig(({ command }) => ({
       // Use src/server.ts (our SSR error wrapper) as the server entry.
       server: { entry: "server" },
     }),
-    ...(command === "build" ? [nitro({ defaultPreset: "cloudflare-module" })] : []),
+    ...(command === "build"
+      ? [
+          nitro({
+            defaultPreset: "cloudflare-module",
+            // Vercel only (ignored by other presets): database is in eu-central-1
+            // so run in Frankfurt; 60s covers the scheduled sweep (50s budget).
+            vercel: { functions: { regions: ["fra1"], maxDuration: 60 } },
+            // Lets server code reach the request's waitUntil (crisis alert email).
+            ...(process.env["NITRO_PRESET"] === "vercel"
+              ? { experimental: { asyncContext: true } }
+              : {}),
+          }),
+        ]
+      : []),
     viteReact(),
   ],
 }));

@@ -9,7 +9,8 @@ export type AuditAction =
   | "revoked_role"
   | "claimed_human_support_request"
   | "closed_human_support_request"
-  | "replied_human_support_request";
+  | "replied_human_support_request"
+  | "changed_plan";
 
 export type AuditEntryInput = {
   adminUserId: string;
@@ -79,8 +80,13 @@ export async function fetchAuditLog(filters: {
     supabaseAdmin.from("admin_audit_log").select("action").limit(1000),
   ]);
 
+  // admin_user_id is null for system actors (payment-gateway plan events).
   const adminIds = [
-    ...new Set([...(allAdmins ?? []).map((r) => r.user_id), ...rows.map((r) => r.admin_user_id)]),
+    ...new Set(
+      [...(allAdmins ?? []).map((r) => r.user_id), ...rows.map((r) => r.admin_user_id)].filter(
+        Boolean,
+      ),
+    ),
   ];
   const names = new Map<string, string | null>();
   if (adminIds.length) {

@@ -189,3 +189,46 @@ export const listAdminAuditLog = createServerFn({ method: "GET" })
       action: data.action ?? null,
     });
   });
+
+/**
+ * Manual plan grant/change (gift, support fix, comp). Written with the service
+ * role (a DB trigger blocks tier edits from anyone else) and audited. Clears the
+ * paid-period end: a manual grant has no gateway period behind it.
+ */
+export const setUserPlan = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: unknown) =>
+    z
+      .object({
+        user_id: z.string().uuid(),
+        tier: z.enum(["free", "pro", "premium", "org"]),
+      })
+      .parse(input),
+  )
+  .handler(async ({ data, context }) => {
+    await assertAdmin(context.supabase, context.userId);
+    const [{ supabaseAdmin }, { logAuditEntry }] = await Promise.all([
+      import("@/integrations/supabase/client.server"),
+      import("./admin-audit.server"),
+    ]);
+    const before = await supabaseAdmin
+      .from("profiles")
+      .select("subscription_tier")
+      .eq("id", data.user_id)
+      .maybeSingle();
+    if (before.error) throw new Error(before.error.message);
+    if (!before.data) throw new Error("User not found");
+    const { error } = await supabaseAdmin
+      .from("profiles")
+      .update({ subscription_tier: data.tier, subscription_current_period_end: null })
+      .eq("id", data.user_id);
+    if (error) throw new Error(error.message);
+    await logAuditEntry({
+      adminUserId: context.userId,
+      action: "changed_plan",
+      targetType: "user",
+      targetId: data.user_id,
+      metadata: { from: before.data.subscription_tier, to: data.tier },
+    });
+    return { tier: data.tier };
+  });

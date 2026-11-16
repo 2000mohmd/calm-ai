@@ -34,7 +34,10 @@ import { Route as AuthenticatedAdminSupportRouteImport } from './routes/_authent
 import { Route as AuthenticatedAdminTeamRouteImport } from './routes/_authenticated/admin/team'
 import { Route as ApiPublicGuardianConsentRouteImport } from './routes/api/public/guardian-consent'
 import { Route as ApiPublicUnsubscribeRouteImport } from './routes/api/public/unsubscribe'
+import { Route as ApiPublicHealthRouteImport } from './routes/api/public/health'
 import { Route as ApiV1AccountRouteImport } from './routes/api/v1/account'
+import { Route as ApiV1BillingCheckoutRouteImport } from './routes/api/v1/billing/checkout'
+import { Route as ApiV1BillingPortalRouteImport } from './routes/api/v1/billing/portal'
 import { Route as ApiV1CareResourcesRouteImport } from './routes/api/v1/care-resources'
 import { Route as ApiV1CrisisResourcesRouteImport } from './routes/api/v1/crisis-resources'
 import { Route as ApiV1DailyPromptRouteImport } from './routes/api/v1/daily-prompt'
@@ -60,6 +63,7 @@ import { Route as ApiV1ScreenersRouteImport } from './routes/api/v1/screeners'
 import { Route as AuthenticatedAdminUsersIndexRouteImport } from './routes/_authenticated/admin/users/index'
 import { Route as AuthenticatedAdminUsersUserIdRouteImport } from './routes/_authenticated/admin/users/$userId'
 import { Route as ApiPublicHooksEvaluateNudgesRouteImport } from './routes/api/public/hooks/evaluate-nudges'
+import { Route as ApiPublicHooksPaymentsRouteImport } from './routes/api/public/hooks/payments'
 import { Route as ApiV1CallsSessionsRouteImport } from './routes/api/v1/calls/sessions'
 import { Route as ApiV1ChatHistoryRouteImport } from './routes/api/v1/chat/history'
 import { Route as ApiV1ChatMessagesRouteImport } from './routes/api/v1/chat/messages'
@@ -211,9 +215,24 @@ const ApiPublicUnsubscribeRoute = ApiPublicUnsubscribeRouteImport.update({
   path: '/api/public/unsubscribe',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicHealthRoute = ApiPublicHealthRouteImport.update({
+  id: '/api/public/health',
+  path: '/api/public/health',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiV1AccountRoute = ApiV1AccountRouteImport.update({
   id: '/api/v1/account',
   path: '/api/v1/account',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiV1BillingCheckoutRoute = ApiV1BillingCheckoutRouteImport.update({
+  id: '/api/v1/billing/checkout',
+  path: '/api/v1/billing/checkout',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiV1BillingPortalRoute = ApiV1BillingPortalRouteImport.update({
+  id: '/api/v1/billing/portal',
+  path: '/api/v1/billing/portal',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiV1CareResourcesRoute = ApiV1CareResourcesRouteImport.update({
@@ -344,6 +363,11 @@ const ApiPublicHooksEvaluateNudgesRoute =
     path: '/api/public/hooks/evaluate-nudges',
     getParentRoute: () => rootRouteImport,
   } as any)
+const ApiPublicHooksPaymentsRoute = ApiPublicHooksPaymentsRouteImport.update({
+  id: '/api/public/hooks/payments',
+  path: '/api/public/hooks/payments',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiV1CallsSessionsRoute = ApiV1CallsSessionsRouteImport.update({
   id: '/api/v1/calls/sessions',
   path: '/api/v1/calls/sessions',
@@ -490,7 +514,10 @@ export interface FileRoutesByFullPath {
   '/admin/team': typeof AuthenticatedAdminTeamRoute
   '/api/public/guardian-consent': typeof ApiPublicGuardianConsentRoute
   '/api/public/unsubscribe': typeof ApiPublicUnsubscribeRoute
+  '/api/public/health': typeof ApiPublicHealthRoute
   '/api/v1/account': typeof ApiV1AccountRoute
+  '/api/v1/billing/checkout': typeof ApiV1BillingCheckoutRoute
+  '/api/v1/billing/portal': typeof ApiV1BillingPortalRoute
   '/api/v1/care-resources': typeof ApiV1CareResourcesRoute
   '/api/v1/crisis-resources': typeof ApiV1CrisisResourcesRoute
   '/api/v1/daily-prompt': typeof ApiV1DailyPromptRoute
@@ -516,6 +543,7 @@ export interface FileRoutesByFullPath {
   '/admin/': typeof AuthenticatedAdminIndexRoute
   '/admin/users/$userId': typeof AuthenticatedAdminUsersUserIdRoute
   '/api/public/hooks/evaluate-nudges': typeof ApiPublicHooksEvaluateNudgesRoute
+  '/api/public/hooks/payments': typeof ApiPublicHooksPaymentsRoute
   '/api/v1/calls/sessions': typeof ApiV1CallsSessionsRouteWithChildren
   '/api/v1/chat/history': typeof ApiV1ChatHistoryRoute
   '/api/v1/chat/messages': typeof ApiV1ChatMessagesRouteWithChildren
@@ -564,7 +592,10 @@ export interface FileRoutesByTo {
   '/admin/team': typeof AuthenticatedAdminTeamRoute
   '/api/public/guardian-consent': typeof ApiPublicGuardianConsentRoute
   '/api/public/unsubscribe': typeof ApiPublicUnsubscribeRoute
+  '/api/public/health': typeof ApiPublicHealthRoute
   '/api/v1/account': typeof ApiV1AccountRoute
+  '/api/v1/billing/checkout': typeof ApiV1BillingCheckoutRoute
+  '/api/v1/billing/portal': typeof ApiV1BillingPortalRoute
   '/api/v1/care-resources': typeof ApiV1CareResourcesRoute
   '/api/v1/crisis-resources': typeof ApiV1CrisisResourcesRoute
   '/api/v1/daily-prompt': typeof ApiV1DailyPromptRoute
@@ -590,6 +621,7 @@ export interface FileRoutesByTo {
   '/admin': typeof AuthenticatedAdminIndexRoute
   '/admin/users/$userId': typeof AuthenticatedAdminUsersUserIdRoute
   '/api/public/hooks/evaluate-nudges': typeof ApiPublicHooksEvaluateNudgesRoute
+  '/api/public/hooks/payments': typeof ApiPublicHooksPaymentsRoute
   '/api/v1/calls/sessions': typeof ApiV1CallsSessionsRouteWithChildren
   '/api/v1/chat/history': typeof ApiV1ChatHistoryRoute
   '/api/v1/chat/messages': typeof ApiV1ChatMessagesRouteWithChildren
@@ -641,7 +673,10 @@ export interface FileRoutesById {
   '/_authenticated/admin/team': typeof AuthenticatedAdminTeamRoute
   '/api/public/guardian-consent': typeof ApiPublicGuardianConsentRoute
   '/api/public/unsubscribe': typeof ApiPublicUnsubscribeRoute
+  '/api/public/health': typeof ApiPublicHealthRoute
   '/api/v1/account': typeof ApiV1AccountRoute
+  '/api/v1/billing/checkout': typeof ApiV1BillingCheckoutRoute
+  '/api/v1/billing/portal': typeof ApiV1BillingPortalRoute
   '/api/v1/care-resources': typeof ApiV1CareResourcesRoute
   '/api/v1/crisis-resources': typeof ApiV1CrisisResourcesRoute
   '/api/v1/daily-prompt': typeof ApiV1DailyPromptRoute
@@ -667,6 +702,7 @@ export interface FileRoutesById {
   '/_authenticated/admin/': typeof AuthenticatedAdminIndexRoute
   '/_authenticated/admin/users/$userId': typeof AuthenticatedAdminUsersUserIdRoute
   '/api/public/hooks/evaluate-nudges': typeof ApiPublicHooksEvaluateNudgesRoute
+  '/api/public/hooks/payments': typeof ApiPublicHooksPaymentsRoute
   '/api/v1/calls/sessions': typeof ApiV1CallsSessionsRouteWithChildren
   '/api/v1/chat/history': typeof ApiV1ChatHistoryRoute
   '/api/v1/chat/messages': typeof ApiV1ChatMessagesRouteWithChildren
@@ -718,7 +754,10 @@ export interface FileRouteTypes {
     | '/admin/team'
     | '/api/public/guardian-consent'
     | '/api/public/unsubscribe'
+    | '/api/public/health'
     | '/api/v1/account'
+    | '/api/v1/billing/checkout'
+    | '/api/v1/billing/portal'
     | '/api/v1/care-resources'
     | '/api/v1/crisis-resources'
     | '/api/v1/daily-prompt'
@@ -744,6 +783,7 @@ export interface FileRouteTypes {
     | '/admin/'
     | '/admin/users/$userId'
     | '/api/public/hooks/evaluate-nudges'
+    | '/api/public/hooks/payments'
     | '/api/v1/calls/sessions'
     | '/api/v1/chat/history'
     | '/api/v1/chat/messages'
@@ -792,7 +832,10 @@ export interface FileRouteTypes {
     | '/admin/team'
     | '/api/public/guardian-consent'
     | '/api/public/unsubscribe'
+    | '/api/public/health'
     | '/api/v1/account'
+    | '/api/v1/billing/checkout'
+    | '/api/v1/billing/portal'
     | '/api/v1/care-resources'
     | '/api/v1/crisis-resources'
     | '/api/v1/daily-prompt'
@@ -818,6 +861,7 @@ export interface FileRouteTypes {
     | '/admin'
     | '/admin/users/$userId'
     | '/api/public/hooks/evaluate-nudges'
+    | '/api/public/hooks/payments'
     | '/api/v1/calls/sessions'
     | '/api/v1/chat/history'
     | '/api/v1/chat/messages'
@@ -868,7 +912,10 @@ export interface FileRouteTypes {
     | '/_authenticated/admin/team'
     | '/api/public/guardian-consent'
     | '/api/public/unsubscribe'
+    | '/api/public/health'
     | '/api/v1/account'
+    | '/api/v1/billing/checkout'
+    | '/api/v1/billing/portal'
     | '/api/v1/care-resources'
     | '/api/v1/crisis-resources'
     | '/api/v1/daily-prompt'
@@ -894,6 +941,7 @@ export interface FileRouteTypes {
     | '/_authenticated/admin/'
     | '/_authenticated/admin/users/$userId'
     | '/api/public/hooks/evaluate-nudges'
+    | '/api/public/hooks/payments'
     | '/api/v1/calls/sessions'
     | '/api/v1/chat/history'
     | '/api/v1/chat/messages'
@@ -928,7 +976,10 @@ export interface RootRouteChildren {
   LegalRoute: typeof LegalRoute
   ApiPublicGuardianConsentRoute: typeof ApiPublicGuardianConsentRoute
   ApiPublicUnsubscribeRoute: typeof ApiPublicUnsubscribeRoute
+  ApiPublicHealthRoute: typeof ApiPublicHealthRoute
   ApiV1AccountRoute: typeof ApiV1AccountRoute
+  ApiV1BillingCheckoutRoute: typeof ApiV1BillingCheckoutRoute
+  ApiV1BillingPortalRoute: typeof ApiV1BillingPortalRoute
   ApiV1CareResourcesRoute: typeof ApiV1CareResourcesRoute
   ApiV1CrisisResourcesRoute: typeof ApiV1CrisisResourcesRoute
   ApiV1DailyPromptRoute: typeof ApiV1DailyPromptRoute
@@ -952,6 +1003,7 @@ export interface RootRouteChildren {
   ApiV1SafetyPlanRoute: typeof ApiV1SafetyPlanRoute
   ApiV1ScreenersRoute: typeof ApiV1ScreenersRouteWithChildren
   ApiPublicHooksEvaluateNudgesRoute: typeof ApiPublicHooksEvaluateNudgesRoute
+  ApiPublicHooksPaymentsRoute: typeof ApiPublicHooksPaymentsRoute
   ApiV1CallsSessionsRoute: typeof ApiV1CallsSessionsRouteWithChildren
   ApiV1ChatHistoryRoute: typeof ApiV1ChatHistoryRoute
   ApiV1ChatMessagesRoute: typeof ApiV1ChatMessagesRouteWithChildren
@@ -1139,11 +1191,32 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicUnsubscribeRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/health': {
+      id: '/api/public/health'
+      path: '/api/public/health'
+      fullPath: '/api/public/health'
+      preLoaderRoute: typeof ApiPublicHealthRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/v1/account': {
       id: '/api/v1/account'
       path: '/api/v1/account'
       fullPath: '/api/v1/account'
       preLoaderRoute: typeof ApiV1AccountRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/v1/billing/checkout': {
+      id: '/api/v1/billing/checkout'
+      path: '/api/v1/billing/checkout'
+      fullPath: '/api/v1/billing/checkout'
+      preLoaderRoute: typeof ApiV1BillingCheckoutRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/v1/billing/portal': {
+      id: '/api/v1/billing/portal'
+      path: '/api/v1/billing/portal'
+      fullPath: '/api/v1/billing/portal'
+      preLoaderRoute: typeof ApiV1BillingPortalRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/v1/care-resources': {
@@ -1319,6 +1392,13 @@ declare module '@tanstack/react-router' {
       path: '/api/public/hooks/evaluate-nudges'
       fullPath: '/api/public/hooks/evaluate-nudges'
       preLoaderRoute: typeof ApiPublicHooksEvaluateNudgesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/hooks/payments': {
+      id: '/api/public/hooks/payments'
+      path: '/api/public/hooks/payments'
+      fullPath: '/api/public/hooks/payments'
+      preLoaderRoute: typeof ApiPublicHooksPaymentsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/v1/calls/sessions': {
@@ -1689,7 +1769,10 @@ const rootRouteChildren: RootRouteChildren = {
   LegalRoute: LegalRoute,
   ApiPublicGuardianConsentRoute: ApiPublicGuardianConsentRoute,
   ApiPublicUnsubscribeRoute: ApiPublicUnsubscribeRoute,
+  ApiPublicHealthRoute: ApiPublicHealthRoute,
   ApiV1AccountRoute: ApiV1AccountRoute,
+  ApiV1BillingCheckoutRoute: ApiV1BillingCheckoutRoute,
+  ApiV1BillingPortalRoute: ApiV1BillingPortalRoute,
   ApiV1CareResourcesRoute: ApiV1CareResourcesRoute,
   ApiV1CrisisResourcesRoute: ApiV1CrisisResourcesRoute,
   ApiV1DailyPromptRoute: ApiV1DailyPromptRoute,
@@ -1713,6 +1796,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiV1SafetyPlanRoute: ApiV1SafetyPlanRoute,
   ApiV1ScreenersRoute: ApiV1ScreenersRouteWithChildren,
   ApiPublicHooksEvaluateNudgesRoute: ApiPublicHooksEvaluateNudgesRoute,
+  ApiPublicHooksPaymentsRoute: ApiPublicHooksPaymentsRoute,
   ApiV1CallsSessionsRoute: ApiV1CallsSessionsRouteWithChildren,
   ApiV1ChatHistoryRoute: ApiV1ChatHistoryRoute,
   ApiV1ChatMessagesRoute: ApiV1ChatMessagesRouteWithChildren,

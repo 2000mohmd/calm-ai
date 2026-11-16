@@ -108,10 +108,11 @@ export async function logCrisisEvent(
     return null;
   }
 
-  // Fire-and-forget: the row above is the guaranteed path; email must never
-  // delay the user-facing crisis response. Errors are caught and logged.
+  // The row above is the guaranteed path. The email is handed to the runtime's
+  // waitUntil when there is one (Vercel), so it survives the response; otherwise
+  // it is awaited for at most EMAIL_WAIT_MS so serverless freezing can't drop it.
   const eventId = data.id;
-  void (async () => {
+  const dispatch = (async () => {
     const sent = await sendCrisisAlertEmail({
       eventId,
       severity: input.severity,
@@ -127,7 +128,33 @@ export async function logCrisisEvent(
     }
   })().catch((error) => console.error("crisis alert dispatch failed", error));
 
+  await runAfterResponse(dispatch);
   return eventId;
+}
+
+const EMAIL_WAIT_MS = 4_000;
+
+async function runAfterResponse(work: Promise<void>): Promise<void> {
+  try {
+    // Needs nitro `experimental.asyncContext` (enabled for the vercel preset in
+    // vite.config.ts); throws elsewhere, which falls through to the bounded await.
+    const { useRequest: currentRequest } = await import("nitro/context");
+    const request = currentRequest() as { waitUntil?: (promise: Promise<unknown>) => void };
+    if (typeof request.waitUntil === "function") {
+      request.waitUntil(work);
+      return;
+    }
+  } catch {
+    // no request context available
+  }
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  await Promise.race([
+    work,
+    new Promise<void>((resolve) => {
+      timer = setTimeout(resolve, EMAIL_WAIT_MS);
+    }),
+  ]);
+  clearTimeout(timer);
 }
 
 const ESCALATE_AFTER_MS = 30 * 60 * 1000;

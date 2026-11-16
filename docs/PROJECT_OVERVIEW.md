@@ -32,18 +32,18 @@ Public: `/` (landing), `/auth`, `/legal`, `/crisis` (crisis numbers; signed-in m
 
 Authenticated (`src/routes/_authenticated/`, guarded by `route.tsx`):
 
-| Route         | Purpose                                                              |
-| ------------- | -------------------------------------------------------------------- |
-| `onboarding`  | Consent, date of birth / guardian email, account mode, intro, mood   |
-| `dashboard`   | Today's check-in, mood trend, nudge feed                             |
-| `chat`        | The single ongoing companion conversation, voice notes/calls, support |
-| `habits`      | Habit CRUD, 7-day grid                                               |
-| `exercises`   | Library + interactive step player with mood before/after             |
-| `check-ins`   | PHQ-9 / GAD-7 with severity bands and score history                  |
-| `insights`    | Mood, habit and check-in progress sections                           |
-| `care`        | Step-up-to-professional-care resources                               |
-| `support`     | Account/product support threads (`?thread=<id>` deep link)           |
-| `settings`    | Profile, preferences, data export and deletion                       |
+| Route        | Purpose                                                               |
+| ------------ | --------------------------------------------------------------------- |
+| `onboarding` | Consent, date of birth / guardian email, account mode, intro, mood    |
+| `dashboard`  | Today's check-in, mood trend, nudge feed                              |
+| `chat`       | The single ongoing companion conversation, voice notes/calls, support |
+| `habits`     | Habit CRUD, 7-day grid                                                |
+| `exercises`  | Library + interactive step player with mood before/after              |
+| `check-ins`  | PHQ-9 / GAD-7 with severity bands and score history                   |
+| `insights`   | Mood, habit and check-in progress sections                            |
+| `care`       | Step-up-to-professional-care resources                                |
+| `support`    | Account/product support threads (`?thread=<id>` deep link)            |
+| `settings`   | Profile, preferences, data export and deletion                        |
 
 Admin (`_authenticated/admin/`, gated by role): `index` (overview), `users` and
 `users/$userId`, `crisis`, `human` (human-support desk), `support`, `audit`, `team`

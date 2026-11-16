@@ -32,6 +32,10 @@ const ACTION_LABELS: Record<string, string> = {
   replied_support_ticket: "Replied to support ticket",
   granted_role: "Granted role",
   revoked_role: "Revoked role",
+  changed_plan: "Changed plan",
+  plan_activated: "Plan activated (payment)",
+  plan_renewed: "Plan renewed (payment)",
+  plan_canceled: "Plan canceled (payment)",
 };
 
 function AdminAuditPage() {

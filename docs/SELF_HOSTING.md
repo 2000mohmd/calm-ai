@@ -93,7 +93,7 @@ The endpoint accepts `POST` with an `x-sweep-secret` header, or `GET` with
   select vault.create_secret('https://<your-domain>/api/public/hooks/evaluate-nudges', 'kalm_sweep_url');
   select vault.create_secret('<your NUDGE_SWEEP_SECRET value>', 'kalm_sweep_secret');
   ```
-- **Vercel Cron**: see "Deploy on Vercel" below (`vercel.json` already has it).
+- **Vercel Cron** (Pro plan only, optional): see [LAUNCH_CHECKLIST.md](LAUNCH_CHECKLIST.md).
 - Or GitHub Actions / system cron calling the `curl` above.
 
 Without a scheduler the app works, but nothing proactive happens.
@@ -106,14 +106,18 @@ the addresses in `docs/MOBILE_API.md` for your developer.
 
 ## Deploy on Vercel
 
-`vercel.json` already sets the build (`NITRO_PRESET=vercel`) and a once-a-minute cron that calls
-`/api/public/hooks/evaluate-nudges`.
+The full step-by-step is in [LAUNCH_CHECKLIST.md](LAUNCH_CHECKLIST.md). In short:
 
-1. Import the repo in Vercel (Framework: Other). Add every variable from `.env.example` under
-   Project → Settings → Environment Variables.
-2. Set `CRON_SECRET` **and** `NUDGE_SWEEP_SECRET` to the same long random value. Vercel sends
-   `CRON_SECRET` as a bearer token and the app checks it against `NUDGE_SWEEP_SECRET`.
-3. Set `APP_BASE_URL` to the final public URL, then add that URL to Supabase → Auth → URL
-   configuration.
-4. Cron every minute needs the Vercel **Pro** plan (Hobby only allows once a day, which delays
-   crisis follow-ups and nudges).
+- `vercel.json` sets the build (`NITRO_PRESET=vercel bun run build`), `bun install`, and security
+  headers (HSTS, `X-Frame-Options: DENY`, `nosniff`, referrer policy, microphone allowed for
+  this origin only). It deliberately contains **no `crons` block**.
+- `vite.config.ts` pins the Vercel functions to region `fra1` (Frankfurt, next to a
+  `eu-central-1` Supabase project) with `maxDuration: 60`. Other presets ignore this.
+- Import the repo (Framework: Other), set every REQUIRED variable from `.env.example`
+  (Project → Settings → Environment Variables), deploy, then add your domain and set
+  `APP_BASE_URL` to it.
+- The scheduler defaults to Supabase `pg_cron` (section 3). Vercel Cron is optional and needs
+  the Pro plan; a per-minute cron makes a **Hobby** deploy fail, which is why it is not in
+  `vercel.json`.
+- Uptime probe: `GET /api/public/health` returns `{"ok":true,"db":true}` (503 if the database is
+  unreachable).

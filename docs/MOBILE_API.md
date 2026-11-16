@@ -111,18 +111,18 @@ Supabase's SDK auto-refreshes `currentSession` in the background, so re-read
 Every error is `{ "error": string, "details"?: unknown }` with one of these
 statuses:
 
-| Status | Meaning                                                                                                   |
-| ------ | --------------------------------------------------------------------------------------------------------- |
-| `400`  | Invalid JSON body, failed validation, or a business-rule rejection (e.g. under-13 sign-up)                |
-| `401`  | Missing / malformed / expired / revoked bearer token                                                      |
-| `402`  | Feature requires a paid plan (voice calls on Free; a new human-coach request on Free)                     |
-| `403`  | Forbidden (admin-only endpoint, or a guardian-consent hold on a teen account)                             |
-| `404`  | Resource not found, or not owned by the caller                                                            |
-| `409`  | Conflict (e.g. a call session is already active)                                                          |
-| `429`  | Rate limit / plan usage limit hit                                                                         |
-| `501`  | Endpoint intentionally not implemented yet (receipt validation)                                           |
-| `503`  | Feature not configured on the server yet (voice calls with no API key set)                                |
-| `500`  | Unexpected server error — details are logged server-side, not returned                                    |
+| Status | Meaning                                                                                    |
+| ------ | ------------------------------------------------------------------------------------------ |
+| `400`  | Invalid JSON body, failed validation, or a business-rule rejection (e.g. under-13 sign-up) |
+| `401`  | Missing / malformed / expired / revoked bearer token                                       |
+| `402`  | Feature requires a paid plan (voice calls on Free; a new human-coach request on Free)      |
+| `403`  | Forbidden (admin-only endpoint, or a guardian-consent hold on a teen account)              |
+| `404`  | Resource not found, or not owned by the caller                                             |
+| `409`  | Conflict (e.g. a call session is already active)                                           |
+| `429`  | Rate limit / plan usage limit hit                                                          |
+| `501`  | Endpoint intentionally not implemented yet (receipt validation)                            |
+| `503`  | Feature not configured on the server yet (voice calls with no API key set)                 |
+| `500`  | Unexpected server error — details are logged server-side, not returned                     |
 
 Auth is verified by `authenticateBearer` (`src/lib/api-auth.server.ts`),
 which does a **real round trip** to Supabase Auth (`auth.getUser(token)`), so
@@ -660,10 +660,27 @@ drive your plan-limit UI instead of guessing from local state.
 
 ## 7. Plans
 
-There are no payment endpoints: the app takes no payments. A member's tier
-(`free | pro | premium | org`) is granted by an admin, and
 `GET /api/v1/entitlements` (§6) is the only thing a client needs to read to
-know what they can do. Don't build a purchase flow.
+know what a member can do; it is unchanged. A member's tier
+(`free | pro | premium | org`) is set by an admin or, once a payment gateway is
+configured, by the gateway's webhook (see `docs/PAYMENTS.md`).
+
+Two gateway-agnostic endpoints exist for a purchase flow. Both are
+Bearer-authenticated and return **`501 {"error":"Payments not enabled"}` until
+the server has a payment gateway configured**, so don't ship a purchase button
+that depends on them yet; treat 501 as "payments launching soon".
+
+| Method | Path                       | Body                                                                                              | Success                |
+| ------ | -------------------------- | ------------------------------------------------------------------------------------------------- | ---------------------- |
+| POST   | `/api/v1/billing/checkout` | `{ "tier": "pro" or "premium", "interval": "monthly" or "yearly", "return_url"?, "cancel_url"? }` | `200 { "url": "..." }` |
+| POST   | `/api/v1/billing/portal`   | `{ "return_url"? }` (body optional)                                                               | `200 { "url": "..." }` |
+
+Open `url` in the system browser. `return_url` / `cancel_url` must be on the
+app's own origin or the `kalm:` deep-link scheme; anything else is replaced with
+the web plans page. Errors: `400` invalid body or a minor's account, `401`,
+`429` (10 requests / 10 min), `501` payments off (or the gateway has no portal).
+After paying, re-read `/entitlements` (the tier changes when the gateway's
+webhook lands, usually within seconds).
 
 ---
 

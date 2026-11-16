@@ -10,6 +10,7 @@
     "loading": "Loading…",
     "retry": "Try again",
     "goHome": "Go home",
+    "needHelpNow": "In crisis? Get help now",
     "somethingWentWrong": "Something went wrong on our end. You can try refreshing or head back home.",
     "pageNotFound": "Page not found",
     "pageNotFoundBody": "The page you're looking for doesn't exist or has been moved.",
@@ -440,11 +441,42 @@
   },
   "plans": {
     "title": "Plans",
-    "subtitle": "Plans are coming soon. Nothing you've written is ever locked behind a plan.",
+    "subtitle": "Pick the support that fits. Nothing you've written is ever locked behind a plan.",
     "free": "Free",
     "currentPlan": "Current plan",
-    "comingSoonTitle": "Plans coming soon",
+    "comingSoonTitle": "Payments launching soon",
     "comingSoonBody": "We're not taking payments yet. If you've been given a plan, it shows below.",
+    "launchingSoon": "Payments launching soon",
+    "choose": "Choose {{plan}}",
+    "thisIsYourPlan": "Your current plan",
+    "monthly": "Monthly",
+    "yearly": "Yearly",
+    "perMonth": "/ month",
+    "perYear": "/ year",
+    "freePrice": "Free",
+    "checkoutFailed": "Couldn't start checkout. Please try again.",
+    "manage": "Manage subscription",
+    "manageFailed": "Couldn't open billing. Please try again.",
+    "catalog": {
+      "free": {
+        "tagline": "Get started",
+        "b1": "Onboarding and a preview of the plans",
+        "b2": "Your first conversation: {{n}} messages",
+        "b3": "Crisis support and your safety plan, always free"
+      },
+      "pro": {
+        "tagline": "Everyday support",
+        "b1": "Up to {{n}} messages a day",
+        "b2": "{{n}} voice call per week",
+        "b3": "Human coach support"
+      },
+      "premium": {
+        "tagline": "The most support",
+        "b1": "Up to {{n}} messages a day",
+        "b2": "{{n}} voice calls per week",
+        "b3": "Human coach support"
+      }
+    },
     "usageTitle": "Where you are right now",
     "usageMessages": "Messages today",
     "usageCalls": "Voice calls this week",

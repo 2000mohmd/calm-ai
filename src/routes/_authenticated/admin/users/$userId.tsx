@@ -1,6 +1,8 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useQuery } from "@tanstack/react-query";
+import { useEffect, useState } from "react";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
+import { toast } from "sonner";
 import {
   CartesianGrid,
   Line,
@@ -13,7 +15,52 @@ import {
 import { ArrowLeft } from "lucide-react";
 import { CRISIS_SOURCE_LABELS, CrisisSeverityBadge } from "@/components/CrisisSeverityBadge";
 import { Skeleton } from "@/components/ui/skeleton";
-import { getAdminUserDetail } from "@/lib/admin.functions";
+import { Button } from "@/components/ui/button";
+import { getAdminUserDetail, setUserPlan } from "@/lib/admin.functions";
+
+const PLAN_OPTIONS = ["free", "pro", "premium", "org"] as const;
+type PlanOption = (typeof PLAN_OPTIONS)[number];
+
+/** Manual plan grant: sets the member's tier directly (audited server-side). */
+function PlanControl({ userId, current }: { userId: string; current: string }) {
+  const queryClient = useQueryClient();
+  const save = useServerFn(setUserPlan);
+  const [tier, setTier] = useState<PlanOption>((current as PlanOption) ?? "free");
+  useEffect(() => setTier(current as PlanOption), [current]);
+  const mutation = useMutation({
+    mutationFn: () => save({ data: { user_id: userId, tier } }),
+    onSuccess: () => {
+      toast.success("Plan updated");
+      void queryClient.invalidateQueries({ queryKey: ["admin-user-detail", userId] });
+    },
+    onError: () => toast.error("Couldn't update the plan"),
+  });
+  return (
+    <div className="mt-4 flex flex-wrap items-end gap-2 border-t border-border pt-4">
+      <label className="text-xs uppercase tracking-wide text-muted-foreground">
+        Set plan
+        <select
+          className="mt-1 block rounded-md border border-border bg-background px-2 py-1.5 text-sm normal-case text-foreground"
+          value={tier}
+          onChange={(event) => setTier(event.target.value as PlanOption)}
+        >
+          {PLAN_OPTIONS.map((option) => (
+            <option key={option} value={option}>
+              {option}
+            </option>
+          ))}
+        </select>
+      </label>
+      <Button
+        size="sm"
+        disabled={mutation.isPending || tier === current}
+        onClick={() => mutation.mutate()}
+      >
+        Save
+      </Button>
+    </div>
+  );
+}
 
 export const Route = createFileRoute("/_authenticated/admin/users/$userId")({
   head: () => ({
@@ -101,6 +148,7 @@ function AdminUserDetailPage() {
             value={data.profile?.onboarding_completed ? "Completed" : "Incomplete"}
           />
         </div>
+        <PlanControl userId={userId} current={data.profile?.subscription_tier ?? "free"} />
       </section>
 
       <section className="rounded-2xl border border-border bg-card p-5">

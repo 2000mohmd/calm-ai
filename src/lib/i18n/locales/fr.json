@@ -10,6 +10,7 @@
     "loading": "Chargement…",
     "retry": "Réessayer",
     "goHome": "Accueil",
+    "needHelpNow": "En détresse ? Obtenir de l'aide maintenant",
     "somethingWentWrong": "Une erreur est survenue de notre côté. Vous pouvez rafraîchir la page ou revenir à l'accueil.",
     "pageNotFound": "Page introuvable",
     "pageNotFoundBody": "La page que vous cherchez n'existe pas ou a été déplacée.",
@@ -440,11 +441,42 @@
   },
   "plans": {
     "title": "Forfaits",
-    "subtitle": "Les forfaits arrivent bientôt. Rien de ce que tu as écrit n'est enfermé derrière un forfait.",
+    "subtitle": "Choisis le soutien qui te convient. Rien de ce que tu as écrit n'est enfermé derrière un forfait.",
     "free": "Gratuit",
     "currentPlan": "Forfait actuel",
-    "comingSoonTitle": "Forfaits bientôt disponibles",
+    "comingSoonTitle": "Paiements bientôt disponibles",
     "comingSoonBody": "Nous n'acceptons pas encore de paiements. Si un forfait t'a été attribué, il apparaît ci-dessous.",
+    "launchingSoon": "Paiements bientôt disponibles",
+    "choose": "Choisir {{plan}}",
+    "thisIsYourPlan": "Votre forfait actuel",
+    "monthly": "Mensuel",
+    "yearly": "Annuel",
+    "perMonth": "/ mois",
+    "perYear": "/ an",
+    "freePrice": "Gratuit",
+    "checkoutFailed": "Impossible de lancer le paiement. Veuillez réessayer.",
+    "manage": "Gérer l'abonnement",
+    "manageFailed": "Impossible d'ouvrir la facturation. Veuillez réessayer.",
+    "catalog": {
+      "free": {
+        "tagline": "Pour commencer",
+        "b1": "Prise en main et aperçu des forfaits",
+        "b2": "Ta première conversation : {{n}} messages",
+        "b3": "Aide en cas de crise et plan de sécurité, toujours gratuits"
+      },
+      "pro": {
+        "tagline": "Soutien au quotidien",
+        "b1": "Jusqu'à {{n}} messages par jour",
+        "b2": "{{n}} appel vocal par semaine",
+        "b3": "Accompagnement par un coach humain"
+      },
+      "premium": {
+        "tagline": "Le plus de soutien",
+        "b1": "Jusqu'à {{n}} messages par jour",
+        "b2": "{{n}} appels vocaux par semaine",
+        "b3": "Accompagnement par un coach humain"
+      }
+    },
     "usageTitle": "Où vous en êtes",
     "usageMessages": "Messages aujourd'hui",
     "usageCalls": "Appels vocaux cette semaine",

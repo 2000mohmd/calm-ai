@@ -61,6 +61,11 @@ function NotFoundComponent() {
             {t("common.goHome")}
           </Link>
         </div>
+        <p className="mt-6 text-sm">
+          <a href="/crisis" className="font-medium text-foreground underline underline-offset-4">
+            {t("common.needHelpNow")}
+          </a>
+        </p>
       </div>
     </div>
   );
@@ -95,6 +100,11 @@ function ErrorComponent({ error, reset }: ErrorComponentProps) {
             {t("common.goHome")}
           </a>
         </div>
+        <p className="mt-6 text-sm">
+          <a href="/crisis" className="font-medium text-foreground underline underline-offset-4">
+            {t("common.needHelpNow")}
+          </a>
+        </p>
       </div>
     </div>
   );
@@ -120,6 +130,8 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
           "Kalm blends an AI companion, mood and habit tracking, and guided CBT exercises into one calm daily wellness practice.",
       },
       { property: "og:type", content: "website" },
+      { property: "og:site_name", content: "Kalm" },
+      { name: "theme-color", content: "#ffffff" },
       { name: "twitter:card", content: "summary_large_image" },
       { name: "twitter:title", content: "Kalm — Calm, private AI mental wellness support" },
       {
