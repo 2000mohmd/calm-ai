@@ -159,7 +159,14 @@ export async function ensureStripeCustomer(
     "metadata[user_id]": userId,
   });
 
-  await supabase.from("profiles").update({ stripe_customer_id: customer.id }).eq("id", userId);
+  // Billing columns are server-only (a database trigger rejects member writes),
+  // so this one write goes through the service role.
+  const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+  const saved = await supabaseAdmin
+    .from("profiles")
+    .update({ stripe_customer_id: customer.id } as never)
+    .eq("id", userId);
+  if (saved.error) throw saved.error;
   return customer.id;
 }
 
