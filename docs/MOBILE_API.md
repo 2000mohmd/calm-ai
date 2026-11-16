@@ -21,7 +21,7 @@ screener escalation) is identical on both.
 | ------------------------------- | ------------------------------------------------------------------------------- |
 | Supabase Project URL            | your Supabase project URL (`https://<ref>.supabase.co`)                         |
 | Supabase publishable (anon) key | your project's publishable key (Settings → API)                                 |
-| API base URL                    | `https://<your-domain>/api/v1`, the deployed web app (see docs/SELF_HOSTING.md) |
+| API base URL                    | `https://calmai.site/api/v1`, the deployed web app (see docs/SELF_HOSTING.md) |
 
 The publishable key is meant to be embedded in a client app (it is the
 mobile/web equivalent of a public API key, not a secret) — safe to commit to
@@ -1324,7 +1324,7 @@ regular member app.
   push otherwise.
 - **Production API domain:** the API only exists on a deployment that
   includes it; get the published app URL from the backend owner and check
-  `GET <domain>/api/v1/crisis-resources` returns JSON before building on it.
+  `GET https://calmai.site/api/v1/crisis-resources` returns JSON before building on it.
 - **No CORS headers** on `/api/v1/*` — fine for native builds, a blocker for
   Flutter Web until added.
 - **No API versioning/deprecation headers** — this is "v1" in name only so

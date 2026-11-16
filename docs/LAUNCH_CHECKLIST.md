@@ -17,12 +17,12 @@ Work top to bottom. Nothing here needs code changes.
 | `VITE_SUPABASE_URL`, `SUPABASE_URL`                         | yes                  | Supabase → Project Settings → API → Project URL                           |
 | `VITE_SUPABASE_PUBLISHABLE_KEY`, `SUPABASE_PUBLISHABLE_KEY` | yes                  | Supabase → API → anon / publishable key                                   |
 | `SUPABASE_SERVICE_ROLE_KEY`                                 | yes (secret)         | Supabase → API → service_role key. Server only; never prefix with `VITE_` |
-| `APP_BASE_URL`                                              | yes                  | Your final origin, e.g. `https://app.example.com` (no trailing slash)     |
+| `APP_BASE_URL`                                              | yes                  | Your final origin, e.g. `https://calmai.site` (no trailing slash)     |
 | `NUDGE_SWEEP_SECRET`                                        | yes (secret)         | Generate: `openssl rand -hex 32`                                          |
 | `OPENROUTER_API_KEY`                                        | yes (secret)         | openrouter.ai → Keys                                                      |
 | `RESEND_API_KEY`                                            | yes (secret)         | resend.com → API Keys (verify your sending domain first)                  |
 | `ADMIN_ALERT_EMAIL`                                         | yes                  | The inbox that must receive crisis and human-support alerts               |
-| `EMAIL_FROM`                                                | recommended          | e.g. `Kalm <hello@your-domain.com>` on your verified Resend domain        |
+| `EMAIL_FROM`                                                | recommended          | e.g. `Kalm <hello@calmai.site>` on your verified Resend domain        |
 | `OPENAI_API_KEY`                                            | for voice            | platform.openai.com → API keys (voice notes and calls)                    |
 | `CRON_SECRET`                                               | only for Vercel Cron | Same value as `NUDGE_SWEEP_SECRET`                                        |
 | `CHAT_CHECKIN_ENABLED`, `POST_CRISIS_FOLLOWUP_ENABLED`      | optional             | `true` to enable                                                          |
@@ -36,11 +36,11 @@ Deployments → Logs after the first hit.
 
 ## B. Custom domain
 
-1. Project → Settings → Domains → Add `app.example.com` (or the apex).
+1. Project → Settings → Domains → Add `calmai.site` and `www.calmai.site`.
 2. At your DNS provider create the records exactly **as shown in the Vercel dashboard**
    (typically `A 76.76.21.21` for an apex, `CNAME cname.vercel-dns.com` for a subdomain).
 3. Wait for the green check and automatic HTTPS certificate.
-4. Set `APP_BASE_URL=https://<domain>` and redeploy (links in emails and unsubscribe URLs use it).
+4. Set `APP_BASE_URL=https://calmai.site` and redeploy (links in emails and unsubscribe URLs use it).
 
 ## C. Supabase
 
@@ -48,8 +48,8 @@ Database: apply every file in `supabase/migrations/` in order (`supabase db push
 
 Authentication → URL Configuration:
 
-- Site URL: `https://<domain>`
-- Redirect URLs: `https://<domain>/**` and `kalm://auth-callback` (mobile app)
+- Site URL: `https://calmai.site`
+- Redirect URLs: `https://calmai.site/**` and `kalm://auth-callback` (mobile app)
 
 Providers: Email on. Google/Apple can be enabled later (create the OAuth credentials, paste
 them in Authentication → Providers; the buttons only work once configured).
@@ -69,7 +69,7 @@ Crisis escalation emails (unreviewed events after 30 min) depend on it.
 target from Vault. Run once in the SQL editor with your values:
 
 ```sql
-select vault.create_secret('https://<domain>/api/public/hooks/evaluate-nudges', 'kalm_sweep_url');
+select vault.create_secret('https://calmai.site/api/public/hooks/evaluate-nudges', 'kalm_sweep_url');
 select vault.create_secret('<NUDGE_SWEEP_SECRET value>', 'kalm_sweep_secret');
 ```
 
@@ -102,7 +102,7 @@ is not you, review `select * from public.user_roles;` and remove stale grants.
 
 ## F. Smoke tests
 
-- [ ] `GET https://<domain>/api/public/health` returns `{"ok":true,"db":true}`.
+- [ ] `GET https://calmai.site/api/public/health` returns `{"ok":true,"db":true}`.
 - [ ] Response headers include `Strict-Transport-Security` and `X-Frame-Options: DENY`.
 - [ ] Landing page, `/crisis` and `/legal` load without signing in; unknown URL shows the 404
       page with the crisis-help link.
@@ -112,11 +112,11 @@ is not you, review `select * from public.user_roles;` and remove stale grants.
 - [ ] Trigger a test crisis phrase with a test account: crisis resources appear, a row shows in
       `/admin/crisis`, and `ADMIN_ALERT_EMAIL` receives the alert within a minute (check
       `crisis_events.alert_sent_at` is set).
-- [ ] `curl -i -X POST https://<domain>/api/public/hooks/evaluate-nudges` returns 401;
+- [ ] `curl -i -X POST https://calmai.site/api/public/hooks/evaluate-nudges` returns 401;
       with the secret header returns 200 `{"ok":true,...}`.
 - [ ] pg_cron (or Vercel Cron) shows runs every minute.
 - [ ] Unsubscribe link in a proactive email works.
-- [ ] `https://<domain>/robots.txt` loads.
+- [ ] `https://calmai.site/robots.txt` loads.
 
 ## G. Backups and monitoring
 

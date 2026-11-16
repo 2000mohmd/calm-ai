@@ -28,7 +28,7 @@ Admins can still grant plans by hand (below), and `/api/v1/entitlements` is unch
 3. Set env vars: `PAYMENT_PROVIDER=<id>` plus whatever secrets the gateway file reads
    (read them inside the provider, so they are only required when it is selected).
 4. In the gateway dashboard, point the webhook at
-   `https://<your-domain>/api/public/hooks/payments` (POST; GET is also routed for
+   `https://calmai.site/api/public/hooks/payments` (POST; GET is also routed for
    gateways that verify by GET).
 5. Add the dependency (SDK) only in that gateway's file. Nothing else needs to change.
 

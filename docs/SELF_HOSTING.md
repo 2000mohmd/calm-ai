@@ -43,7 +43,7 @@ Afterwards:
 ### Auth settings (Supabase → Authentication)
 
 - **URL configuration:** Site URL = your `APP_BASE_URL`; add to Redirect URLs:
-  `https://<your-domain>/**` and `kalm://auth-callback` (mobile app).
+  `https://calmai.site/**` and `kalm://auth-callback` (mobile app).
 - **Providers:** Email (magic link) on. For Google and Apple, create the OAuth
   credentials yourself and enable the providers; the buttons only work once these are set.
 - **Email templates / SMTP:** configure sender and templates (Supabase's
@@ -79,7 +79,7 @@ Proactive nudges, the 12-hour check-in, weekly digests and email delivery all
 run from one endpoint that a scheduler must call every **1-2 minutes**:
 
 ```bash
-curl -X POST https://<your-domain>/api/public/hooks/evaluate-nudges \
+curl -X POST https://calmai.site/api/public/hooks/evaluate-nudges \
   -H "x-sweep-secret: $NUDGE_SWEEP_SECRET"
 ```
 
@@ -90,7 +90,7 @@ The endpoint accepts `POST` with an `x-sweep-secret` header, or `GET` with
   schedules it every minute, reading the target from Vault. Run once with your
   values:
   ```sql
-  select vault.create_secret('https://<your-domain>/api/public/hooks/evaluate-nudges', 'kalm_sweep_url');
+  select vault.create_secret('https://calmai.site/api/public/hooks/evaluate-nudges', 'kalm_sweep_url');
   select vault.create_secret('<your NUDGE_SWEEP_SECRET value>', 'kalm_sweep_secret');
   ```
 - **Vercel Cron** (Pro plan only, optional): see [LAUNCH_CHECKLIST.md](LAUNCH_CHECKLIST.md).
