@@ -6,15 +6,12 @@ in Chromium and hit the HTTP API, against the Vite dev server on `:8080`
 
 ## Install
 
-Playwright is **not** in `package.json` (`bun.lock` is the tracked lockfile and
-an npm dep would desync it). Install on demand:
+`@playwright/test` is a devDependency, so `bun install` provides it. Download the
+browser once:
 
 ```bash
-npm install --no-save @playwright/test
-npx playwright install chromium
+bunx playwright install chromium
 ```
-
-To track it properly instead: `bun add -d @playwright/test`.
 
 ## Running
 
@@ -69,8 +66,7 @@ Use a **dedicated throwaway account**: the specs log mood check-ins against it.
 - **Crisis-gate messages**: sending crisis language for real creates crisis
   events and pages the admin team by email. The gate is covered by vitest
   (`crisis-gate.test.ts`).
-- **Onboarding, account deletion, billing checkout**: each needs a fresh
-  account per run (an admin/service key to create and delete users) or touches
-  Stripe. Add when there's a separate test Supabase project.
+- **Onboarding, account deletion**: each needs a fresh
+  account per run (an admin/service key to create and delete users). Add when there's a separate test Supabase project.
 - **CI**: these run locally only. They need a browser, a Supabase project and a
   test account; wire a CI job when there's a staging project to point at.

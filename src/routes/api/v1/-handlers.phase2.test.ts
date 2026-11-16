@@ -147,7 +147,7 @@ describe("handleScreenerResponses", () => {
 // --- GET /api/v1/entitlements ---------------------------------------------------
 
 describe("handleEntitlements", () => {
-  it("reports the free first-conversation cap (15), trial eligibility and no coach", async () => {
+  it("reports the free first-conversation cap (15) and no coach", async () => {
     const body = await (await handleEntitlements(req("/api/v1/entitlements"))).json();
     expect(body.tier).toBe("free");
     expect(body.chat.unlimited).toBe(false);
@@ -157,36 +157,14 @@ describe("handleEntitlements", () => {
     expect(body.chat.remainingToday).toBe(15);
     expect(typeof body.chat.resetsAt).toBe("string");
     expect(body.chat.intro).toEqual({ limit: 15, used: 0, remaining: 15 });
-    expect(body.trial).toEqual({ active: false, endsAt: null, eligible: true, days: 3 });
     expect(body.features.humanCoach).toBe(false);
   });
 
-  it("a trialing pro member: trial active with its end date, no human coach yet", async () => {
-    h.state.tables["profiles"] = {
-      maybeSingle: {
-        subscription_tier: "pro",
-        stripe_subscription_status: "trialing",
-        subscription_current_period_end: "2026-10-20T00:00:00.000Z",
-      },
-    };
-    const body = await (await handleEntitlements(req("/api/v1/entitlements"))).json();
-    expect(body.trial).toEqual({
-      active: true,
-      endsAt: "2026-10-20T00:00:00.000Z",
-      eligible: false,
-      days: 3,
-    });
-    expect(body.features.humanCoach).toBe(false);
-    expect(body.chat.intro).toBeNull();
-  });
-
-  it("an active (charged) pro member gets the human coach and no second trial", async () => {
-    h.state.tables["profiles"] = {
-      maybeSingle: { subscription_tier: "pro", stripe_subscription_status: "active" },
-    };
+  it("a pro member gets the human coach and no intro cap", async () => {
+    h.state.tables["profiles"] = { maybeSingle: { subscription_tier: "pro" } };
     const body = await (await handleEntitlements(req("/api/v1/entitlements"))).json();
     expect(body.features.humanCoach).toBe(true);
-    expect(body.trial.eligible).toBe(false);
+    expect(body.chat.intro).toBeNull();
   });
 
   it("derives usedToday / remainingToday from chat_rate_limits.day_count (the enforced counter)", async () => {

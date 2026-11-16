@@ -120,7 +120,7 @@
     "disclaimer": "Kalm est un compagnon IA, pas un thérapeute. En cas de crise, utilisez l'aide immédiate.",
     "limitCoachMessage": "Nous avons atteint la limite de messages de votre forfait pour aujourd'hui. Passez à un forfait supérieur pour que nous puissions continuer ensemble — j'aimerais poursuivre avec vous.",
     "limitStillHere": "L'aide en cas de crise est toujours disponible, et je serai là demain.",
-    "introLimitMessage": "J'ai vraiment apprécié faire ta connaissance. Commence ton essai gratuit de {{days}} jours pour qu'on continue ensemble — rien n'est prélevé pendant l'essai, et tu peux annuler à tout moment.",
+    "introLimitMessage": "J'ai vraiment apprécié faire ta connaissance. Notre première conversation a atteint sa limite pour le moment, et d'autres conversations s'ouvriront avec un forfait.",
     "introStillHere": "Les lignes d'aide en cas de crise sont toujours gratuites, avec ou sans abonnement."
   },
   "quickActions": {
@@ -439,74 +439,33 @@
     "reportDescription": "Un résumé lisible de votre tendance d'humeur, de l'historique des bilans avec les plages de sévérité, et des exercices réalisés — adapté au partage avec un thérapeute. C'est un résumé d'auto-suivi, pas une évaluation clinique."
   },
   "plans": {
-    "title": "Forfaits et facturation",
-    "subtitle": "Choisissez le rythme qui vous convient. Modifiable ou annulable à tout moment — rien de ce que vous avez écrit n'est enfermé derrière un forfait.",
+    "title": "Forfaits",
+    "subtitle": "Les forfaits arrivent bientôt. Rien de ce que tu as écrit n'est enfermé derrière un forfait.",
     "free": "Gratuit",
     "currentPlan": "Forfait actuel",
-    "manage": "Gérer la facturation",
-    "choose": "Choisir {{plan}}",
-    "checkoutFailed": "Impossible de démarrer le paiement",
-    "portalFailed": "Impossible d'ouvrir votre page de facturation",
-    "noSubscription": "Vous n'avez pas encore de forfait payant — choisissez-en un ci-dessus.",
-    "successTitle": "Tout est en place",
-    "successBody": "Votre forfait est actif. Si les nouvelles limites n'apparaissent pas encore, patientez un instant puis actualisez.",
-    "cancelled": "Aucun souci — rien n'a été facturé. Choisissez un forfait quand vous serez prêt.",
-    "yearlyHint": "Annuel : deux mois offerts",
+    "comingSoonTitle": "Forfaits bientôt disponibles",
+    "comingSoonBody": "Nous n'acceptons pas encore de paiements. Si un forfait t'a été attribué, il apparaît ci-dessous.",
     "usageTitle": "Où vous en êtes",
     "usageMessages": "Messages aujourd'hui",
     "usageCalls": "Appels vocaux cette semaine",
     "usageCallsNone": "Non inclus dans votre forfait",
     "nextCall": "Votre prochain appel vocal sera disponible le {{date}}.",
     "contactSupport": "Poser une question",
-    "interval": {
-      "monthly": "Mensuel",
-      "yearly": "Annuel"
-    },
-    "per": {
-      "monthly": "/ mois",
-      "yearly": "/ an"
-    },
+    "usageIntro": "Ta première conversation",
     "tiers": {
       "free": {
-        "name": "Gratuit",
-        "tagline": "Fais connaissance avec ton coach.",
-        "features": {
-          "messages": "Ta première conversation et ton plan personnel",
-          "calls": "Pas d'appels vocaux",
-          "tracking": "Humeur, habitudes, exercices et bilans"
-        }
+        "name": "Gratuit"
       },
       "pro": {
-        "name": "Pro",
-        "tagline": "Un soutien quotidien, avec un appel vocal par semaine.",
-        "features": {
-          "messages": "200 messages par jour",
-          "calls": "Un appel vocal de 30 minutes par semaine",
-          "history": "Historique complet des conversations",
-          "export": "Rapport de progression partageable",
-          "coach": "Coach humain (accessible après l'essai gratuit)"
-        }
+        "name": "Pro"
       },
       "premium": {
-        "name": "Premium",
-        "tagline": "Pour les semaines qui demandent plus.",
-        "features": {
-          "messages": "Messages quasi illimités (500 par jour)",
-          "calls": "Deux appels vocaux de 30 minutes par semaine",
-          "history": "Historique complet des conversations",
-          "export": "Rapport de progression partageable",
-          "priority": "Réponses du support en priorité",
-          "coach": "Coach humain (accessible après l'essai gratuit)"
-        }
+        "name": "Premium"
+      },
+      "org": {
+        "name": "Organisation"
       }
-    },
-    "startTrial": "Commencer l'essai gratuit de {{days}} jours",
-    "sentToGuardian": "Nous avons envoyé le lien de paiement à ton parent ou tuteur par e-mail.",
-    "guardianEmailMissing": "Un parent ou tuteur paie pour les comptes ados. Ajoute d'abord son e-mail depuis la note dans ta conversation.",
-    "trialActive": "Ton essai gratuit se termine le {{date}} — la facturation commence ensuite, sauf si tu annules.",
-    "trialActiveNoDate": "Tu es en période d'essai gratuit.",
-    "trialCoachNote": "Les coachs humains sont accessibles une fois l'essai terminé et ton abonnement actif.",
-    "usageIntro": "Ta première conversation"
+    }
   },
   "call": {
     "start": "Démarrer un appel vocal",
@@ -662,7 +621,7 @@
     "teamLabel": "Soutien Kalm",
     "noMessages": "Pas encore de message — quelqu'un vous écrira ici.",
     "inChat": "Soutien Kalm",
-    "paidOnly": "Les coachs humains font partie de Pro et Premium, et sont accessibles une fois l'essai gratuit terminé. Si tu n'es pas en sécurité maintenant, utilise les lignes ci-dessus — elles sont toujours gratuites."
+    "paidOnly": "Les coachs humains font partie de Pro et Premium. Si tu n'es pas en sécurité maintenant, utilise les lignes ci-dessus — elles sont toujours gratuites."
   },
   "guardian": {
     "title": "En attente d'un parent ou tuteur",

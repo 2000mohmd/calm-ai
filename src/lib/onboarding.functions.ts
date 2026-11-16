@@ -314,7 +314,7 @@ export const deleteMyData = createServerFn({ method: "POST" })
  *
  * The actual work is in account-deletion.server.ts's deleteAccountCore, shared
  * with the mobile DELETE /api/v1/account route so both delete paths (and any
- * future Stripe/RPC changes) stay identical.
+ * future RPC changes) stay identical.
  */
 export const deleteMyAccount = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])

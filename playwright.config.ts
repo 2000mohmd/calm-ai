@@ -7,8 +7,7 @@ import { defineConfig, devices } from "@playwright/test";
  * part for a smoke suite). The vitest suite (`npm test`) covers unit/contract
  * logic; this covers the actual rendered app + the HTTP API surface.
  *
- * Playwright is installed on-demand (not in package.json — bun.lock is the
- * tracked lockfile). To run: `npm run test:e2e`. First run downloads Chromium.
+ * To run: `bun run test:e2e`. First run needs `bunx playwright install chromium`.
  * If a dev server is already up on :8080 it is reused.
  */
 // The signed-in specs talk to Supabase directly (e2e/session.ts), so they need
@@ -25,7 +24,7 @@ const BASE_URL = `http://localhost:${PORT}`;
 export default defineConfig({
   testDir: "./e2e",
   // `.e2e.ts`, not `.spec.ts` — keeps these out of vitest's default glob so the
-  // two runners never fight over the same files (Playwright isn't a tracked dep).
+  // two runners never fight over the same files.
   testMatch: "**/*.e2e.ts",
   globalSetup: "./e2e/warmup.ts",
   fullyParallel: true,

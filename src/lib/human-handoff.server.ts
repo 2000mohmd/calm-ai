@@ -7,10 +7,10 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/integrations/supabase/types";
 import { callCompanionModel } from "./llm-provider.server";
 import { appBaseUrl } from "./app-url";
+import { sendEmail } from "./resend.server";
 
 type Client = SupabaseClient<Database>;
 
-const RESEND_URL = "https://api.resend.com/emails";
 const FROM = "Kalm Safety <onboarding@resend.dev>";
 const MODEL = "claude-haiku-4-5";
 
@@ -99,10 +99,9 @@ export async function sendHandoffAlertEmail(input: {
   createdAt: string;
   escalation?: number;
 }): Promise<boolean> {
-  const apiKey = process.env["RESEND_API_KEY"];
   const to = process.env["ADMIN_ALERT_EMAIL"];
-  if (!apiKey || !to) {
-    console.error("[handoff] alert email skipped: RESEND_API_KEY or ADMIN_ALERT_EMAIL missing");
+  if (!to) {
+    console.error("[handoff] alert email skipped: ADMIN_ALERT_EMAIL missing");
     return false;
   }
 
@@ -124,21 +123,8 @@ export async function sendHandoffAlertEmail(input: {
     "This alert intentionally contains no conversation content — read it in the app.",
   ].join("\n");
 
-  try {
-    const response = await fetch(RESEND_URL, {
-      method: "POST",
-      headers: { "Content-Type": "application/json", Authorization: `Bearer ${apiKey}` },
-      body: JSON.stringify({ from: FROM, to: [to], subject, text }),
-    });
-    if (!response.ok) {
-      console.error(`[handoff] alert email failed [${response.status}]: ${await response.text()}`);
-      return false;
-    }
-    return true;
-  } catch (error) {
-    console.error("[handoff] alert email threw", error);
-    return false;
-  }
+  const result = await sendEmail({ tag: "[handoff] alert email", from: FROM, to, subject, text });
+  return result.ok;
 }
 
 const ESCALATE_AFTER_MS = 30 * 60 * 1000;

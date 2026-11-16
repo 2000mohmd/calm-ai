@@ -642,7 +642,7 @@ export async function runCompanionTool(
       if (error instanceof Error && error.message === COACH_PAID_ONLY) {
         return {
           result:
-            "No request was made: human coaches are part of the Pro and Premium plans, and open after the free trial. Tell them this kindly and briefly, without making them feel turned away; keep supporting them yourself; mention they can see plans on the Plans page. If they seem unsafe in any way, give the crisis lines first — those are always free.",
+            "No request was made: human coaches are part of the Pro and Premium plans, and are not available on the free plan. Tell them this kindly and briefly, without making them feel turned away; keep supporting them yourself; mention they can see plans on the Plans page. If they seem unsafe in any way, give the crisis lines first — those are always free.",
         };
       }
       console.error("request_human_support failed", error);

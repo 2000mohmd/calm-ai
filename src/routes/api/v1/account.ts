@@ -11,9 +11,8 @@ import { handle, json, requireAuth } from "./-shared";
  * settings page wasn't enough.
  *
  * Shares deleteAccountCore with the web path, so both do the exact same
- * thing: best-effort cancel any Stripe subscription on file, erase wellness
- * data, anonymize crisis_events, then delete the auth user (which cascades
- * everything else).
+ * thing: erase wellness data, anonymize crisis_events, then delete the auth
+ * user (which cascades everything else).
  *
  * No confirmation step lives here — this is the point of no return, so the
  * mobile client must get explicit, unambiguous confirmation from the person

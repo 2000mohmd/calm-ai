@@ -10,10 +10,10 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/integrations/supabase/types";
 import type { CrisisSeverity } from "./crisis";
 import { appBaseUrl } from "./app-url";
+import { sendEmail as sendEmailViaResend } from "./resend.server";
 
 type Client = SupabaseClient<Database>;
 
-const RESEND_URL = "https://api.resend.com/emails";
 const FROM = "Kalm Safety <onboarding@resend.dev>";
 
 const SOURCE_LABELS: Record<string, string> = {
@@ -28,32 +28,19 @@ export function sourceLabel(source: string): string {
 }
 
 async function sendEmail(subject: string, text: string): Promise<boolean> {
-  const apiKey = process.env["RESEND_API_KEY"];
   const to = process.env["ADMIN_ALERT_EMAIL"];
-  if (!apiKey || !to) {
-    console.error("crisis alert email skipped: RESEND_API_KEY or ADMIN_ALERT_EMAIL missing");
+  if (!to) {
+    console.error("crisis alert email skipped: ADMIN_ALERT_EMAIL missing");
     return false;
   }
-
-  try {
-    const response = await fetch(RESEND_URL, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${apiKey}`,
-      },
-      body: JSON.stringify({ from: FROM, to: [to], subject, text }),
-    });
-    if (!response.ok) {
-      const body = await response.text();
-      console.error(`crisis alert email failed [${response.status}]: ${body}`);
-      return false;
-    }
-    return true;
-  } catch (error) {
-    console.error("crisis alert email threw", error);
-    return false;
-  }
+  const result = await sendEmailViaResend({
+    tag: "crisis alert email",
+    from: FROM,
+    to,
+    subject,
+    text,
+  });
+  return result.ok;
 }
 
 /** Minimal "go look now" alert — no conversation content, ever. */
@@ -121,21 +108,26 @@ export async function logCrisisEvent(
     return null;
   }
 
-  const sent = await sendCrisisAlertEmail({
-    eventId: data.id,
-    severity: input.severity,
-    source: input.source,
-    createdAt: data.created_at,
-  });
-  if (sent) {
-    const update = await supabase
-      .from("crisis_events")
-      .update({ alert_sent_at: new Date().toISOString() })
-      .eq("id", data.id);
-    if (update.error) console.error("crisis alert stamp failed", update.error);
-  }
+  // Fire-and-forget: the row above is the guaranteed path; email must never
+  // delay the user-facing crisis response. Errors are caught and logged.
+  const eventId = data.id;
+  void (async () => {
+    const sent = await sendCrisisAlertEmail({
+      eventId,
+      severity: input.severity,
+      source: input.source,
+      createdAt: data.created_at,
+    });
+    if (sent) {
+      const update = await supabase
+        .from("crisis_events")
+        .update({ alert_sent_at: new Date().toISOString() })
+        .eq("id", eventId);
+      if (update.error) console.error("crisis alert stamp failed", update.error);
+    }
+  })().catch((error) => console.error("crisis alert dispatch failed", error));
 
-  return data.id;
+  return eventId;
 }
 
 const ESCALATE_AFTER_MS = 30 * 60 * 1000;

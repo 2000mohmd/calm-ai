@@ -8,16 +8,15 @@
 //
 // Tiers: free | pro | premium | org
 //   free    — onboarding + plan preview + ONE first conversation (a lifetime
-//             allowance of FREE_INTRO_MESSAGE_CAP messages), then the 3-day
-//             trial. No daily free messages. Crisis messages are never capped.
+//             allowance of FREE_INTRO_MESSAGE_CAP messages), then a plan is
+//             needed. No daily free messages. Crisis messages are never capped.
 //   pro     — 200 messages/day, 1 voice call per rolling 7 days
 //   premium — 500 messages/day (marketed as "unlimited" — it's an abuse guard,
 //             not a literal infinity), 2 voice calls per rolling 7 days
 //   org     — same allowances as premium
 //
-// Pro and Premium start with a TRIAL_DAYS card-required Stripe trial (once per
-// person). During the trial everything is unlocked EXCEPT the paid human
-// coach, which opens after the first real charge (humanCoachAllowed).
+// Tiers are granted by an admin (profiles.subscription_tier); there is no
+// payment mechanism in the app.
 
 export type ChatTier = "free" | "pro" | "premium" | "org";
 
@@ -29,18 +28,9 @@ function envInt(key: string, fallback: number): number {
 /** Free tier: messages in their first conversation, lifetime. Tune with FREE_INTRO_MESSAGE_CAP. */
 export const FREE_INTRO_MESSAGE_CAP = envInt("FREE_INTRO_MESSAGE_CAP", 15);
 
-/** Free trial length for Pro and Premium. Tune with TRIAL_DAYS. */
-export const TRIAL_DAYS = envInt("TRIAL_DAYS", 3);
-
-/**
- * The paid human coach: paid tiers only, and not during the free trial (the
- * team is paid per conversation). Org members are covered by their org.
- */
-export function humanCoachAllowed(
-  tier: string | null | undefined,
-  subscriptionStatus: string | null | undefined,
-): boolean {
-  return isUnlimitedishTier(tier) && subscriptionStatus !== "trialing";
+/** The human coach: paid tiers only. Org members are covered by their org. */
+export function humanCoachAllowed(tier: string | null | undefined): boolean {
+  return isUnlimitedishTier(tier);
 }
 
 /** Pro: the original high cap. Tune with CHAT_DAILY_MESSAGE_CAP. */

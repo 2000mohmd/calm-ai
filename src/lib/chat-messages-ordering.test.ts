@@ -154,7 +154,7 @@ describe("POST /api/v1/chat/messages — crisis messages never reach the rate li
     });
   }
 
-  it("free member past their first conversation: offered the trial, not answered", async () => {
+  it("free member past their first conversation: told a plan is needed, not answered", async () => {
     h.state.userMessageCount = 16; // FREE_INTRO_MESSAGE_CAP is 15
     const res = await post("can we keep talking about my week?");
     expect(res.status).toBe(200);
@@ -164,7 +164,6 @@ describe("POST /api/v1/chat/messages — crisis messages never reach the rate li
       reason: "intro",
       tier: "free",
       introLimit: 15,
-      trialDays: 3,
     });
     expect(h.touched).not.toContain("chat_rate_limits");
   });

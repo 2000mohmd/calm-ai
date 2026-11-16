@@ -120,7 +120,7 @@
     "disclaimer": "Kalm is an AI companion, not a therapist. In a crisis, use immediate support.",
     "limitCoachMessage": "We've reached today's message limit on your plan. Upgrade so we can keep going together — I'd love to continue this with you.",
     "limitStillHere": "Crisis help is always available, and I'll be right here again tomorrow.",
-    "introLimitMessage": "I've really valued getting to know you. Start your {{days}}-day free trial so we can keep going together — you won't be charged during it, and you can cancel any time.",
+    "introLimitMessage": "I've really valued getting to know you. Our first conversation has reached its limit for now, and more conversations will open up with a plan.",
     "introStillHere": "Crisis help lines are always free, plan or not."
   },
   "quickActions": {
@@ -439,74 +439,33 @@
     "reportDescription": "A readable summary of your mood trend, check-in history with severity bands, and exercises completed — suitable for sharing with a therapist. It's a self-tracking summary, not a clinical assessment."
   },
   "plans": {
-    "title": "Plans and billing",
-    "subtitle": "Pick the pace that fits. Change or cancel any time — nothing you've written is ever locked behind a plan.",
+    "title": "Plans",
+    "subtitle": "Plans are coming soon. Nothing you've written is ever locked behind a plan.",
     "free": "Free",
     "currentPlan": "Current plan",
-    "manage": "Manage billing",
-    "choose": "Choose {{plan}}",
-    "checkoutFailed": "We couldn't start checkout",
-    "portalFailed": "We couldn't open your billing page",
-    "noSubscription": "You don't have a paid plan yet — choose one above to get started.",
-    "successTitle": "You're all set",
-    "successBody": "Your plan is active. If the new limits aren't showing yet, give it a moment and refresh.",
-    "cancelled": "No problem — nothing was charged. You can pick a plan whenever you're ready.",
-    "yearlyHint": "Yearly: two months free",
+    "comingSoonTitle": "Plans coming soon",
+    "comingSoonBody": "We're not taking payments yet. If you've been given a plan, it shows below.",
     "usageTitle": "Where you are right now",
     "usageMessages": "Messages today",
     "usageCalls": "Voice calls this week",
     "usageCallsNone": "Not included on your plan",
     "nextCall": "Your next voice call is available on {{date}}.",
     "contactSupport": "Ask us a question",
-    "interval": {
-      "monthly": "Monthly",
-      "yearly": "Yearly"
-    },
-    "per": {
-      "monthly": "/ month",
-      "yearly": "/ year"
-    },
+    "usageIntro": "Your first conversation",
     "tiers": {
       "free": {
-        "name": "Free",
-        "tagline": "Get to know your coach.",
-        "features": {
-          "messages": "Your first conversation and personal plan",
-          "calls": "No voice calls",
-          "tracking": "Mood, habits, exercises and check-ins"
-        }
+        "name": "Free"
       },
       "pro": {
-        "name": "Pro",
-        "tagline": "Daily support, with a voice call each week.",
-        "features": {
-          "messages": "200 companion messages a day",
-          "calls": "One 30-minute voice call a week",
-          "history": "Full conversation history",
-          "export": "Shareable progress report",
-          "coach": "Human coach (opens after your free trial)"
-        }
+        "name": "Pro"
       },
       "premium": {
-        "name": "Premium",
-        "tagline": "For the weeks that need more.",
-        "features": {
-          "messages": "Effectively unlimited messages (500 a day)",
-          "calls": "Two 30-minute voice calls a week",
-          "history": "Full conversation history",
-          "export": "Shareable progress report",
-          "priority": "Priority support replies",
-          "coach": "Human coach (opens after your free trial)"
-        }
+        "name": "Premium"
+      },
+      "org": {
+        "name": "Organisation"
       }
-    },
-    "startTrial": "Start {{days}}-day free trial",
-    "sentToGuardian": "We've emailed the payment link to your parent or guardian.",
-    "guardianEmailMissing": "A parent or guardian pays for teen accounts. Add their email from the note in your chat first.",
-    "trialActive": "Your free trial ends on {{date}} — billing starts then unless you cancel.",
-    "trialActiveNoDate": "You're on your free trial.",
-    "trialCoachNote": "Human coaches open once your trial ends and your plan is active.",
-    "usageIntro": "Your first conversation"
+    }
   },
   "call": {
     "start": "Start a voice call",
@@ -662,7 +621,7 @@
     "teamLabel": "Kalm support",
     "noMessages": "No messages yet — someone will write to you here.",
     "inChat": "Kalm support",
-    "paidOnly": "Human coaches are part of Pro and Premium, and open once your free trial ends. If you're not safe right now, please use the lines above — they're always free."
+    "paidOnly": "Human coaches are part of Pro and Premium. If you're not safe right now, please use the lines above — they're always free."
   },
   "guardian": {
     "title": "Waiting for a parent or guardian",

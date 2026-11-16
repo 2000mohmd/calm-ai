@@ -1,7 +1,8 @@
 # Kalm — Project Documentation
 
 An AI mental wellness companion: a full web app plus the `/api/v1` backend that the
-mobile app (`kalm-mobile/`) consumes. Self-hosted: see [SELF_HOSTING.md](SELF_HOSTING.md).
+mobile app consumes. The mobile app is **not** in this repo; it lives in the sibling
+repository `kalm-mobile`. Self-hosted: see [SELF_HOSTING.md](SELF_HOSTING.md).
 
 ## 1. Product principles
 
@@ -27,29 +28,38 @@ mobile app (`kalm-mobile/`) consumes. Self-hosted: see [SELF_HOSTING.md](SELF_HO
 
 ## 3. Routes
 
-Public: `/` (landing), `/auth`, `/crisis` (now redirects to the in-chat human support view, `/chat?support=1`; crisis numbers still shown in chat), `/legal`.
+Public: `/` (landing), `/auth`, `/legal`, `/crisis` (crisis numbers; signed-in members are redirected to the in-chat support view, `/chat?support=1`).
 
 Authenticated (`src/routes/_authenticated/`, guarded by `route.tsx`):
 
-| Route        | Purpose                                                    |
-| ------------ | ---------------------------------------------------------- |
-| `onboarding` | Consent → account mode → self-introduction → baseline mood |
-| `dashboard`  | Today's check-in, mood trend, nudge feed, "where to next"  |
-| `chat`       | AI companion; threads, quick actions, inline tool actions  |
-| `habits`     | Habit CRUD, 7-day grid, habit↔mood insights                |
-| `exercises`  | Library + interactive step player with mood before/after   |
-| `check-ins`  | PHQ-9 / GAD-7 with severity bands and score history        |
-| `care`       | Step-up-to-professional-care resources                     |
-| `settings`   | Profile review, data deletion                              |
+| Route         | Purpose                                                              |
+| ------------- | -------------------------------------------------------------------- |
+| `onboarding`  | Consent, date of birth / guardian email, account mode, intro, mood   |
+| `dashboard`   | Today's check-in, mood trend, nudge feed                             |
+| `chat`        | The single ongoing companion conversation, voice notes/calls, support |
+| `habits`      | Habit CRUD, 7-day grid                                               |
+| `exercises`   | Library + interactive step player with mood before/after             |
+| `check-ins`   | PHQ-9 / GAD-7 with severity bands and score history                  |
+| `insights`    | Mood, habit and check-in progress sections                           |
+| `care`        | Step-up-to-professional-care resources                               |
+| `support`     | Account/product support threads (`?thread=<id>` deep link)           |
+| `settings`    | Profile, preferences, data export and deletion                       |
 
-API: `src/routes/api/public/hooks/evaluate-nudges.ts` — cron/webhook nudge sweep.
+Admin (`_authenticated/admin/`, gated by role): `index` (overview), `users` and
+`users/$userId`, `crisis`, `human` (human-support desk), `support`, `audit`, `team`
+(super_admin only).
+
+HTTP API (not pages):
+
+- `src/routes/api/v1/*`: the bearer-token mobile API; contract in [MOBILE_API.md](MOBILE_API.md).
+- `src/routes/api/public/`: `hooks/evaluate-nudges` (scheduled sweep: POST + `x-sweep-secret`
+  or GET + Bearer), `guardian-consent`, `unsubscribe`.
 
 ## 4. Data model (Postgres, all RLS-scoped to `auth.uid()`)
 
 - `profiles` — preferred_name, `account_type` (general | condition | teen | org_member),
-  `subscription_tier` (free | pro | premium | org), Stripe billing fields
-  (`stripe_customer_id`, `stripe_subscription_id`, `stripe_subscription_status`,
-  `stripe_price_id`, `stripe_billing_interval`, `subscription_current_period_end`), org_id, consent flags, onboarding_completed.
+  `subscription_tier` (free | pro | premium | org; granted by an admin, there is no payment
+  integration; legacy `stripe_*` columns remain in the table but nothing reads or writes them), org_id, consent flags, onboarding_completed.
 - `user_profiles` — self-introduction: intro_text, goals[], stressors[],
   existing_diagnosis, communication_preference, topics_to_avoid, in_professional_care.
 - `mood_logs` — score 1-5, note, tags[], is_baseline.
@@ -64,6 +74,17 @@ API: `src/routes/api/public/hooks/evaluate-nudges.ts` — cron/webhook nudge swe
 - `commitments` — description, source (chat | exercise), status (pending | done | skipped), due_at.
 - `effectiveness_insights` — per-user subject → avg_mood_delta, sample_size, confidence.
 - `user_roles` + `has_role(uuid, app_role)` security-definer fn (roles never on profiles).
+- `safety_plans` (owner-only), `human_support_requests` / `human_support_messages`,
+  `guardian_consents` (hashed one-time token) for under-18 members.
+- `support_threads` / `support_messages` and `admin_audit_log` (see sections below).
+- `thread_summaries` (rolling coach memory), `daily_prompts` / `daily_prompt_responses`,
+  `weekly_digests`.
+- `call_sessions` (voice calls: duration, transcript turns, cost), `device_push_tokens`.
+- Infrastructure: `job_queue`, `sweep_state` (sweep cursor), `notification_queue`,
+  `chat_rate_limits`, `chat_usage`.
+
+The authoritative schema is `supabase/migrations/` (applied in filename order);
+`src/integrations/supabase/types.ts` is generated from it.
 
 Seeded exercise slugs: `cbt-thought-record`, `behavioral-activation`, `grounding-54321`,
 `box-breathing`, `worry-time`.
@@ -103,27 +124,20 @@ Built: Phases 1-3 (auth/onboarding/design system, tracking + chat + crisis middl
 exercises + screeners + nudges + care pathway) and Phase 4.2/4.3 (Claude tool-calling,
 session-like chat behavior, in-chat guided exercises, commitments, effectiveness insights).
 
-Also built (billing + tiers): four tiers — free (8 messages/day, no voice),
+Also built (tiers): four tiers — free (8 messages/day, no voice),
 pro (200/day, 1 voice call per rolling 7 days), premium (500/day ceiling marketed
 as unlimited, 2 calls per 7 days), org (same ceilings as premium). Caps and the
 call allowance have one source of truth in `src/lib/chat-limits.ts`, enforced by
 the chat rate limiter and by `src/lib/call-session.server.ts` (over-limit call
-attempts return 429 with the next available date). Stripe test products
-"Calm AI Pro" ($18/mo, $180/yr) and "Calm AI Premium" ($50/mo, $500/yr) exist;
-`POST /api/v1/billing/checkout` takes `{ plan, interval }`, and the Stripe
-webhook derives both tier and interval from the subscription's price and stores
-them on `profiles`. Per-call cost is written to
-`call_sessions.estimated_cost_usd`, and `GET /api/v1/admin/users/:userId/cost`
-(admin-only) reports tier, interval, chat cost, voice cost and combined cost.
+attempts return 429 with the next available date). A member's tier is set by an
+admin directly on `profiles.subscription_tier`; the app takes no payments.
+Per-call cost is written to `call_sessions.estimated_cost_usd`, and
+`GET /api/v1/admin/users/:userId/cost` (admin-only) reports tier, chat cost,
+voice cost and combined cost.
 
-Members compare and buy plans at `/plans` (`src/routes/_authenticated/plans.tsx`,
-linked from the app rail as "Plans"): three cards, a monthly/yearly toggle, the
-current-plan badge, today's message and weekly call usage, and a "Manage billing"
-button that opens the Stripe Customer Portal. Web actions go through
-`src/lib/billing.functions.ts`; the `/api/v1/billing/*` routes stay for mobile.
-
-Still missing on billing: the Stripe Customer Portal must be configured in the
-Stripe dashboard to allow switching across the four prices with proration.
+`/plans` (`src/routes/_authenticated/plans.tsx`, linked from the app rail as
+"Plans") is a "Plans coming soon" page showing the member's current tier and
+today's message and weekly call usage.
 
 Languages: every member-facing page (landing, auth, onboarding,
 chat, exercises, progress, habits, check-ins, care, support, plans, settings,
@@ -203,7 +217,7 @@ Recently built (was on this list):
   a "putting your plan together" state, then the plan text plus focus chips and a
   "Start talking" button.
 
-- **Tier-aware message caps** — see "Billing / payments" above.
+- **Tier-aware message caps** — see "Also built (tiers)" above.
 
 - **Effectiveness engine scheduling** — `computeEffectivenessFor` now runs in the
   pg_cron sweep and via an `effectiveness_recompute` job enqueued on exercise

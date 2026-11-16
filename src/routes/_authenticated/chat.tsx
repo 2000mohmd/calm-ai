@@ -118,15 +118,40 @@ function useVoiceRecorder(onReady: (audio: string, mime: string) => void) {
   const [recording, setRecording] = useState(false);
   const recorderRef = useRef<MediaRecorder | null>(null);
   const chunksRef = useRef<Blob[]>([]);
+  const streamRef = useRef<MediaStream | null>(null);
+  const mountedRef = useRef(true);
+
+  // Release the mic and drop any pending result when the page goes away.
+  useEffect(() => {
+    mountedRef.current = true;
+    return () => {
+      mountedRef.current = false;
+      const recorder = recorderRef.current;
+      recorderRef.current = null;
+      if (recorder) {
+        recorder.ondataavailable = null;
+        recorder.onstop = null;
+        if (recorder.state !== "inactive") recorder.stop();
+      }
+      streamRef.current?.getTracks().forEach((track) => track.stop());
+      streamRef.current = null;
+    };
+  }, []);
 
   const stop = useCallback(() => {
-    recorderRef.current?.stop();
+    const recorder = recorderRef.current;
+    if (recorder && recorder.state !== "inactive") recorder.stop();
     setRecording(false);
   }, []);
 
   const start = useCallback(async () => {
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      if (!mountedRef.current) {
+        stream.getTracks().forEach((track) => track.stop());
+        return;
+      }
+      streamRef.current = stream;
       const recorder = new MediaRecorder(stream);
       chunksRef.current = [];
       recorder.ondataavailable = (event) => {
@@ -134,6 +159,7 @@ function useVoiceRecorder(onReady: (audio: string, mime: string) => void) {
       };
       recorder.onstop = async () => {
         stream.getTracks().forEach((track) => track.stop());
+        if (streamRef.current === stream) streamRef.current = null;
         const blob = new Blob(chunksRef.current, { type: recorder.mimeType });
         if (blob.size === 0) return;
         const buffer = await blob.arrayBuffer();
@@ -186,6 +212,9 @@ function ChatPage() {
   );
   const bottomRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
+  // Synchronous in-flight lock: state/isPending lag a render behind a fast
+  // double submit (Enter twice, voice result racing a click).
+  const sendingRef = useRef(false);
 
   // Chat is the default authenticated landing page, so it also carries the
   // onboarding guard the old dashboard landing had.
@@ -200,7 +229,6 @@ function ChatPage() {
     queryFn: () => fetchEntitlements(),
   });
   const onFreePlan = Boolean(entitlements?.chat.intro);
-  const trialDays = entitlements?.trial.days ?? 3;
 
   useEffect(() => {
     if (profileData && !profileData.profile?.onboarding_completed) {
@@ -270,13 +298,24 @@ function ChatPage() {
       setInput((current) => current || text);
       toast.error(error.message || t("chat.replyFailed"));
     },
+    onSettled: () => {
+      sendingRef.current = false;
+    },
   });
+
+  // Every send path goes through here so the lock covers all of them.
+  function sendOnce(text: string) {
+    if (sendingRef.current) return;
+    sendingRef.current = true;
+    mutation.mutate(text);
+  }
 
   const voice = useMutation({
     mutationFn: (payload: { audio: string; mime: string }) =>
       transcribe({ data: { audio_base64: payload.audio, mime_type: payload.mime } }),
     onSuccess: (result) => {
-      mutation.mutate(result.text);
+      const value = result.text.trim();
+      if (value) sendOnce(value);
     },
     onError: (error: Error) => toast.error(error.message || t("chat.transcribeFailed")),
   });
@@ -287,7 +326,7 @@ function ChatPage() {
     const value = text.trim();
     if (!value || mutation.isPending || dailyLimit) return;
     setQuickAction(null);
-    mutation.mutate(value);
+    sendOnce(value);
   }
 
   const busy = mutation.isPending || voice.isPending;
@@ -338,6 +377,7 @@ function ChatPage() {
             <button
               type="button"
               onClick={() => setCallOpen(true)}
+              aria-label={t("call.start")}
               className="flex items-center gap-1.5 rounded-full border border-border bg-card px-3 py-1.5 text-xs text-muted-foreground hover:bg-muted hover:text-foreground"
             >
               <Phone className="size-3.5" aria-hidden />
@@ -365,7 +405,7 @@ function ChatPage() {
                     </h2>
                   )}
                   <p className="max-w-sm text-sm text-muted-foreground">{t("chat.emptyPrompt")}</p>
-                  <div className="w-full max-w-md pt-4 text-left">
+                  <div className="w-full max-w-md pt-4 text-start">
                     <DailyPromptCard />
                   </div>
                 </div>
@@ -373,7 +413,7 @@ function ChatPage() {
 
               {messages.map((message) =>
                 message.content_type === "exercise_widget" ? (
-                  <div key={message.id} className="ml-10">
+                  <div key={message.id} className="ms-10">
                     <InlineExerciseWidget slug={message.exercise_slug ?? ""} threadId={threadId} />
                   </div>
                 ) : message.content_type === "activity" ? (
@@ -409,17 +449,13 @@ function ChatPage() {
                   <div key={message.id} className="mx-auto w-fit max-w-[85%] text-center">
                     <div className="space-y-3 rounded-2xl border border-primary/25 bg-primary/5 p-4">
                       <p className="text-sm leading-relaxed">
-                        {onFreePlan
-                          ? t("chat.introLimitMessage", { days: trialDays })
-                          : t("chat.limitCoachMessage")}
+                        {onFreePlan ? t("chat.introLimitMessage") : t("chat.limitCoachMessage")}
                       </p>
                       <Link
                         to="/plans"
                         className="inline-flex items-center gap-1.5 rounded-full bg-primary px-4 py-2 text-xs font-medium text-primary-foreground"
                       >
-                        {onFreePlan
-                          ? t("plans.startTrial", { days: trialDays })
-                          : t("chat.upgradeCta")}
+                        {t("chat.upgradeCta")}
                       </Link>
                       <p className="text-xs text-muted-foreground">
                         {onFreePlan ? t("chat.introStillHere") : t("chat.limitStillHere")}
@@ -450,7 +486,7 @@ function ChatPage() {
               )}
 
               {actions.length > 0 && (
-                <div className="ml-10 space-y-2 rounded-2xl border border-primary/20 bg-primary/5 p-4">
+                <div className="ms-10 space-y-2 rounded-2xl border border-primary/20 bg-primary/5 p-4">
                   {actions.map((action, index) => (
                     <div key={`${action.type}-${index}`} className="text-sm">
                       <p>{action.summary}</p>
@@ -517,7 +553,7 @@ function ChatPage() {
               )}
 
               {busy && (
-                <p className="flex items-center gap-2 text-sm text-muted-foreground">
+                <p role="status" className="flex items-center gap-2 text-sm text-muted-foreground">
                   <Loader2 className="size-3.5 animate-spin" aria-hidden />
                   {voice.isPending ? t("chat.listening") : t("chat.thinking")}
                 </p>
@@ -547,7 +583,7 @@ function ChatPage() {
                   className="max-h-40 w-full resize-none bg-transparent px-3 py-2 text-sm leading-6 outline-none placeholder:text-muted-foreground"
                 />
                 <div className="flex items-center justify-between gap-2 px-1 pb-0.5">
-                  <span className="pl-2 text-[0.7rem] text-muted-foreground">
+                  <span className="ps-2 text-[0.7rem] text-muted-foreground">
                     {recorder.recording ? t("chat.recordingHint") : t("chat.enterToSend")}
                   </span>
                   <div className="flex items-center gap-1.5">
@@ -591,9 +627,9 @@ function ChatPage() {
                       type="button"
                       disabled={busy || Boolean(dailyLimit)}
                       onClick={() => {
-                        if (dailyLimit) return;
+                        if (dailyLimit || sendingRef.current) return;
                         setQuickAction(action.id);
-                        mutation.mutate(action.prompt);
+                        sendOnce(action.prompt);
                       }}
                       className="rounded-full border border-border bg-card px-3 py-1.5 text-xs text-muted-foreground hover:bg-muted hover:text-foreground disabled:opacity-50"
                     >

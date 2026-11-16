@@ -5,33 +5,42 @@ habit tracking, guided exercises, PHQ-9 / GAD-7 check-ins, a deterministic
 crisis gate in front of every model call, and a paid human-coach desk.
 
 This repository is the **web app and the backend API** (`/api/v1`, used by the
-mobile app). The mobile app lives in `kalm-mobile/`.
+mobile app). The mobile app is **not** in this repo: it lives in the sibling
+repository `kalm-mobile`.
 
 ## Stack
 
 TanStack Start (React 19, Vite, Nitro) · Supabase (Postgres + RLS, Auth) ·
-OpenRouter (companion) · OpenAI (voice) · Stripe · Resend · Tailwind v4 +
+OpenRouter (companion) · OpenAI (voice) · Resend · Tailwind v4 +
 shadcn/ui.
 
-## Run it
+## Development
+
+Requires Node 22+ (`.nvmrc`) and [Bun](https://bun.sh) (`bun.lock` is the
+lockfile). You also need a Supabase project with the migrations applied; see
+[docs/SELF_HOSTING.md](docs/SELF_HOSTING.md).
 
 ```bash
-npm install
-cp .env.example .env     # fill in your Supabase, AI, Stripe and email keys
-npm run dev              # http://localhost:8080
+bun install
+cp .env.example .env     # fill in your Supabase, AI and email keys
+bun run dev              # http://localhost:8080
 ```
 
 | Command             | What it does                                          |
 | ------------------- | ----------------------------------------------------- |
-| `npm run typecheck` | TypeScript, no emit                                   |
-| `npm run lint`      | ESLint (+ Prettier)                                   |
-| `npm test`          | unit and contract tests (Vitest)                      |
-| `npm run test:e2e`  | browser + API tests (Playwright, see `e2e/README.md`) |
-| `npm run build`     | production build (Nitro preset via `NITRO_PRESET`)    |
+| `bun run typecheck` | TypeScript, no emit                                   |
+| `bun run lint`      | ESLint (+ Prettier)                                   |
+| `bun run test`      | unit and contract tests (Vitest)                      |
+| `bun run test:e2e`  | browser + API tests (Playwright, see `e2e/README.md`) |
+| `bun run build`     | production build (Nitro preset via `NITRO_PRESET`)    |
+
+CI runs typecheck, lint, tests and both builds on every push and PR. Please run
+the first three before opening a PR. Report security issues per
+[SECURITY.md](SECURITY.md).
 
 ## Documentation
 
-- [docs/SELF_HOSTING.md](docs/SELF_HOSTING.md): services, database, auth, deploy, scheduler, Stripe
+- [docs/SELF_HOSTING.md](docs/SELF_HOSTING.md): services, database, auth, deploy, scheduler
 - [docs/PROJECT_OVERVIEW.md](docs/PROJECT_OVERVIEW.md): product, architecture, routes, risks
 - [docs/MOBILE_API.md](docs/MOBILE_API.md): the `/api/v1` contract for the mobile app
 - [docs/DATA_RETENTION.md](docs/DATA_RETENTION.md): data-retention proposal

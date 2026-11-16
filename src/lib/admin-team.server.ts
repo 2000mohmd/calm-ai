@@ -71,8 +71,10 @@ export async function fetchTeam(): Promise<{ members: TeamMember[] }> {
 
 /** Search by account email or preferred name so a super_admin can grant roles. */
 export async function searchUsersForRoles(query: string): Promise<RoleSearchResult[]> {
-  const term = query.trim().toLowerCase();
+  const term = query.trim().toLowerCase().slice(0, 100);
   if (term.length < 2) return [];
+  // Escape LIKE wildcards so user input is matched literally.
+  const likeTerm = term.replace(/[\\%_]/g, (ch) => `\\${ch}`);
   const client = await admin();
 
   const matches = new Map<string, { email: string | null; preferred_name: string | null }>();
@@ -87,7 +89,7 @@ export async function searchUsersForRoles(query: string): Promise<RoleSearchResu
   const profiles = await client
     .from("profiles")
     .select("id, preferred_name")
-    .ilike("preferred_name", `%${term}%`)
+    .ilike("preferred_name", `%${likeTerm}%`)
     .limit(20);
   if (profiles.error) throw new Error(profiles.error.message);
   for (const profile of profiles.data ?? []) {

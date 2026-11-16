@@ -107,7 +107,7 @@ export function HumanSupportPanel({
           )}
 
           {!isLoading && !active && data?.coach_available === false && (
-            // Human coaches are paid (plans only, after the trial). Crisis help
+            // Human coaches are paid (plans only). Crisis help
             // is never part of that: it comes first, for everyone.
             <div className="space-y-4">
               <ul className="space-y-2">
@@ -150,7 +150,10 @@ export function HumanSupportPanel({
 
           {active && (
             <>
-              <p className="rounded-xl bg-secondary px-3 py-2 text-xs text-secondary-foreground">
+              <p
+                role="status"
+                className="rounded-xl bg-secondary px-3 py-2 text-xs text-secondary-foreground"
+              >
                 {statusLabel}
               </p>
 

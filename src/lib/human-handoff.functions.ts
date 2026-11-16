@@ -12,9 +12,8 @@ import type { Database } from "@/integrations/supabase/types";
 import { enforceBurst } from "./burst-limit";
 import { humanCoachAllowed } from "./chat-limits";
 
-/** Thrown for a new request without a paid (post-trial) plan. The API maps it to 402. */
-export const COACH_PAID_ONLY =
-  "Payment required: human coaches are part of Pro and Premium, after the free trial.";
+/** Thrown for a new request without a paid plan. The API maps it to 402. */
+export const COACH_PAID_ONLY = "Payment required: human coaches are part of Pro and Premium.";
 
 export type HumanSupportMessage = {
   id: string;
@@ -59,7 +58,7 @@ export async function requestHumanSupportCore(
 
   const profile = await supabase
     .from("profiles")
-    .select("preferred_name, language, timezone, subscription_tier, stripe_subscription_status")
+    .select("preferred_name, language, timezone, subscription_tier")
     .eq("id", userId)
     .maybeSingle();
 
@@ -89,11 +88,9 @@ export async function requestHumanSupportCore(
     if (!owned.data) throw new Error("Thread not found");
   }
 
-  // New requests reach a paid coach: paid plans only, not during the trial.
+  // New requests reach a paid coach: paid plans only.
   // An already-open conversation (above) is never cut off.
-  if (
-    !humanCoachAllowed(profile.data?.subscription_tier, profile.data?.stripe_subscription_status)
-  ) {
+  if (!humanCoachAllowed(profile.data?.subscription_tier)) {
     throw new Error(COACH_PAID_ONLY);
   }
 
@@ -207,19 +204,12 @@ export const getMyHumanSupport = createServerFn({ method: "GET" })
           .order("created_at", { ascending: false })
           .limit(1)
           .maybeSingle(),
-        supabase
-          .from("profiles")
-          .select("subscription_tier, stripe_subscription_status")
-          .eq("id", userId)
-          .maybeSingle(),
+        supabase.from("profiles").select("subscription_tier").eq("id", userId).maybeSingle(),
       ]);
       const { data, error } = latest;
       if (error) throw error;
       // Whether a NEW request may be opened (an open one can always be continued).
-      const coach_available = humanCoachAllowed(
-        plan.data?.subscription_tier,
-        plan.data?.stripe_subscription_status,
-      );
+      const coach_available = humanCoachAllowed(plan.data?.subscription_tier);
       if (!data) return { request: null, coach_available };
 
       const messages = await supabase

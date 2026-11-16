@@ -2,7 +2,7 @@ import { TooManyRequestsError } from "./user-input-error";
 
 // ponytail: in-memory sliding window, per server instance (per isolate on
 // Workers). It stops a runaway client or a tight loop on the costly endpoints
-// (transcription, email-sending forms, checkout); it is not a defence against a
+// (transcription, email-sending forms); it is not a defence against a
 // distributed attack. The upgrade, if that matters, is a shared counter (a
 // Postgres table or Redis) behind the same two functions.
 const buckets = new Map<string, { times: number[]; windowMs: number }>();

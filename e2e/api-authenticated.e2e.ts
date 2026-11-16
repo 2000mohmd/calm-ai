@@ -89,12 +89,4 @@ test.describe("v1 API, signed in", () => {
     const res = await request.post("/api/v1/chat/messages", { headers, data: { content: "" } });
     expect(res.status()).toBe(400);
   });
-
-  test("POST /billing/verify-receipt is still a 501 stub", async ({ request }) => {
-    const res = await request.post("/api/v1/billing/verify-receipt", {
-      headers,
-      data: { platform: "ios", receipt: "e2e", productId: "pro_monthly" },
-    });
-    expect(res.status()).toBe(501);
-  });
 });

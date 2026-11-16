@@ -10,6 +10,27 @@ function dayKey(iso: string): string {
   return iso.slice(0, 10);
 }
 
+const PAGE_SIZE = 1000;
+const MAX_PAGES = 100;
+
+/**
+ * PostgREST silently caps a single response (1000 rows by default). Walk the
+ * result set with .range() so aggregates are computed over every row.
+ * The page callback must apply a stable .order().
+ */
+async function fetchAllRows<T>(
+  page: (from: number, to: number) => PromiseLike<{ data: T[] | null; error: unknown }>,
+): Promise<T[]> {
+  const out: T[] = [];
+  for (let i = 0; i < MAX_PAGES; i += 1) {
+    const { data, error } = await page(i * PAGE_SIZE, (i + 1) * PAGE_SIZE - 1);
+    if (error || !data) break;
+    out.push(...data);
+    if (data.length < PAGE_SIZE) break;
+  }
+  return out;
+}
+
 function emptyDays(count: number): string[] {
   const out: string[] = [];
   for (let i = count - 1; i >= 0; i -= 1) out.push(dayKey(daysAgo(i)));
@@ -35,29 +56,75 @@ export async function fetchOverviewMetrics(): Promise<OverviewMetrics> {
   const since30 = daysAgo(30);
   const since7 = daysAgo(7);
 
-  const [profiles, messages, exercises, screeners, moods, crisis, habitLogs] = await Promise.all([
-    supabaseAdmin.from("profiles").select("id, created_at"),
-    supabaseAdmin.from("chat_messages").select("user_id, created_at").gte("created_at", since30),
+  const [
+    profileTotal,
+    profileNew7,
+    profileNew30,
+    messageRows,
+    exerciseRows,
+    screenerRows,
+    moodRows,
+    crisisRows,
+    habitRows,
+  ] = await Promise.all([
+    supabaseAdmin.from("profiles").select("id", { count: "exact", head: true }),
     supabaseAdmin
-      .from("exercise_completions")
-      .select("user_id, completed_at")
-      .gte("completed_at", since30),
-    supabaseAdmin.from("screener_responses").select("user_id, taken_at").gte("taken_at", since30),
-    supabaseAdmin.from("mood_logs").select("user_id, score, logged_at").gte("logged_at", since30),
+      .from("profiles")
+      .select("id", { count: "exact", head: true })
+      .gte("created_at", since7),
     supabaseAdmin
-      .from("crisis_events")
-      .select("severity, reviewed, created_at")
+      .from("profiles")
+      .select("id", { count: "exact", head: true })
       .gte("created_at", since30),
-    supabaseAdmin.from("habit_logs").select("user_id, logged_at").gte("logged_at", since30),
+    fetchAllRows((from, to) =>
+      supabaseAdmin
+        .from("chat_messages")
+        .select("user_id, created_at")
+        .gte("created_at", since30)
+        .order("created_at")
+        .range(from, to),
+    ),
+    fetchAllRows((from, to) =>
+      supabaseAdmin
+        .from("exercise_completions")
+        .select("user_id, completed_at")
+        .gte("completed_at", since30)
+        .order("completed_at")
+        .range(from, to),
+    ),
+    fetchAllRows((from, to) =>
+      supabaseAdmin
+        .from("screener_responses")
+        .select("user_id, taken_at")
+        .gte("taken_at", since30)
+        .order("taken_at")
+        .range(from, to),
+    ),
+    fetchAllRows((from, to) =>
+      supabaseAdmin
+        .from("mood_logs")
+        .select("user_id, score, logged_at")
+        .gte("logged_at", since30)
+        .order("logged_at")
+        .range(from, to),
+    ),
+    fetchAllRows((from, to) =>
+      supabaseAdmin
+        .from("crisis_events")
+        .select("severity, reviewed, created_at")
+        .gte("created_at", since30)
+        .order("created_at")
+        .range(from, to),
+    ),
+    fetchAllRows((from, to) =>
+      supabaseAdmin
+        .from("habit_logs")
+        .select("user_id, logged_at")
+        .gte("logged_at", since30)
+        .order("logged_at")
+        .range(from, to),
+    ),
   ]);
-
-  const profileRows = profiles.data ?? [];
-  const messageRows = messages.data ?? [];
-  const exerciseRows = exercises.data ?? [];
-  const screenerRows = screeners.data ?? [];
-  const moodRows = moods.data ?? [];
-  const crisisRows = crisis.data ?? [];
-  const habitRows = habitLogs.data ?? [];
 
   const active = new Set<string>();
   for (const row of messageRows) if (row.created_at >= since7) active.add(row.user_id);
@@ -109,9 +176,9 @@ export async function fetchOverviewMetrics(): Promise<OverviewMetrics> {
 
   return {
     users: {
-      total: profileRows.length,
-      new7: profileRows.filter((row) => row.created_at >= since7).length,
-      new30: profileRows.filter((row) => row.created_at >= since30).length,
+      total: profileTotal.count ?? 0,
+      new7: profileNew7.count ?? 0,
+      new30: profileNew30.count ?? 0,
       active7: active.size,
     },
     messages: {
@@ -171,17 +238,52 @@ export async function fetchAdminUsers(): Promise<AdminUserRow[]> {
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
 
   const [profiles, messages, moods, exercises, habits, screeners, crisis] = await Promise.all([
-    supabaseAdmin
-      .from("profiles")
-      .select("id, preferred_name, account_type, created_at")
-      .order("created_at", { ascending: false })
-      .limit(1000),
-    supabaseAdmin.from("chat_messages").select("user_id, created_at"),
-    supabaseAdmin.from("mood_logs").select("user_id, logged_at"),
-    supabaseAdmin.from("exercise_completions").select("user_id, completed_at"),
-    supabaseAdmin.from("habit_logs").select("user_id, logged_at"),
-    supabaseAdmin.from("screener_responses").select("user_id, taken_at"),
-    supabaseAdmin.from("crisis_events").select("user_id"),
+    fetchAllRows((from, to) =>
+      supabaseAdmin
+        .from("profiles")
+        .select("id, preferred_name, account_type, created_at")
+        .order("created_at", { ascending: false })
+        .order("id")
+        .range(from, to),
+    ),
+    fetchAllRows((from, to) =>
+      supabaseAdmin
+        .from("chat_messages")
+        .select("user_id, created_at")
+        .order("created_at")
+        .range(from, to),
+    ),
+    fetchAllRows((from, to) =>
+      supabaseAdmin
+        .from("mood_logs")
+        .select("user_id, logged_at")
+        .order("logged_at")
+        .range(from, to),
+    ),
+    fetchAllRows((from, to) =>
+      supabaseAdmin
+        .from("exercise_completions")
+        .select("user_id, completed_at")
+        .order("completed_at")
+        .range(from, to),
+    ),
+    fetchAllRows((from, to) =>
+      supabaseAdmin
+        .from("habit_logs")
+        .select("user_id, logged_at")
+        .order("logged_at")
+        .range(from, to),
+    ),
+    fetchAllRows((from, to) =>
+      supabaseAdmin
+        .from("screener_responses")
+        .select("user_id, taken_at")
+        .order("taken_at")
+        .range(from, to),
+    ),
+    fetchAllRows((from, to) =>
+      supabaseAdmin.from("crisis_events").select("user_id").order("created_at").range(from, to),
+    ),
   ]);
 
   const lastActive = new Map<string, string>();
@@ -189,18 +291,18 @@ export async function fetchAdminUsers(): Promise<AdminUserRow[]> {
     const current = lastActive.get(userId);
     if (!current || at > current) lastActive.set(userId, at);
   };
-  for (const row of messages.data ?? []) touch(row.user_id, row.created_at);
-  for (const row of moods.data ?? []) touch(row.user_id, row.logged_at);
-  for (const row of exercises.data ?? []) touch(row.user_id, row.completed_at);
-  for (const row of habits.data ?? []) touch(row.user_id, row.logged_at);
-  for (const row of screeners.data ?? []) touch(row.user_id, row.taken_at);
+  for (const row of messages) touch(row.user_id, row.created_at);
+  for (const row of moods) touch(row.user_id, row.logged_at);
+  for (const row of exercises) touch(row.user_id, row.completed_at);
+  for (const row of habits) touch(row.user_id, row.logged_at);
+  for (const row of screeners) touch(row.user_id, row.taken_at);
 
   const crisisCounts = new Map<string, number>();
-  for (const row of crisis.data ?? []) {
+  for (const row of crisis) {
     crisisCounts.set(row.user_id, (crisisCounts.get(row.user_id) ?? 0) + 1);
   }
 
-  return (profiles.data ?? []).map((profile) => {
+  return profiles.map((profile) => {
     const active = lastActive.get(profile.id) ?? null;
     return {
       id: profile.id,
@@ -283,12 +385,26 @@ export async function fetchAdminUserDetail(userId: string): Promise<AdminUserDet
         .from("chat_messages")
         .select("id", { count: "exact", head: true })
         .eq("user_id", userId),
-      supabaseAdmin.from("exercise_completions").select("completed_at").eq("user_id", userId),
+      fetchAllRows((from, to) =>
+        supabaseAdmin
+          .from("exercise_completions")
+          .select("completed_at")
+          .eq("user_id", userId)
+          .order("completed_at")
+          .range(from, to),
+      ),
       supabaseAdmin
         .from("habits")
         .select("id", { count: "exact", head: true })
         .eq("user_id", userId),
-      supabaseAdmin.from("habit_logs").select("logged_at").eq("user_id", userId),
+      fetchAllRows((from, to) =>
+        supabaseAdmin
+          .from("habit_logs")
+          .select("logged_at")
+          .eq("user_id", userId)
+          .order("logged_at")
+          .range(from, to),
+      ),
       supabaseAdmin
         .from("screener_responses")
         .select("screener_type, total_score, severity, taken_at")
@@ -304,8 +420,8 @@ export async function fetchAdminUserDetail(userId: string): Promise<AdminUserDet
     ]);
 
   const timestamps = [
-    ...(exercises.data ?? []).map((row) => row.completed_at),
-    ...(habitLogs.data ?? []).map((row) => row.logged_at),
+    ...exercises.map((row) => row.completed_at),
+    ...habitLogs.map((row) => row.logged_at),
     ...(moods.data ?? []).map((row) => row.logged_at),
     ...(screeners.data ?? []).map((row) => row.taken_at),
   ].sort();
@@ -322,9 +438,9 @@ export async function fetchAdminUserDetail(userId: string): Promise<AdminUserDet
     mood: (moods.data ?? []).map((row) => ({ day: dayKey(row.logged_at), score: row.score })),
     activity: {
       messages: messages.count ?? 0,
-      exercises: (exercises.data ?? []).length,
+      exercises: exercises.length,
       habits: habits.count ?? 0,
-      habitLogs: (habitLogs.data ?? []).length,
+      habitLogs: habitLogs.length,
       screeners: (screeners.data ?? []).length,
       lastActive: timestamps.length ? (timestamps[timestamps.length - 1] ?? null) : null,
     },

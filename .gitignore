@@ -48,3 +48,8 @@ yarn.lock
 *.sln
 *.sw?
 graphify-out/
+
+# Vercel / Nitro build output
+/.vercel/
+/.nitro/
+/test-results/

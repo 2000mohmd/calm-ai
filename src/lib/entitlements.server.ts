@@ -16,7 +16,6 @@ import {
   CALL_WINDOW_DAYS,
   CALL_WINDOW_MS,
   FREE_INTRO_MESSAGE_CAP,
-  TRIAL_DAYS,
   dailyCapResetsAt,
   dailyMessageCap,
   humanCoachAllowed,
@@ -30,7 +29,6 @@ export type SubscriptionTier = "free" | "pro" | "premium" | "org";
 
 export type Entitlements = {
   tier: SubscriptionTier;
-  billingInterval: "monthly" | "yearly" | null;
   chat: {
     unlimited: boolean; // pro/premium/org — effectively uncapped for UX
     dailyLimit: number; // the real per-tier daily cap, always present
@@ -40,12 +38,6 @@ export type Entitlements = {
     resetsAt: string; // ISO — next UTC midnight
     /** Free tier only: their one first conversation. null on paid tiers. */
     intro: { limit: number; used: number; remaining: number } | null;
-  };
-  trial: {
-    active: boolean; // on the free trial right now
-    endsAt: string | null; // ISO — when billing starts, while active
-    eligible: boolean; // checkout would start with a free trial (never subscribed)
-    days: number;
   };
   voice: {
     enabled: boolean;
@@ -60,7 +52,7 @@ export type Entitlements = {
     unlimitedHistory: boolean;
     liveSessions: boolean;
     dataExport: boolean;
-    /** May open a NEW human-coach request (paid, and past the trial). */
+    /** May open a NEW human-coach request (paid tiers only). */
     humanCoach: boolean;
   };
 };
@@ -70,13 +62,7 @@ export async function getEntitlementsFor(supabase: Client, userId: string): Prom
   const callsSince = new Date(Date.now() - CALL_WINDOW_MS).toISOString();
 
   const [profileRes, rlRes, callsRes] = await Promise.all([
-    supabase
-      .from("profiles")
-      .select(
-        "subscription_tier, stripe_billing_interval, stripe_subscription_status, subscription_current_period_end",
-      )
-      .eq("id", userId)
-      .maybeSingle(),
+    supabase.from("profiles").select("subscription_tier").eq("id", userId).maybeSingle(),
     // day_count is the counter the limiter enforces on. If the daily-cap columns
     // aren't present yet, this errors and we treat usage as 0.
     supabase
@@ -95,17 +81,12 @@ export async function getEntitlementsFor(supabase: Client, userId: string): Prom
 
   const tier = ((profileRes.data?.subscription_tier as SubscriptionTier | null) ??
     "free") as SubscriptionTier;
-  const billingInterval =
-    (profileRes.data?.["stripe_billing_interval" as keyof typeof profileRes.data] as
-      "monthly" | "yearly" | null | undefined) ?? null;
 
   const rl = rlRes.error ? null : rlRes.data;
   const usedToday = rl?.day_start === today ? (rl?.day_count ?? 0) : 0;
 
   const dailyLimit = dailyMessageCap(tier);
   const unlimited = isUnlimitedishTier(tier);
-  const status = profileRes.data?.stripe_subscription_status ?? null;
-  const trialing = status === "trialing";
 
   let intro: Entitlements["chat"]["intro"] = null;
   if (!unlimited) {
@@ -125,7 +106,6 @@ export async function getEntitlementsFor(supabase: Client, userId: string): Prom
 
   return {
     tier,
-    billingInterval,
     chat: {
       unlimited,
       dailyLimit,
@@ -134,12 +114,6 @@ export async function getEntitlementsFor(supabase: Client, userId: string): Prom
       remainingToday: unlimited ? null : Math.max(0, dailyLimit - usedToday),
       resetsAt: dailyCapResetsAt(),
       intro,
-    },
-    trial: {
-      active: trialing,
-      endsAt: trialing ? (profileRes.data?.subscription_current_period_end ?? null) : null,
-      eligible: !status,
-      days: TRIAL_DAYS,
     },
     voice: {
       enabled: weeklyLimit > 0,
@@ -154,7 +128,7 @@ export async function getEntitlementsFor(supabase: Client, userId: string): Prom
       unlimitedHistory: unlimited,
       liveSessions: weeklyLimit > 0,
       dataExport: unlimited,
-      humanCoach: humanCoachAllowed(tier, status),
+      humanCoach: humanCoachAllowed(tier),
     },
   };
 }

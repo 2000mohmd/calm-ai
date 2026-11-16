@@ -7,9 +7,8 @@ import { ApiError, handle, json, requireAuth } from "../../../-shared";
 /**
  * GET /api/v1/admin/users/:userId/cost — INTERNAL ONLY.
  *
- * Returns the customer's tier, billing interval, estimated chat cost, estimated
- * voice cost and combined cost for the current period, so actual cost versus
- * what they pay is visible per customer. Admins and super-admins only; this is
+ * Returns the customer's tier, estimated chat cost, estimated voice cost and
+ * combined cost for the current period, so cost per customer is visible. Admins and super-admins only; this is
  * never surfaced on any member-facing route.
  */
 export const Route = createFileRoute("/api/v1/admin/users/$userId/cost")({

@@ -10,9 +10,9 @@
 // link needs no login and can't be forged for another user.
 
 import { appBaseUrl } from "./app-url";
+import { sendEmail } from "./resend.server";
 
 export { appBaseUrl };
-const RESEND_URL = "https://api.resend.com/emails";
 
 function unsubscribeSecret(): string {
   // A dedicated secret if provided, else derived from the service-role key (always
@@ -72,11 +72,6 @@ type SendArgs = {
  * not re-check it, it only guarantees the unsubscribe affordances are present.
  */
 export async function sendProactiveEmail(args: SendArgs): Promise<boolean> {
-  const apiKey = process.env["RESEND_API_KEY"];
-  if (!apiKey) {
-    console.error("[email] proactive send skipped: RESEND_API_KEY missing");
-    return false;
-  }
   const from = process.env["EMAIL_FROM"] ?? "Kalm <onboarding@resend.dev>";
   const unsub = await unsubscribeUrl(args.userId);
   const text =
@@ -84,28 +79,16 @@ export async function sendProactiveEmail(args: SendArgs): Promise<boolean> {
     `—\nYou're getting this because you have a Kalm account. ` +
     `To stop these check-in emails, unsubscribe here: ${unsub}`;
 
-  try {
-    const response = await fetch(RESEND_URL, {
-      method: "POST",
-      headers: { "Content-Type": "application/json", Authorization: `Bearer ${apiKey}` },
-      body: JSON.stringify({
-        from,
-        to: [args.to],
-        subject: args.subject,
-        text,
-        headers: {
-          "List-Unsubscribe": `<${unsub}>`,
-          "List-Unsubscribe-Post": "List-Unsubscribe=One-Click",
-        },
-      }),
-    });
-    if (!response.ok) {
-      console.error(`[email] proactive send failed [${response.status}]: ${await response.text()}`);
-      return false;
-    }
-    return true;
-  } catch (error) {
-    console.error("[email] proactive send threw", error);
-    return false;
-  }
+  const result = await sendEmail({
+    tag: "[email] proactive",
+    from,
+    to: args.to,
+    subject: args.subject,
+    text,
+    headers: {
+      "List-Unsubscribe": `<${unsub}>`,
+      "List-Unsubscribe-Post": "List-Unsubscribe=One-Click",
+    },
+  });
+  return result.ok;
 }

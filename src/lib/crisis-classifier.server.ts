@@ -4,7 +4,12 @@
 //
 // Fails open on any error: a broken classifier must never block chat.
 import { callCompanionModel } from "./llm-provider.server";
-import type { CrisisSeverity } from "./crisis";
+import {
+  CLASSIFIER_ERROR,
+  NOT_FLAGGED,
+  parseVerdict,
+  type SemanticCrisisResult,
+} from "./crisis-verdict";
 
 const CLASSIFIER_MODEL = "claude-haiku-4-5";
 const CLASSIFIER_MAX_TOKENS = 120;
@@ -40,50 +45,26 @@ no | none — <one short reason>
 
 Only flag a genuine risk trajectory. Ordinary venting, a hard day, or steady low mood that stays stable is not a flag.`;
 
-export type SemanticCrisisResult = {
-  flagged: boolean;
-  severity: CrisisSeverity | null;
-  reason: string | null;
-  /**
-   * True when the classifier itself errored and we returned "not flagged"
-   * without an actual verdict. The crisis gate uses this to fail SAFE for
-   * non-English messages, where the regex tier is a weaker net.
-   */
-  failedOpen?: boolean;
-};
+export type { SemanticCrisisResult };
 
-const NOT_FLAGGED: SemanticCrisisResult = { flagged: false, severity: null, reason: null };
-
-const CLASSIFIER_ERROR: SemanticCrisisResult = {
-  flagged: false,
-  severity: null,
-  reason: "classifier_unavailable",
-  failedOpen: true,
-};
-
-function parseVerdict(text: string): SemanticCrisisResult {
-  const flagged = /^\s*yes\b/i.test(text);
-  if (!flagged) return NOT_FLAGGED;
-
-  const tier = text.match(/\b(critical|high|moderate)\b/i)?.[1]?.toLowerCase() as
-    CrisisSeverity | undefined;
-  const reason =
-    text.replace(/^\s*yes\s*[|]?\s*(critical|high|moderate|none)?\s*[—\-:]*\s*/i, "").trim() ||
-    null;
-
-  return { flagged: true, severity: tier ?? "high", reason };
-}
+const CLASSIFIER_TIMEOUT_MS = 8_000;
 
 const MULTILINGUAL_NOTE = `The person may write in English, Arabic (including Levantine or Gulf colloquial) or French, and may mix languages within one message. Judge the meaning in whatever language they used, applying exactly the same thresholds — never treat a non-English message as lower risk because it is harder to read. Always answer in the English format specified above.`;
 
 async function classify(system: string, userContent: string): Promise<SemanticCrisisResult> {
+  let timer: ReturnType<typeof setTimeout> | undefined;
   try {
-    const payload = await callCompanionModel({
-      model: CLASSIFIER_MODEL,
-      maxTokens: CLASSIFIER_MAX_TOKENS,
-      system: `${system}\n\n${MULTILINGUAL_NOTE}`,
-      messages: [{ role: "user", content: userContent }],
-    });
+    const payload = await Promise.race([
+      callCompanionModel({
+        model: CLASSIFIER_MODEL,
+        maxTokens: CLASSIFIER_MAX_TOKENS,
+        system: `${system}\n\n${MULTILINGUAL_NOTE}`,
+        messages: [{ role: "user", content: userContent }],
+      }),
+      new Promise<never>((_, reject) => {
+        timer = setTimeout(() => reject(new Error("classifier timed out")), CLASSIFIER_TIMEOUT_MS);
+      }),
+    ]);
 
     const text = payload.content
       .filter((block): block is { type: "text"; text: string } => block.type === "text")
@@ -96,6 +77,8 @@ async function classify(system: string, userContent: string): Promise<SemanticCr
     // Fail open — log and let the normal conversation continue.
     console.error("semantic crisis classifier failed", error);
     return CLASSIFIER_ERROR;
+  } finally {
+    clearTimeout(timer);
   }
 }
 

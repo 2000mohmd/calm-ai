@@ -1,4 +1,4 @@
-// The paid human coach: a NEW request needs a paid plan past its trial; an
+// The paid human coach: a NEW request needs a paid plan; an
 // already-open conversation is never cut off; the API answers 402.
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { resetBurstLimits } from "./burst-limit";
@@ -58,20 +58,17 @@ describe("human coach access", () => {
     await expect(ask(null, { subscription_tier: "free" }).run).rejects.toThrow(COACH_PAID_ONLY);
   });
 
-  it("trialing members cannot open a request yet", async () => {
-    const { run, inserted } = ask(null, {
-      subscription_tier: "pro",
-      stripe_subscription_status: "trialing",
-    });
+  it("free members do not create a request row", async () => {
+    const { run, inserted } = ask(null, { subscription_tier: "free" });
     await expect(run).rejects.toThrow(COACH_PAID_ONLY);
     expect(inserted).not.toContain("human_support_requests");
   });
 
-  it("charged pro / premium / org members can", async () => {
+  it("pro / premium / org members can", async () => {
     for (const profile of [
-      { subscription_tier: "pro", stripe_subscription_status: "active" },
-      { subscription_tier: "premium", stripe_subscription_status: "active" },
-      { subscription_tier: "org", stripe_subscription_status: null },
+      { subscription_tier: "pro" },
+      { subscription_tier: "premium" },
+      { subscription_tier: "org" },
     ]) {
       const { run, inserted } = ask(null, profile);
       expect((await run).already_open).toBe(false);
@@ -88,7 +85,7 @@ describe("human coach access", () => {
   it("refuses a thread that isn't theirs (it would be summarised for staff)", async () => {
     const { client, inserted } = fakeSupabase({
       open: null,
-      profile: { subscription_tier: "pro", stripe_subscription_status: "active" },
+      profile: { subscription_tier: "pro" },
       thread: null,
     });
     await expect(
@@ -100,7 +97,7 @@ describe("human coach access", () => {
   it("accepts their own thread", async () => {
     const { client } = fakeSupabase({
       open: null,
-      profile: { subscription_tier: "pro", stripe_subscription_status: "active" },
+      profile: { subscription_tier: "pro" },
       thread: { id: "t1" },
     });
     expect(
@@ -109,7 +106,7 @@ describe("human coach access", () => {
   });
 
   it("is limited to 5 new requests an hour per member", async () => {
-    const profile = { subscription_tier: "pro", stripe_subscription_status: "active" };
+    const profile = { subscription_tier: "pro" };
     for (let i = 0; i < 5; i += 1) {
       await requestHumanSupportCore(fakeSupabase({ open: null, profile }).client, "user-9", {});
     }

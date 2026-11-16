@@ -52,7 +52,7 @@ await Supabase.initialize(
 2. **The `/api/v1` HTTP API** — for everything that must run through
    business logic: sending a chat message (crisis detection + rate limiting),
    submitting a screener (PHQ-9 item-9 crisis escalation), onboarding
-   (server-side age check), billing, push token registration, voice calls,
+   (server-side age check), push token registration, voice calls,
    and a few convenience wrappers (profile, mood, habits, exercises,
    preferences) that now exist as real endpoints.
 
@@ -115,7 +115,7 @@ statuses:
 | ------ | --------------------------------------------------------------------------------------------------------- |
 | `400`  | Invalid JSON body, failed validation, or a business-rule rejection (e.g. under-13 sign-up)                |
 | `401`  | Missing / malformed / expired / revoked bearer token                                                      |
-| `402`  | Feature requires a paid plan (voice calls on Free; a new human-coach request on Free or during the trial) |
+| `402`  | Feature requires a paid plan (voice calls on Free; a new human-coach request on Free)                     |
 | `403`  | Forbidden (admin-only endpoint, or a guardian-consent hold on a teen account)                             |
 | `404`  | Resource not found, or not owned by the caller                                                            |
 | `409`  | Conflict (e.g. a call session is already active)                                                          |
@@ -187,9 +187,6 @@ an expired or revoked token is rejected, not just a malformed one.
 | GET            | `/api/v1/calls/sessions`               | yes         | voice call history                                         |
 | POST           | `/api/v1/calls/sessions/:id/turns`     | yes         | record one spoken turn — crisis-gated                      |
 | POST           | `/api/v1/calls/sessions/:id/end`       | yes         | finalize a call session                                    |
-| POST           | `/api/v1/billing/checkout`             | yes         | Stripe Checkout session URL                                |
-| POST           | `/api/v1/billing/portal`               | yes         | Stripe customer portal URL (manage/cancel)                 |
-| POST           | `/api/v1/billing/verify-receipt`       | yes         | **stub — always 501**, see §7.3                            |
 | POST           | `/api/v1/push/register-token`          | yes         | register an FCM device token                               |
 | DELETE         | `/api/v1/push/register-token`          | yes         | remove a device token (call on sign-out)                   |
 | GET            | `/api/v1/admin/users/:userId/cost`     | yes (admin) | internal only — not for the member app                     |
@@ -343,10 +340,9 @@ severity is never answered with a rate-limit / daily-cap notice.
 
 - `"intro"`: **a free member's first conversation is used up.** Free
   accounts get onboarding, their plan preview and one first conversation
-  (15 messages, lifetime; no daily refill), then a 3-day free trial of Pro or
-  Premium. Shape:
-  `{ "reason": "intro", "tier": "free", "introLimit": 15, "trialDays": 3 }`.
-  Show a "Start your 3-day free trial" prompt leading to your plan picker.
+  (15 messages, lifetime; no daily refill), then a paid plan is needed.
+  Shape: `{ "reason": "intro", "tier": "free", "introLimit": 15 }`.
+  Show a "plans are coming soon" notice (there is no purchase flow yet).
 - `"daily"`: a paid plan's daily cap. Show an upgrade prompt (Pro → Premium).
 - `"window"`: a short burst throttle; no upgrade framing, just "slow down a
   moment".
@@ -467,12 +463,11 @@ Not the same as §12 (account/billing support): this is the mental-health
 `human_support_messages`).
 
 **Paid members only.** Coaches are paid staff, so a NEW request needs Pro,
-Premium or Org **after** the free trial (`coach_available` below, or
+Premium or Org (`coach_available` below, or
 `features.humanCoach` in entitlements). Otherwise `POST` returns `402`. An
 already-open conversation can always be continued. When it's `false`, show
 the crisis resources (`GET /api/v1/crisis-resources`) **first**, then "Human
-coaches are part of Pro and Premium, and open once your free trial ends" with
-a link to your plan picker. Never show a bare paywall on this screen: it's
+coaches are part of Pro and Premium". Never show a bare paywall on this screen: it's
 reachable from the crisis card.
 
 **How it flows**
@@ -517,8 +512,8 @@ request, no duplicate is created: `note` is added to the existing one.
 { "request_id": "uuid", "already_open": false, "status": "queued" }
 ```
 
-`402 Payment Required` if there's no open request and they're on Free or
-still in the trial (see "Paid members only" above).
+`402 Payment Required` if there's no open request and they're on Free
+(see "Paid members only" above).
 
 #### `GET /api/v1/human-support`
 
@@ -541,8 +536,7 @@ Their current request, or the most recent closed one:
 }
 ```
 
-`coach_available`: whether they may open a NEW request (paid, past the
-trial). `request: null` = they've never asked. `queued` = waiting for a person,
+`coach_available`: whether they may open a NEW request (paid tier). `request: null` = they've never asked. `queued` = waiting for a person,
 `claimed` = a coach has picked it up / replied, `closed` = finished. Render
 `human` messages clearly as a person from the Kalm team, never as the AI.
 `severity` is the most recent safety flag from the last 6 hours, for the
@@ -611,7 +605,6 @@ drive your plan-limit UI instead of guessing from local state.
 ```json
 {
   "tier": "free | pro | premium | org",
-  "billingInterval": "monthly | yearly | null",
   "chat": {
     "unlimited": false,
     "dailyLimit": 15,
@@ -620,12 +613,6 @@ drive your plan-limit UI instead of guessing from local state.
     "remainingToday": 12,
     "resetsAt": "ISO-8601 (next UTC midnight)",
     "intro": { "limit": 15, "used": 3, "remaining": 12 }
-  },
-  "trial": {
-    "active": false,
-    "endsAt": null,
-    "eligible": true,
-    "days": 3
   },
   "voice": {
     "enabled": false,
@@ -647,24 +634,19 @@ drive your plan-limit UI instead of guessing from local state.
 
 **Plans at a glance (what to gate on):**
 
-|                                        | Free                                   | Trial (Pro/Premium, 3 days) | Pro / Premium (charged)   |
-| -------------------------------------- | -------------------------------------- | --------------------------- | ------------------------- |
-| Onboarding + plan preview              | ✓                                      | ✓                           | ✓                         |
-| AI chat                                | first conversation only (`chat.intro`) | ✓                           | ✓                         |
-| Voice calls                            | ✗                                      | ✓                           | ✓                         |
-| Human coach (§5.5)                     | ✗                                      | ✗                           | ✓ (`features.humanCoach`) |
-| Crisis lines, crisis card, safety plan | **always**                             | **always**                  | **always**                |
+|                                        | Free                                   | Pro / Premium             |
+| -------------------------------------- | -------------------------------------- | ------------------------- |
+| Onboarding                             | ✓                                      | ✓                         |
+| AI chat                                | first conversation only (`chat.intro`) | ✓                         |
+| Voice calls                            | ✗                                      | ✓                         |
+| Human coach (§5.5)                     | ✗                                      | ✓ (`features.humanCoach`) |
+| Crisis lines, crisis card, safety plan | **always**                             | **always**                |
 
 - `chat.intro` (free only, `null` on paid): their one first conversation.
   When `remaining` hits 0 the next message returns `reply.limit.reason:
 "intro"` (§5.1). Use it for a "N messages left in your first conversation"
   hint if you want one.
-- `trial.eligible`: checkout would start with the free trial (they've never
-  subscribed); label the button "Start 3-day free trial" instead of "Choose".
-  `trial.active` / `trial.endsAt`: they're on the trial now, and when billing
-  starts.
-- `features.humanCoach`: may open a NEW human-coach request. `false` on free
-  and during the trial.
+- `features.humanCoach`: may open a NEW human-coach request. `false` on free.
 - `chat.dailyLimit` is the exact number the chat endpoint enforces — one
   source of truth with `reply.limit.dailyLimit` in §5.1.
 - For pro/premium/org, `chat.unlimited` is `true` and `dailyCredits` /
@@ -676,74 +658,12 @@ drive your plan-limit UI instead of guessing from local state.
 
 ---
 
-## 7. Billing
+## 7. Plans
 
-### 7.1 `POST /api/v1/billing/checkout`
-
-```json
-{
-  "plan": "pro | premium",
-  "interval": "monthly | yearly",
-  "successUrl": "optional",
-  "cancelUrl": "optional"
-}
-```
-
-All fields optional (defaults: `premium` / `monthly`). Returns:
-
-```json
-{
-  "checkoutUrl": "https://checkout.stripe.com/…",
-  "trialDays": 3,
-  "plan": "premium",
-  "interval": "monthly"
-}
-```
-
-- **Free trial:** someone who has never subscribed gets `trialDays: 3`.
-  Stripe collects their card, charges nothing for 3 days, then bills unless
-  they cancel (in the billing portal, §7.2). Anyone who has subscribed
-  before gets `trialDays: 0` and is charged straight away. One trial per person.
-- **Teen accounts (13–17)** are paid for by their parent/guardian: instead of
-  a `checkoutUrl` the response is
-  `{ "sentToGuardian": true, "trialDays": 3, "plan": …, "interval": … }`, and
-  the link has been emailed to the guardian on file (valid 24 h; calling
-  again sends a fresh one). Show "We've emailed the payment link to your
-  parent". `400` if no guardian email is on file yet: collect it via
-  `POST /api/v1/guardian-consent` first.
-
-Open `checkoutUrl` in an in-app browser / `url_launcher`. `successUrl` /
-`cancelUrl` default to the request's `Origin` header or `APP_BASE_URL` —
-**from a native app you should always pass explicit `successUrl`/`cancelUrl`**
-(e.g. a custom URL scheme the app can intercept) rather than relying on the
-fallback, since a mobile client has no meaningful browser Origin.
-
-### 7.2 `POST /api/v1/billing/portal`
-
-```json
-{ "returnUrl": "optional" }
-```
-
-Returns `{ "portalUrl": "https://billing.stripe.com/…" }` — a hosted page
-where an already-subscribed user updates their card or cancels.
-`400 "No billing account yet — subscribe first."` if they've never checked
-out. Same note on `returnUrl` as above — pass one explicitly from mobile.
-
-### 7.3 `POST /api/v1/billing/verify-receipt` — **not implemented yet**
-
-```json
-{ "platform": "ios | android", "receipt": "string", "productId": "string" }
-```
-
-**This currently always returns `501`.** The interface exists
-(`src/lib/billing/receipt-validation.ts`) but nothing validates against
-Apple/Google yet — every call throws "not implemented." **Do not build
-against this expecting it to work** until the backend team confirms it's
-live. In-app purchase entitlements are not wired up; Stripe Checkout (§7.1)
-is the only working purchase path today, which means the mobile app likely
-needs to send users to a web checkout flow rather than native IAP for now —
-confirm the intended purchase flow with the backend owner before shipping a
-store listing that implies native IAP.
+There are no payment endpoints: the app takes no payments. A member's tier
+(`free | pro | premium | org`) is granted by an admin, and
+`GET /api/v1/entitlements` (§6) is the only thing a client needs to read to
+know what they can do. Don't build a purchase flow.
 
 ---
 
@@ -1175,8 +1095,8 @@ afterward with a clean slate. → `{ "ok": true }`.
 
 ### `DELETE /api/v1/account`
 
-**The point of no return.** Full, irreversible account deletion — cancels
-any Stripe subscription, erases wellness data, anonymizes crisis records,
+**The point of no return.** Full, irreversible account deletion — erases
+wellness data, anonymizes crisis records,
 then deletes the auth user (cascades everything else). Required by Apple App
 Store Review Guideline 5.1.1(v): an app that supports account creation must
 let the person delete it from inside the app.
@@ -1380,8 +1300,7 @@ regular member app.
 
 ## 16. Known gaps to flag before you build against them
 
-- **In-app purchase verification is not implemented** (§7.3) — plan the
-  purchase flow around Stripe Checkout / the customer portal for now.
+- **There is no purchase flow** (§7) — tiers are granted by an admin.
 - **Push sending requires server-side FCM config** that may not be set yet
   (§14) — registration works regardless, delivery may not.
 - **No realtime for human support** (§5.5): poll while the view is open,
@@ -1410,7 +1329,7 @@ regular member app.
 - Two older docs (`docs/MOBILE_API.md`'s previous version and
   `docs/API_V1.md`) are now superseded by this file and were inconsistent
   with each other and with the actual code (missing streaming chat, voice
-  calls, push tokens, billing portal, and account deletion; incorrectly
+  calls, push tokens, and account deletion; incorrectly
   listed "pro" as absent from the tier enum; incorrectly claimed
   mood/habits/exercises were SDK-only). If you see either referenced
   elsewhere, this file wins.

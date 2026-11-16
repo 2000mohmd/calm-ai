@@ -3,10 +3,9 @@
 // authenticates.
 //
 // The web app's createServerFn RPCs authenticate through `requireSupabaseAuth`
-// (src/integrations/supabase/auth-middleware.ts). That module is generated
-// ("do not edit it directly") and is a TanStack function middleware coupled to
-// `getRequest()` ambient context, so it can't be imported and called as a plain
-// function or unit-tested in isolation.
+// (src/integrations/supabase/auth-middleware.ts). That module is a TanStack
+// function middleware coupled to `getRequest()` ambient context, so it can't be
+// imported and called as a plain function or unit-tested in isolation.
 //
 // `authenticateBearer` is the transport-agnostic equivalent for the mobile
 // client, which has no cookie and simply sends `Authorization: Bearer <jwt>`:
@@ -21,6 +20,7 @@
 
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/integrations/supabase/types";
+import { createSupabaseFetch } from "@/integrations/supabase/fetch";
 
 export type ApiAuthSuccess = {
   ok: true;
@@ -44,31 +44,6 @@ const fail = (error: string): ApiAuthFailure => ({ ok: false, status: 401, error
 function looksLikeJwt(token: string): boolean {
   const parts = token.split(".");
   return parts.length === 3 && parts.every((part) => part.length > 0);
-}
-
-function isOpaqueApiKey(value: string): boolean {
-  return value.startsWith("sb_publishable_") || value.startsWith("sb_secret_");
-}
-
-/**
- * Mirrors the generated middleware's fetch shim: forces the `apikey` header and
- * strips an Authorization header that is just the (opaque) publishable key, so
- * the user's bearer JWT is the only thing in that slot.
- */
-function createSupabaseFetch(apiKey: string): typeof fetch {
-  return (input, init) => {
-    const headers = new Headers(
-      typeof Request !== "undefined" && input instanceof Request ? input.headers : undefined,
-    );
-    if (init?.headers) {
-      new Headers(init.headers).forEach((value, key) => headers.set(key, value));
-    }
-    if (isOpaqueApiKey(apiKey) && headers.get("Authorization") === `Bearer ${apiKey}`) {
-      headers.delete("Authorization");
-    }
-    headers.set("apikey", apiKey);
-    return fetch(input, { ...init, headers });
-  };
 }
 
 export async function authenticateBearer(request: Request): Promise<ApiAuthResult> {

@@ -7,10 +7,10 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/integrations/supabase/types";
 import { appBaseUrl } from "./app-url";
+import { sendEmail } from "./resend.server";
 
 type Client = SupabaseClient<Database>;
 
-const RESEND_URL = "https://api.resend.com/emails";
 const FROM = "Kalm Support <onboarding@resend.dev>";
 
 export type AdminSupportThread = {
@@ -152,12 +152,6 @@ export async function sendSupportReplyEmail(input: {
   subject: string;
   reply: string;
 }): Promise<boolean> {
-  const apiKey = process.env["RESEND_API_KEY"];
-  if (!apiKey) {
-    console.error("[support] reply email skipped: RESEND_API_KEY missing");
-    return false;
-  }
-
   try {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const account = await supabaseAdmin.auth.admin.getUserById(input.userId);
@@ -179,21 +173,14 @@ export async function sendSupportReplyEmail(input: {
       "This is an account/product support message. If you need urgent help, open Kalm and tap Support resources.",
     ].join("\n");
 
-    const response = await fetch(RESEND_URL, {
-      method: "POST",
-      headers: { "Content-Type": "application/json", Authorization: `Bearer ${apiKey}` },
-      body: JSON.stringify({
-        from: FROM,
-        to: [to],
-        subject: `Kalm support replied — ${input.subject}`,
-        text,
-      }),
+    const result = await sendEmail({
+      tag: "[support] reply email",
+      from: FROM,
+      to,
+      subject: `Kalm support replied — ${input.subject}`,
+      text,
     });
-    if (!response.ok) {
-      console.error(`[support] reply email failed [${response.status}]: ${await response.text()}`);
-      return false;
-    }
-    return true;
+    return result.ok;
   } catch (error) {
     console.error("[support] reply email threw", error);
     return false;

@@ -60,10 +60,6 @@ import { Route as ApiV1ScreenersRouteImport } from './routes/api/v1/screeners'
 import { Route as AuthenticatedAdminUsersIndexRouteImport } from './routes/_authenticated/admin/users/index'
 import { Route as AuthenticatedAdminUsersUserIdRouteImport } from './routes/_authenticated/admin/users/$userId'
 import { Route as ApiPublicHooksEvaluateNudgesRouteImport } from './routes/api/public/hooks/evaluate-nudges'
-import { Route as ApiPublicHooksStripeWebhookRouteImport } from './routes/api/public/hooks/stripe-webhook'
-import { Route as ApiV1BillingCheckoutRouteImport } from './routes/api/v1/billing/checkout'
-import { Route as ApiV1BillingPortalRouteImport } from './routes/api/v1/billing/portal'
-import { Route as ApiV1BillingVerifyReceiptRouteImport } from './routes/api/v1/billing/verify-receipt'
 import { Route as ApiV1CallsSessionsRouteImport } from './routes/api/v1/calls/sessions'
 import { Route as ApiV1ChatHistoryRouteImport } from './routes/api/v1/chat/history'
 import { Route as ApiV1ChatMessagesRouteImport } from './routes/api/v1/chat/messages'
@@ -348,28 +344,6 @@ const ApiPublicHooksEvaluateNudgesRoute =
     path: '/api/public/hooks/evaluate-nudges',
     getParentRoute: () => rootRouteImport,
   } as any)
-const ApiPublicHooksStripeWebhookRoute =
-  ApiPublicHooksStripeWebhookRouteImport.update({
-    id: '/api/public/hooks/stripe-webhook',
-    path: '/api/public/hooks/stripe-webhook',
-    getParentRoute: () => rootRouteImport,
-  } as any)
-const ApiV1BillingCheckoutRoute = ApiV1BillingCheckoutRouteImport.update({
-  id: '/api/v1/billing/checkout',
-  path: '/api/v1/billing/checkout',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ApiV1BillingPortalRoute = ApiV1BillingPortalRouteImport.update({
-  id: '/api/v1/billing/portal',
-  path: '/api/v1/billing/portal',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ApiV1BillingVerifyReceiptRoute =
-  ApiV1BillingVerifyReceiptRouteImport.update({
-    id: '/api/v1/billing/verify-receipt',
-    path: '/api/v1/billing/verify-receipt',
-    getParentRoute: () => rootRouteImport,
-  } as any)
 const ApiV1CallsSessionsRoute = ApiV1CallsSessionsRouteImport.update({
   id: '/api/v1/calls/sessions',
   path: '/api/v1/calls/sessions',
@@ -542,10 +516,6 @@ export interface FileRoutesByFullPath {
   '/admin/': typeof AuthenticatedAdminIndexRoute
   '/admin/users/$userId': typeof AuthenticatedAdminUsersUserIdRoute
   '/api/public/hooks/evaluate-nudges': typeof ApiPublicHooksEvaluateNudgesRoute
-  '/api/public/hooks/stripe-webhook': typeof ApiPublicHooksStripeWebhookRoute
-  '/api/v1/billing/checkout': typeof ApiV1BillingCheckoutRoute
-  '/api/v1/billing/portal': typeof ApiV1BillingPortalRoute
-  '/api/v1/billing/verify-receipt': typeof ApiV1BillingVerifyReceiptRoute
   '/api/v1/calls/sessions': typeof ApiV1CallsSessionsRouteWithChildren
   '/api/v1/chat/history': typeof ApiV1ChatHistoryRoute
   '/api/v1/chat/messages': typeof ApiV1ChatMessagesRouteWithChildren
@@ -620,10 +590,6 @@ export interface FileRoutesByTo {
   '/admin': typeof AuthenticatedAdminIndexRoute
   '/admin/users/$userId': typeof AuthenticatedAdminUsersUserIdRoute
   '/api/public/hooks/evaluate-nudges': typeof ApiPublicHooksEvaluateNudgesRoute
-  '/api/public/hooks/stripe-webhook': typeof ApiPublicHooksStripeWebhookRoute
-  '/api/v1/billing/checkout': typeof ApiV1BillingCheckoutRoute
-  '/api/v1/billing/portal': typeof ApiV1BillingPortalRoute
-  '/api/v1/billing/verify-receipt': typeof ApiV1BillingVerifyReceiptRoute
   '/api/v1/calls/sessions': typeof ApiV1CallsSessionsRouteWithChildren
   '/api/v1/chat/history': typeof ApiV1ChatHistoryRoute
   '/api/v1/chat/messages': typeof ApiV1ChatMessagesRouteWithChildren
@@ -701,10 +667,6 @@ export interface FileRoutesById {
   '/_authenticated/admin/': typeof AuthenticatedAdminIndexRoute
   '/_authenticated/admin/users/$userId': typeof AuthenticatedAdminUsersUserIdRoute
   '/api/public/hooks/evaluate-nudges': typeof ApiPublicHooksEvaluateNudgesRoute
-  '/api/public/hooks/stripe-webhook': typeof ApiPublicHooksStripeWebhookRoute
-  '/api/v1/billing/checkout': typeof ApiV1BillingCheckoutRoute
-  '/api/v1/billing/portal': typeof ApiV1BillingPortalRoute
-  '/api/v1/billing/verify-receipt': typeof ApiV1BillingVerifyReceiptRoute
   '/api/v1/calls/sessions': typeof ApiV1CallsSessionsRouteWithChildren
   '/api/v1/chat/history': typeof ApiV1ChatHistoryRoute
   '/api/v1/chat/messages': typeof ApiV1ChatMessagesRouteWithChildren
@@ -782,10 +744,6 @@ export interface FileRouteTypes {
     | '/admin/'
     | '/admin/users/$userId'
     | '/api/public/hooks/evaluate-nudges'
-    | '/api/public/hooks/stripe-webhook'
-    | '/api/v1/billing/checkout'
-    | '/api/v1/billing/portal'
-    | '/api/v1/billing/verify-receipt'
     | '/api/v1/calls/sessions'
     | '/api/v1/chat/history'
     | '/api/v1/chat/messages'
@@ -860,10 +818,6 @@ export interface FileRouteTypes {
     | '/admin'
     | '/admin/users/$userId'
     | '/api/public/hooks/evaluate-nudges'
-    | '/api/public/hooks/stripe-webhook'
-    | '/api/v1/billing/checkout'
-    | '/api/v1/billing/portal'
-    | '/api/v1/billing/verify-receipt'
     | '/api/v1/calls/sessions'
     | '/api/v1/chat/history'
     | '/api/v1/chat/messages'
@@ -940,10 +894,6 @@ export interface FileRouteTypes {
     | '/_authenticated/admin/'
     | '/_authenticated/admin/users/$userId'
     | '/api/public/hooks/evaluate-nudges'
-    | '/api/public/hooks/stripe-webhook'
-    | '/api/v1/billing/checkout'
-    | '/api/v1/billing/portal'
-    | '/api/v1/billing/verify-receipt'
     | '/api/v1/calls/sessions'
     | '/api/v1/chat/history'
     | '/api/v1/chat/messages'
@@ -1002,10 +952,6 @@ export interface RootRouteChildren {
   ApiV1SafetyPlanRoute: typeof ApiV1SafetyPlanRoute
   ApiV1ScreenersRoute: typeof ApiV1ScreenersRouteWithChildren
   ApiPublicHooksEvaluateNudgesRoute: typeof ApiPublicHooksEvaluateNudgesRoute
-  ApiPublicHooksStripeWebhookRoute: typeof ApiPublicHooksStripeWebhookRoute
-  ApiV1BillingCheckoutRoute: typeof ApiV1BillingCheckoutRoute
-  ApiV1BillingPortalRoute: typeof ApiV1BillingPortalRoute
-  ApiV1BillingVerifyReceiptRoute: typeof ApiV1BillingVerifyReceiptRoute
   ApiV1CallsSessionsRoute: typeof ApiV1CallsSessionsRouteWithChildren
   ApiV1ChatHistoryRoute: typeof ApiV1ChatHistoryRoute
   ApiV1ChatMessagesRoute: typeof ApiV1ChatMessagesRouteWithChildren
@@ -1373,34 +1319,6 @@ declare module '@tanstack/react-router' {
       path: '/api/public/hooks/evaluate-nudges'
       fullPath: '/api/public/hooks/evaluate-nudges'
       preLoaderRoute: typeof ApiPublicHooksEvaluateNudgesRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/public/hooks/stripe-webhook': {
-      id: '/api/public/hooks/stripe-webhook'
-      path: '/api/public/hooks/stripe-webhook'
-      fullPath: '/api/public/hooks/stripe-webhook'
-      preLoaderRoute: typeof ApiPublicHooksStripeWebhookRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/v1/billing/checkout': {
-      id: '/api/v1/billing/checkout'
-      path: '/api/v1/billing/checkout'
-      fullPath: '/api/v1/billing/checkout'
-      preLoaderRoute: typeof ApiV1BillingCheckoutRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/v1/billing/portal': {
-      id: '/api/v1/billing/portal'
-      path: '/api/v1/billing/portal'
-      fullPath: '/api/v1/billing/portal'
-      preLoaderRoute: typeof ApiV1BillingPortalRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/v1/billing/verify-receipt': {
-      id: '/api/v1/billing/verify-receipt'
-      path: '/api/v1/billing/verify-receipt'
-      fullPath: '/api/v1/billing/verify-receipt'
-      preLoaderRoute: typeof ApiV1BillingVerifyReceiptRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/v1/calls/sessions': {
@@ -1795,10 +1713,6 @@ const rootRouteChildren: RootRouteChildren = {
   ApiV1SafetyPlanRoute: ApiV1SafetyPlanRoute,
   ApiV1ScreenersRoute: ApiV1ScreenersRouteWithChildren,
   ApiPublicHooksEvaluateNudgesRoute: ApiPublicHooksEvaluateNudgesRoute,
-  ApiPublicHooksStripeWebhookRoute: ApiPublicHooksStripeWebhookRoute,
-  ApiV1BillingCheckoutRoute: ApiV1BillingCheckoutRoute,
-  ApiV1BillingPortalRoute: ApiV1BillingPortalRoute,
-  ApiV1BillingVerifyReceiptRoute: ApiV1BillingVerifyReceiptRoute,
   ApiV1CallsSessionsRoute: ApiV1CallsSessionsRouteWithChildren,
   ApiV1ChatHistoryRoute: ApiV1ChatHistoryRoute,
   ApiV1ChatMessagesRoute: ApiV1ChatMessagesRouteWithChildren,

@@ -12,6 +12,7 @@ import {
   type SafetyPlanSection,
 } from "@/lib/safety-plan.functions";
 import { useTranslation } from "@/lib/i18n";
+import { useDialogA11y } from "@/components/useDialogA11y";
 
 type Draft = Record<SafetyPlanSection, string[]>;
 
@@ -134,18 +135,30 @@ export function SafetyPlanPanel({ onClose }: { onClose: () => void }) {
     onError: () => toast.error(t("safetyPlan.saveFailed")),
   });
 
+  const dialogRef = useDialogA11y(onClose);
+
   return (
     <div className="fixed inset-0 z-50 flex justify-end bg-foreground/20 backdrop-blur-sm">
       <button
         type="button"
         aria-label={t("common.close")}
+        tabIndex={-1}
         onClick={onClose}
         className="flex-1 cursor-default"
       />
-      <aside className="flex h-full w-full max-w-md flex-col border-s border-border bg-background shadow-xl">
+      <aside
+        ref={dialogRef}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="safety-plan-title"
+        tabIndex={-1}
+        className="flex h-full w-full max-w-md flex-col border-s border-border bg-background shadow-xl outline-none"
+      >
         <header className="flex items-start gap-3 border-b border-border px-5 py-4">
           <div className="min-w-0 flex-1">
-            <h2 className="font-display text-lg">{t("safetyPlan.title")}</h2>
+            <h2 id="safety-plan-title" className="font-display text-lg">
+              {t("safetyPlan.title")}
+            </h2>
             <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
               {t("safetyPlan.intro")}
             </p>
