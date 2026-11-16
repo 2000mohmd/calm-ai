@@ -38,6 +38,16 @@ export class CallSessionError extends Error {
   }
 }
 
+/**
+ * call_sessions is server-written only (members have SELECT but no INSERT/UPDATE
+ * privilege), so every write goes through the service-role client. RLS does not
+ * protect those calls: every update below pins `user_id` explicitly.
+ */
+async function adminClient(): Promise<Client> {
+  const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+  return supabaseAdmin;
+}
+
 export type CallTurn = { role: "user" | "assistant"; text: string; at: string };
 
 export type CallSessionRow = Database["public"]["Tables"]["call_sessions"]["Row"];
@@ -238,7 +248,10 @@ export async function startCallSessionCore(
   const instructions =
     buildSystemPrompt(await loadCallContext(supabase, userId, threadId)) + VOICE_ADDENDUM;
 
-  const session = await supabase
+  // threadId is either a thread verified as owned by userId above or one we just
+  // created for userId, so the admin insert can't attach a foreign thread.
+  const admin = await adminClient();
+  const session = await admin
     .from("call_sessions")
     .insert({
       user_id: userId,
@@ -256,14 +269,15 @@ export async function startCallSessionCore(
   try {
     secret = await mintRealtimeSecret(apiKey, { instructions, voice });
   } catch (err) {
-    await supabase
+    await admin
       .from("call_sessions")
       .update({
         status: "failed",
         ended_at: new Date().toISOString(),
         end_reason: "provider_error",
       })
-      .eq("id", session.data.id);
+      .eq("id", session.data.id)
+      .eq("user_id", userId);
     throw err;
   }
 
@@ -393,19 +407,41 @@ export async function appendCallTurnCore(
     if (gate) crisis = gate.crisis;
   }
 
-  transcript.push({ role: input.role, text, at: new Date().toISOString() });
+  const now = new Date();
+  transcript.push({ role: input.role, text, at: now.toISOString() });
 
-  const update = await supabase
+  // A crisis turn ends the call server-side (status 'ended' stops the realtime
+  // secret being usable by policy and rejects any further turns), rather than
+  // trusting the client to hang up.
+  const durationSeconds = Math.max(
+    0,
+    Math.round((now.getTime() - new Date(session.started_at).getTime()) / 1000),
+  );
+  const admin = await adminClient();
+  const update = await admin
     .from("call_sessions")
     .update({
       transcript,
       turn_count: transcript.length,
-      ...(crisis ? { crisis_triggered: true, crisis_severity: crisis.severity } : {}),
+      ...(crisis
+        ? {
+            crisis_triggered: true,
+            crisis_severity: crisis.severity,
+            status: "ended",
+            end_reason: "crisis",
+            ended_at: now.toISOString(),
+            duration_seconds: durationSeconds,
+            estimated_cost_usd: estimateCallCostUsd(durationSeconds),
+          }
+        : {}),
     })
     .eq("id", session.id)
+    .eq("user_id", userId)
+    .eq("status", "active")
     .select("turn_count")
-    .single();
+    .maybeSingle();
   if (update.error) throw update.error;
+  if (!update.data) throw new CallSessionError("This call session has ended.", 409);
 
   return { turn_count: update.data.turn_count, crisis };
 }
@@ -417,6 +453,10 @@ export async function endCallSessionCore(
   input: { session_id: string; end_reason?: string | null },
 ) {
   const session = await loadOwnedSession(supabase, userId, input.session_id);
+  // Idempotent: a second hangup (or the hangup after a crisis auto-end) returns
+  // the stored result without re-summarizing or re-inserting messages.
+  if (session.status !== "active") return session;
+
   const endedAt = new Date();
   const durationSeconds = Math.max(
     0,
@@ -440,10 +480,11 @@ export async function endCallSessionCore(
       .eq("id", session.thread_id);
   }
 
-  const update = await supabase
+  const admin = await adminClient();
+  const update = await admin
     .from("call_sessions")
     .update({
-      status: session.status === "failed" ? "failed" : "ended",
+      status: "ended",
       ended_at: endedAt.toISOString(),
       duration_seconds: durationSeconds,
       // Internal cost accounting — the same idea as chat's chat_usage rows, so
@@ -453,11 +494,13 @@ export async function endCallSessionCore(
       end_reason: input.end_reason ?? "client_hangup",
     })
     .eq("id", session.id)
+    .eq("user_id", userId)
+    .eq("status", "active")
     .select("*")
-    .single();
+    .maybeSingle();
   if (update.error) throw update.error;
-
-  return update.data;
+  // Lost a race with a concurrent end: return whatever that one stored.
+  return update.data ?? (await loadOwnedSession(supabase, userId, session.id));
 }
 
 async function summarizeCall(transcript: CallTurn[]): Promise<string | null> {

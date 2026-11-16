@@ -2,6 +2,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { z } from "zod";
 import { enforceBurst } from "./burst-limit";
+import { UserInputError } from "./user-input-error";
 
 const TranscribeInput = z.object({
   // ~5 MB of audio once decoded: a voice note, not an upload channel.
@@ -13,7 +14,17 @@ export const transcribeVoiceNote = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input: unknown) => TranscribeInput.parse(input))
   .handler(async ({ data, context }) => {
-    enforceBurst(`transcribe:${context.userId}`, 6, 60_000);
+    // Held teens (awaiting guardian consent) get no companion features. Fails
+    // open on a lookup error, matching the other companion gates.
+    const { companionAllowed } = await import("./guardian-consent.server");
+    const consent = await companionAllowed(context.supabase, context.userId).catch(() => ({
+      allowed: true,
+    }));
+    if (!consent.allowed) {
+      throw new UserInputError("Voice isn't available until a guardian approves your account.");
+    }
+    await enforceBurst(`transcribe:${context.userId}`, 6, 60_000);
+    await enforceBurst(`transcribe-day:${context.userId}`, 300, 86_400_000);
     const { transcribeAudioCore } = await import("./voice.server");
     return transcribeAudioCore(data);
   });

@@ -74,7 +74,7 @@ export async function requestHumanSupportCore(
     return { request_id: open.data.id, already_open: true, status: open.data.status };
   }
 
-  enforceBurst(`human-support:${userId}`, 5, 3_600_000);
+  await enforceBurst(`human-support:${userId}`, 5, 3_600_000);
 
   // The thread must be theirs: it is summarised for staff and linked to the request.
   if (data.thread_id) {
@@ -108,11 +108,18 @@ export async function requestHumanSupportCore(
       ? flag.data.severity
       : null;
 
-  const created = await supabase
+  // Members cannot insert into human_support_requests (no INSERT policy): the
+  // row is created server-side with user_id forced to the caller, status
+  // 'queued', and severity decided only here (`data.severity` is set by trusted
+  // server callers such as the companion tool; the public server fn never
+  // accepts it). Claimed/closed fields are never settable.
+  const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+  const created = await supabaseAdmin
     .from("human_support_requests")
     .insert({
       user_id: userId,
       thread_id: data.thread_id ?? null,
+      status: "queued",
       severity: data.severity ?? recentFlag,
       preferred_name: profile.data?.preferred_name ?? null,
       language: profile.data?.language ?? "en",
@@ -155,7 +162,11 @@ export async function requestHumanSupportCore(
       language: profile.data?.language ?? "en",
     });
     if (summary) {
-      await supabase.from("human_support_requests").update({ summary }).eq("id", created.data.id);
+      await supabaseAdmin
+        .from("human_support_requests")
+        .update({ summary })
+        .eq("id", created.data.id)
+        .eq("user_id", userId);
     }
 
     const sent = await sendHandoffAlertEmail({
@@ -164,10 +175,11 @@ export async function requestHumanSupportCore(
       createdAt: created.data.created_at,
     });
     if (sent) {
-      await supabase
+      await supabaseAdmin
         .from("human_support_requests")
         .update({ alert_sent_at: new Date().toISOString() })
-        .eq("id", created.data.id);
+        .eq("id", created.data.id)
+        .eq("user_id", userId);
     }
   } catch (error) {
     console.error("[handoff] post-create steps failed", error);

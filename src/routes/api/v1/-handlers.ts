@@ -17,6 +17,7 @@ import { SCREENERS, type ScreenerType } from "@/lib/screeners";
 import { submitScreenerCore } from "@/lib/screeners.server";
 import { normalizeLanguage } from "@/lib/i18n/languages";
 import { authenticateBearer } from "@/lib/api-auth.server";
+import { TooManyRequestsError, UserInputError } from "@/lib/user-input-error";
 import { ApiError, handle, json, requireAuth } from "./-shared";
 
 /**
@@ -98,8 +99,12 @@ export function handleChatMessagesStream(request: Request): Promise<Response> {
           send("done", result);
         } catch (err) {
           console.error("chat stream failed", err);
+          // Only our own user-facing errors carry safe text; anything else
+          // (DB/provider/internal) stays in the server log.
           const message =
-            err instanceof Error ? err.message : "The companion couldn't reply just now.";
+            err instanceof UserInputError || err instanceof TooManyRequestsError
+              ? err.message
+              : "The companion couldn't reply just now.";
           send("error", { error: message });
         } finally {
           controller.close();

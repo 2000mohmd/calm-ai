@@ -51,7 +51,7 @@ export async function startCheckoutCore(
 ): Promise<{ url: string }> {
   const provider = getPaymentProvider();
   if (!provider) throw new BillingUnavailableError();
-  enforceBurst(`checkout:${userId}`, 10, 600_000);
+  await enforceBurst(`checkout:${userId}`, 10, 600_000);
 
   const profile = await supabase
     .from("profiles")
@@ -86,7 +86,7 @@ export async function openPortalCore(
   const provider = getPaymentProvider();
   if (!provider) throw new BillingUnavailableError();
   if (!provider.createPortal) throw new BillingUnavailableError("Billing portal not available");
-  enforceBurst(`portal:${userId}`, 10, 600_000);
+  await enforceBurst(`portal:${userId}`, 10, 600_000);
   return provider.createPortal({
     userId,
     returnUrl: safeReturnUrl(input.returnUrl, `${appBaseUrl()}/plans`),

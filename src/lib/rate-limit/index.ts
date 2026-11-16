@@ -14,8 +14,15 @@ import { PostgresRateLimiter } from "./postgres";
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type MinimalClient = { from: (table: string) => any };
 
-export function getRateLimiter(supabase: MinimalClient): RateLimiter {
-  return new PostgresRateLimiter(supabase);
+// The limiter state (chat_rate_limits, chat_usage) is server-owned: members have
+// no write privileges on those tables, so the limiter always uses the service-role
+// client. The `supabase` argument is kept so call sites don't change; it is
+// intentionally unused.
+export function getRateLimiter(_supabase?: MinimalClient): RateLimiter {
+  return new PostgresRateLimiter(async () => {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    return supabaseAdmin as unknown as MinimalClient;
+  });
 }
 
 export { RATE_LIMIT_MESSAGE } from "./postgres";

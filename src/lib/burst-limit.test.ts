@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it } from "vitest";
-import { burstLimit, enforceBurst, resetBurstLimits } from "./burst-limit";
+import { burstAllowed, burstLimit, enforceBurst, resetBurstLimits } from "./burst-limit";
 import { TooManyRequestsError } from "./user-input-error";
 
 beforeEach(resetBurstLimits);
@@ -35,8 +35,13 @@ describe("burstLimit", () => {
 });
 
 describe("enforceBurst", () => {
-  it("throws TooManyRequestsError when over the limit", () => {
-    enforceBurst("x", 1, 60_000);
-    expect(() => enforceBurst("x", 1, 60_000)).toThrow(TooManyRequestsError);
+  it("throws TooManyRequestsError when over the limit", async () => {
+    await enforceBurst("x", 1, 60_000);
+    await expect(enforceBurst("x", 1, 60_000)).rejects.toThrow(TooManyRequestsError);
+  });
+
+  it("burstAllowed returns a boolean instead of throwing", async () => {
+    expect(await burstAllowed("y", 1, 60_000)).toBe(true);
+    expect(await burstAllowed("y", 1, 60_000)).toBe(false);
   });
 });

@@ -2,6 +2,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { z } from "zod";
 import { buildCrisisResponse, triageCrisis, type CrisisResponse } from "./crisis";
+import { burstAllowed } from "./burst-limit";
 import { introSpentWithCurrent, introUsage } from "./intro-usage.server";
 import { QUICK_ACTION_IDS } from "./quick-actions";
 import { getRateLimiter, RATE_LIMIT_MESSAGE, type RateLimitDecision } from "./rate-limit";
@@ -418,6 +419,36 @@ async function prepareChatTurn(
   if (!flagged && !isUnlimitedishTier(tier)) {
     introUsedUp =
       introSpentWithCurrent(await introUsage(supabase, userId)) > FREE_INTRO_MESSAGE_CAP;
+  }
+
+  // Flagged messages bypass the intro/daily caps (so crisis help is never
+  // withheld), but the paid model reply is metered: past 15 flagged messages in
+  // a rolling hour we return only the crisis card and resources, no model call.
+  if (flagged && !(await burstAllowed(`crisis-llm:${userId}`, 15, 3_600_000))) {
+    const crisisOnly = buildCrisisResponse(
+      triage.matched,
+      triage.severity ?? "high",
+      profileLang.data?.language ?? null,
+    );
+    const savedCrisis = await supabase
+      .from("chat_messages")
+      .insert({
+        thread_id: threadId,
+        user_id: userId,
+        sender: "system",
+        content: crisisOnly.message,
+      })
+      .select("id, content, created_at")
+      .single();
+    if (savedCrisis.error) throw savedCrisis.error;
+    return {
+      done: true,
+      result: {
+        thread_id: threadId,
+        userMessage: { ...savedUser.data, sender: "user" as const },
+        reply: { ...crisisOnly, id: savedCrisis.data.id, created_at: savedCrisis.data.created_at },
+      },
+    };
   }
 
   const rateLimiter = getRateLimiter(supabase);

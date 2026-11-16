@@ -39,9 +39,12 @@ export const Route = createFileRoute("/api/public/guardian-consent")({
         const result = await applyGuardianDecision(supabaseAdmin, {
           token: parsed.token,
           action: parsed.action,
+          // Vercel's own header first (set by the edge, not client-spoofable),
+          // then x-real-ip, then the first hop of x-forwarded-for.
           ip:
-            request.headers.get("cf-connecting-ip") ??
-            request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ??
+            request.headers.get("x-vercel-forwarded-for")?.split(",")[0]?.trim() ||
+            request.headers.get("x-real-ip")?.trim() ||
+            request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ||
             null,
           userAgent: request.headers.get("user-agent"),
         });

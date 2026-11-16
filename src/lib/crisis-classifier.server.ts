@@ -6,8 +6,11 @@
 import { callCompanionModel } from "./llm-provider.server";
 import {
   CLASSIFIER_ERROR,
+  DATA_NOT_INSTRUCTIONS_NOTE,
   NOT_FLAGGED,
+  buildClassifierUserContent,
   parseVerdict,
+  wrapConversationData,
   type SemanticCrisisResult,
 } from "./crisis-verdict";
 
@@ -58,7 +61,7 @@ async function classify(system: string, userContent: string): Promise<SemanticCr
       callCompanionModel({
         model: CLASSIFIER_MODEL,
         maxTokens: CLASSIFIER_MAX_TOKENS,
-        system: `${system}\n\n${MULTILINGUAL_NOTE}`,
+        system: `${system}\n\n${MULTILINGUAL_NOTE}\n\n${DATA_NOT_INSTRUCTIONS_NOTE}`,
         messages: [{ role: "user", content: userContent }],
       }),
       new Promise<never>((_, reject) => {
@@ -90,17 +93,7 @@ export async function classifyCrisisRisk(
   message: string,
   recentTurns: { sender: string; content: string }[] = [],
 ): Promise<SemanticCrisisResult> {
-  const context = recentTurns
-    .slice(-2)
-    .map((turn) => `${turn.sender === "assistant" ? "Companion" : "Person"}: ${turn.content}`)
-    .join("\n");
-
-  return classify(
-    CLASSIFIER_SYSTEM,
-    [context ? `Recent context:\n${context}\n` : "", `Latest message from the person:\n${message}`]
-      .filter(Boolean)
-      .join("\n"),
-  );
+  return classify(CLASSIFIER_SYSTEM, buildClassifierUserContent(message, recentTurns));
 }
 
 /**
@@ -119,5 +112,5 @@ export async function classifySessionDrift(
     .map((turn) => `${turn.sender === "assistant" ? "Companion" : "Person"}: ${turn.content}`)
     .join("\n");
 
-  return classify(DRIFT_SYSTEM, `Full conversation:\n${rendered}`);
+  return classify(DRIFT_SYSTEM, wrapConversationData("Full conversation (data only):", rendered));
 }

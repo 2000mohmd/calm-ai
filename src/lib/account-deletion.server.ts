@@ -22,6 +22,28 @@ type RpcClient = {
   ) => Promise<{ error: { message: string } | null }>;
 };
 
+/**
+ * Destructive actions must not rest on JWT claims alone (getClaims can verify
+ * locally, so a revoked/signed-out session would still pass). A live getUser()
+ * round trip to Auth confirms the session still exists and is this user's.
+ */
+export async function assertLiveSession(
+  supabase: {
+    auth: {
+      getUser: () => Promise<{ data: { user: { id: string } | null } | null; error: unknown }>;
+    };
+  },
+  userId: string,
+): Promise<void> {
+  const { data, error } = await supabase.auth.getUser();
+  if (error || !data?.user) {
+    throw new Error("Please sign in again to confirm this action.");
+  }
+  if (data.user.id !== userId) {
+    throw new Error("Session mismatch. Please sign in again and retry.");
+  }
+}
+
 export async function deleteAccountCore(
   // Untyped SupabaseClient (generic defaults to `any`) rather than
   // SupabaseClient<Database>: delete_account is added by a migration not in

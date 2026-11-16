@@ -34,13 +34,21 @@ const today = () => new Date().toISOString().slice(0, 10);
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type MinimalClient = { from: (table: string) => any };
 
+/** A client, or a lazy resolver for one (used to defer the service-role import). */
+export type ClientSource = MinimalClient | (() => Promise<MinimalClient>);
+
 export class PostgresRateLimiter implements RateLimiter {
-  constructor(private readonly supabase: MinimalClient) {}
+  constructor(private readonly source: ClientSource) {}
+
+  private async client(): Promise<MinimalClient> {
+    return typeof this.source === "function" ? this.source() : this.source;
+  }
 
   async checkAndConsume(
     userId: string,
     plan?: { tier: string; dailyCap: number },
   ): Promise<RateLimitDecision> {
+    const supabase = await this.client();
     const now = Date.now();
     const day = today();
     // Fail open on the paywall if the caller didn't resolve a tier.
@@ -58,14 +66,14 @@ export class PostgresRateLimiter implements RateLimiter {
     } | null = null;
     let hasDailyCols = true;
 
-    const full = await this.supabase
+    const full = await supabase
       .from("chat_rate_limits")
       .select("window_start, count, day_start, day_count")
       .eq("user_id", userId)
       .maybeSingle();
     if (full.error) {
       hasDailyCols = false;
-      const legacy = await this.supabase
+      const legacy = await supabase
         .from("chat_rate_limits")
         .select("window_start, count")
         .eq("user_id", userId)
@@ -116,9 +124,7 @@ export class PostgresRateLimiter implements RateLimiter {
       next["day_start"] = day;
       next["day_count"] = nextDayCount;
     }
-    const upsert = await this.supabase
-      .from("chat_rate_limits")
-      .upsert(next, { onConflict: "user_id" });
+    const upsert = await supabase.from("chat_rate_limits").upsert(next, { onConflict: "user_id" });
     if (upsert.error) console.error("rate limit write failed", upsert.error);
 
     return {
@@ -132,8 +138,9 @@ export class PostgresRateLimiter implements RateLimiter {
 
   async recordUsage(userId: string, usage: UsageRecord): Promise<void> {
     try {
+      const supabase = await this.client();
       const day = today();
-      const { data } = await this.supabase
+      const { data } = await supabase
         .from("chat_usage")
         .select(
           "day, day_messages, day_input_tokens, day_output_tokens, lifetime_messages, lifetime_input_tokens, lifetime_output_tokens",
@@ -142,7 +149,7 @@ export class PostgresRateLimiter implements RateLimiter {
         .maybeSingle();
 
       const sameDay = data?.day === day;
-      await this.supabase.from("chat_usage").upsert(
+      await supabase.from("chat_usage").upsert(
         {
           user_id: userId,
           day,
@@ -164,8 +171,9 @@ export class PostgresRateLimiter implements RateLimiter {
 
   async getUsage(userId: string): Promise<UsageSummary | null> {
     try {
+      const supabase = await this.client();
       const day = today();
-      const { data, error } = await this.supabase
+      const { data, error } = await supabase
         .from("chat_usage")
         .select(
           "day, day_messages, day_input_tokens, day_output_tokens, lifetime_messages, lifetime_input_tokens, lifetime_output_tokens",

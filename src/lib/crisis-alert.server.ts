@@ -14,6 +14,9 @@ import { sendEmail as sendEmailViaResend } from "./resend.server";
 
 type Client = SupabaseClient<Database>;
 
+/** No second admin alert email for the same user inside this window. */
+const ALERT_DEDUPE_MS = 10 * 60 * 1000;
+
 const FROM = "Kalm Safety <onboarding@resend.dev>";
 
 const SOURCE_LABELS: Record<string, string> = {
@@ -80,7 +83,7 @@ export async function sendCrisisAlertEmail(input: {
  * alert email. Returns the row id (or null when the insert failed).
  */
 export async function logCrisisEvent(
-  supabase: Client,
+  _supabase: Client,
   input: {
     userId: string;
     source: string;
@@ -90,6 +93,21 @@ export async function logCrisisEvent(
     notes?: string | null;
   },
 ): Promise<string | null> {
+  // crisis_events is server-written only (members cannot insert), so use the
+  // service-role client regardless of the client the caller holds.
+  const { supabaseAdmin: supabase } = await import("@/integrations/supabase/client.server");
+
+  // One alert email per user per window: look BEFORE inserting so this event
+  // doesn't count itself. The event row is still always written.
+  const since = new Date(Date.now() - ALERT_DEDUPE_MS).toISOString();
+  const recent = await supabase
+    .from("crisis_events")
+    .select("id")
+    .eq("user_id", input.userId)
+    .gte("alert_sent_at", since)
+    .limit(1);
+  const alreadyAlerted = !recent.error && (recent.data?.length ?? 0) > 0;
+
   const { data, error } = await supabase
     .from("crisis_events")
     .insert({
@@ -112,6 +130,7 @@ export async function logCrisisEvent(
   // waitUntil when there is one (Vercel), so it survives the response; otherwise
   // it is awaited for at most EMAIL_WAIT_MS so serverless freezing can't drop it.
   const eventId = data.id;
+  if (alreadyAlerted) return eventId;
   const dispatch = (async () => {
     const sent = await sendCrisisAlertEmail({
       eventId,

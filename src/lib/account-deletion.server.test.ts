@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { deleteAccountCore } from "./account-deletion.server";
+import { assertLiveSession, deleteAccountCore } from "./account-deletion.server";
 
 function fakeAdmin(opts: { rpcError?: string | null; deleteUserError?: Error | null }) {
   const rpcCalls: { fn: string; args: Record<string, unknown> }[] = [];
@@ -25,6 +25,29 @@ function fakeAdmin(opts: { rpcError?: string | null; deleteUserError?: Error | n
     deleteUserCalls,
   };
 }
+
+describe("assertLiveSession", () => {
+  const client = (result: { user: { id: string } | null; error?: unknown }) => ({
+    auth: { getUser: async () => ({ data: { user: result.user }, error: result.error ?? null }) },
+  });
+
+  it("passes when getUser returns the same user", async () => {
+    await expect(assertLiveSession(client({ user: { id: "u1" } }), "u1")).resolves.toBeUndefined();
+  });
+
+  it("fails when getUser errors or returns no user", async () => {
+    await expect(assertLiveSession(client({ user: null }), "u1")).rejects.toThrow(/sign in/);
+    await expect(
+      assertLiveSession(client({ user: { id: "u1" }, error: new Error("x") }), "u1"),
+    ).rejects.toThrow(/sign in/);
+  });
+
+  it("fails when the live user differs from the context user", async () => {
+    await expect(assertLiveSession(client({ user: { id: "u2" } }), "u1")).rejects.toThrow(
+      /mismatch/,
+    );
+  });
+});
 
 describe("deleteAccountCore", () => {
   it("runs the RPC, then deletes the auth user", async () => {

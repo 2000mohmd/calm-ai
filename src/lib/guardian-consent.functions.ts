@@ -3,6 +3,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { z } from "zod";
+import { enforceBurst } from "./burst-limit";
 import { assertGuardianEmailAllowed } from "./guardian-email";
 import { UserInputError } from "./user-input-error";
 
@@ -102,6 +103,8 @@ export const requestGuardianConsent = createServerFn({ method: "POST" })
         "We just sent that email. Please wait a few minutes before asking again.",
       );
     }
+    // Per-user cap on guardian emails (the cooldown above only spaces them out).
+    await enforceBurst(`guardian-email:${userId}`, 3, 86_400_000);
     const { token, hash } = newConsentToken();
 
     const saved = await supabaseAdmin.from("guardian_consents").upsert(

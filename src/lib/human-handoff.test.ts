@@ -10,8 +10,14 @@ vi.mock("./human-handoff.server", () => ({
   sendHandoffAlertEmail: vi.fn(async () => false),
 }));
 
+// The request row is written with the service-role client; the same fake backs
+// both clients so `inserted` sees every write.
+const admin = vi.hoisted(() => ({ from: (_table: string): unknown => undefined }));
+vi.mock("@/integrations/supabase/client.server", () => ({ supabaseAdmin: admin }));
+
 function fakeSupabase(opts: { open: unknown; profile: Record<string, unknown>; thread?: unknown }) {
   const inserted: string[] = [];
+  const rows: { table: string; row: Record<string, unknown> }[] = [];
   const from = (table: string) => {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any -- self-referential test stub
     const chain: any = {
@@ -21,8 +27,9 @@ function fakeSupabase(opts: { open: unknown; profile: Record<string, unknown>; t
       order: () => chain,
       limit: () => chain,
       update: () => chain,
-      insert: () => {
+      insert: (row: Record<string, unknown>) => {
         inserted.push(table);
+        rows.push({ table, row });
         return chain;
       },
       maybeSingle: async () => ({
@@ -43,7 +50,20 @@ function fakeSupabase(opts: { open: unknown; profile: Record<string, unknown>; t
     };
     return chain;
   };
-  return { client: { from } as never, inserted };
+  admin.from = from;
+  // The user client has no INSERT on human_support_requests any more.
+  const userFrom = (table: string) => {
+    const chain = from(table);
+    return table === "human_support_requests"
+      ? {
+          ...chain,
+          insert: () => {
+            throw new Error("members cannot insert human_support_requests");
+          },
+        }
+      : chain;
+  };
+  return { client: { from: userFrom } as never, inserted, rows };
 }
 
 const ask = (open: unknown, profile: Record<string, unknown>) => {
@@ -103,6 +123,18 @@ describe("human coach access", () => {
     expect(
       (await requestHumanSupportCore(client, "user-1", { thread_id: "t1" })).already_open,
     ).toBe(false);
+  });
+
+  it("inserts the request via the admin client with forced user_id and queued status", async () => {
+    const { client, rows } = fakeSupabase({
+      open: null,
+      profile: { subscription_tier: "pro" },
+    });
+    await requestHumanSupportCore(client, "user-1", { note: "hi", severity: null });
+    const request = rows.find((r) => r.table === "human_support_requests");
+    expect(request?.row).toMatchObject({ user_id: "user-1", status: "queued" });
+    expect(request?.row).not.toHaveProperty("claimed_at");
+    expect(request?.row).not.toHaveProperty("claimed_by");
   });
 
   it("is limited to 5 new requests an hour per member", async () => {

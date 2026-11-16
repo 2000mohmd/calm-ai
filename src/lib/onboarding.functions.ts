@@ -4,6 +4,7 @@ import { z } from "zod";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/integrations/supabase/types";
 import { MINOR_AGE, MIN_AGE, ageFromDateOfBirth } from "./age";
+import { enforceBurst } from "./burst-limit";
 import { assertGuardianEmailAllowed } from "./guardian-email";
 import { UserInputError } from "./user-input-error";
 
@@ -135,6 +136,9 @@ export async function completeOnboardingCore(
         const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
         const { newConsentToken, sendGuardianConsentEmail } =
           await import("./guardian-consent.server");
+        // Same per-user daily cap as the resend path; over it, the catch below
+        // skips the email (onboarding still completes).
+        await enforceBurst(`guardian-email:${userId}`, 3, 86_400_000);
         const { token, hash } = newConsentToken();
         await supabaseAdmin.from("guardian_consents").upsert(
           {
@@ -293,6 +297,8 @@ export const deleteMyData = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
     const { supabase, userId } = context;
+    const { assertLiveSession } = await import("./account-deletion.server");
+    await assertLiveSession(supabase, userId);
     await supabase.from("mood_logs").delete().eq("user_id", userId);
     await supabase
       .from("user_profiles")
@@ -319,9 +325,10 @@ export const deleteMyData = createServerFn({ method: "POST" })
 export const deleteMyAccount = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
-    const { userId } = context;
+    const { supabase, userId } = context;
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const { deleteAccountCore } = await import("./account-deletion.server");
+    const { assertLiveSession, deleteAccountCore } = await import("./account-deletion.server");
+    await assertLiveSession(supabase, userId);
     await deleteAccountCore(supabaseAdmin, userId);
     return { ok: true };
   });
