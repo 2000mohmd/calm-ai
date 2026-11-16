@@ -192,12 +192,20 @@ export const CRISIS_DISCLAIMER =
 const CRISIS_MESSAGE_EN =
   "Thank you for telling me. What you just shared sounds really heavy, and I'm glad you said it out loud rather than carrying it alone. I'm not able to keep this part of the conversation going on my own, because you deserve support from someone trained for moments like this — right now. You are not in trouble, and you have not done anything wrong.";
 
-type CrisisCopy = { message: string; disclaimer: string; resources: CrisisResource[] };
+type CrisisCopy = {
+  message: string;
+  /** Gentle note shown beside the resources for "high" severity (no interruption). */
+  supportMessage: string;
+  disclaimer: string;
+  resources: CrisisResource[];
+};
 
 // English copy as a concrete value so `crisisCopy()` always has a non-undefined
 // fallback even under `noUncheckedIndexedAccess`.
 const EN_COPY: CrisisCopy = {
   message: CRISIS_MESSAGE_EN,
+  supportMessage:
+    "It sounds like things feel really heavy right now. You don't have to carry that alone. If you'd like to talk with someone trained to help, these are here for you, any time.",
   disclaimer: CRISIS_DISCLAIMER,
   resources: CRISIS_RESOURCES,
 };
@@ -216,6 +224,8 @@ const CRISIS_COPY: Record<string, CrisisCopy> = {
   ar: {
     message:
       "شكراً لأنك أخبرتني. ما شاركته الآن يبدو ثقيلاً جداً، وأنا ممتن أنك قلته بصوت عالٍ بدلاً من أن تحمله وحدك. لا أستطيع متابعة هذا الجزء من الحديث بمفردي، لأنك تستحق دعماً من شخص مدرّب لمثل هذه اللحظات — الآن. أنت لست في مشكلة، ولم تفعل أي شيء خطأ.",
+    supportMessage:
+      "يبدو أن الأمور ثقيلة عليك الآن. لست مضطراً لحمل ذلك وحدك. وإن رغبت في التحدث مع شخص مدرّب على المساعدة، فهذه الخيارات متاحة لك في أي وقت.",
     disclaimer:
       "كالم رفيق للعافية النفسية، وليس معالجاً أو خدمة طوارئ. تواصل من فضلك مع شخص حقيقي أو مع أحد الخطوط أعلاه.",
     resources: [
@@ -234,6 +244,8 @@ const CRISIS_COPY: Record<string, CrisisCopy> = {
   fr: {
     message:
       "Merci de me l'avoir dit. Ce que vous venez de partager semble très lourd, et je suis content que vous l'ayez exprimé plutôt que de le porter seul. Je ne peux pas poursuivre seul cette partie de la conversation, parce que vous méritez le soutien d'une personne formée pour ces moments — maintenant. Vous n'avez aucun ennui, et vous n'avez rien fait de mal.",
+    supportMessage:
+      "On dirait que tout semble très lourd en ce moment. Vous n'avez pas à porter cela seul. Si vous souhaitez parler à une personne formée pour aider, ces ressources sont là pour vous, à tout moment.",
     disclaimer:
       "Kalm est un compagnon de bien-être, pas un thérapeute ni un service d'urgence. Contactez une personne réelle ou l'une des lignes ci-dessus.",
     resources: [
@@ -326,6 +338,14 @@ export function triageCrisis(text: string): {
 /** Returns the matched crisis phrases; empty array means no crisis language found. */
 export function detectCrisis(text: string): string[] {
   return triageCrisis(text).matched;
+}
+
+/** Optional gentle resources card attached to a normal reply for "high" severity. */
+export type SupportCard = { message: string; resources: CrisisResource[] };
+
+export function buildSupportCard(language: string | null | undefined): SupportCard {
+  const copy = crisisCopy(language);
+  return { message: copy.supportMessage, resources: copy.resources };
 }
 
 export function buildCrisisResponse(

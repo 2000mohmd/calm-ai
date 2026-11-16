@@ -1,7 +1,13 @@
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { z } from "zod";
-import { buildCrisisResponse, triageCrisis, type CrisisResponse } from "./crisis";
+import {
+  buildCrisisResponse,
+  buildSupportCard,
+  triageCrisis,
+  type CrisisResponse,
+  type SupportCard,
+} from "./crisis";
 import { burstAllowed } from "./burst-limit";
 import { introSpentWithCurrent, introUsage } from "./intro-usage.server";
 import { QUICK_ACTION_IDS } from "./quick-actions";
@@ -218,6 +224,12 @@ export type SendMessageResult = {
           | { reason: "daily" | "window"; tier: string; dailyLimit: number; resetsAt: string }
           // A free member's first conversation is used up: point to plans.
           | { reason: "intro"; tier: string; introLimit: number };
+        /**
+         * Present only on a normal companion reply to a "high"-severity message
+         * (clear self-harm ideation, no plan): gentle, non-interrupting help
+         * lines from the same source as the crisis card. Not persisted.
+         */
+        support?: SupportCard;
       }
     | (CrisisResponse & { id: string; created_at: string });
 };
@@ -231,6 +243,8 @@ type PreparedTurn =
       context: CompanionContext;
       content: string;
       rateLimiter: ReturnType<typeof getRateLimiter>;
+      /** Set when the gate flagged this message "high"; attached to the reply. */
+      support: SupportCard | null;
     };
 
 /**
@@ -310,7 +324,11 @@ async function prepareChatTurn(
   ]);
 
   const { runCrisisGate } = await import("./crisis-gate.server");
+  const seen: { severity: "high" | "moderate" | null } = { severity: null };
   const gated = await runCrisisGate(supabase, {
+    onFlag: (severity) => {
+      seen.severity = severity;
+    },
     userId,
     threadId,
     messageId: savedUser.data.id,
@@ -642,6 +660,7 @@ async function prepareChatTurn(
     context,
     content: data.content,
     rateLimiter,
+    support: seen.severity === "high" ? buildSupportCard(profileLang.data?.language) : null,
   };
 }
 
@@ -692,6 +711,7 @@ async function finalizeReply(
       content: savedReply.data.content,
       created_at: savedReply.data.created_at,
       actions: reply.actions,
+      ...(prepared.support ? { support: prepared.support } : {}),
     },
   };
 }

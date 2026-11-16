@@ -2711,14 +2711,14 @@ function Index() {
                     How the AI works
                   </a>
                   <Link
-                    to="/legal"
+                    to="/privacy"
                     className="ca-hov-36"
                     style={{ fontSize: "14px", color: "rgba(255,255,255,.82)" }}
                   >
                     Privacy notice
                   </Link>
                   <Link
-                    to="/legal"
+                    to="/terms"
                     className="ca-hov-37"
                     style={{ fontSize: "14px", color: "rgba(255,255,255,.82)" }}
                   >

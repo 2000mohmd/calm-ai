@@ -14,14 +14,16 @@ import { sendEmail } from "./resend.server";
 
 export { appBaseUrl };
 
-function unsubscribeSecret(): string {
-  // A dedicated secret if provided, else derived from the service-role key (always
-  // present server-side). Never a built-in default: a guessable key would let anyone
-  // forge unsubscribe links.
-  const secret =
-    process.env["EMAIL_UNSUBSCRIBE_SECRET"] ?? process.env["SUPABASE_SERVICE_ROLE_KEY"];
-  if (!secret) throw new Error("Set EMAIL_UNSUBSCRIBE_SECRET to sign unsubscribe links.");
-  return secret;
+async function unsubscribeSecret(): Promise<string> {
+  // A dedicated secret if provided. Otherwise a key DERIVED from the service-role
+  // key with a domain-separation label, so the raw service-role key itself is never
+  // the HMAC key. Never a built-in default: a guessable key would let anyone forge
+  // unsubscribe links.
+  const dedicated = process.env["EMAIL_UNSUBSCRIBE_SECRET"];
+  if (dedicated) return dedicated;
+  const serviceRole = process.env["SUPABASE_SERVICE_ROLE_KEY"];
+  if (!serviceRole) throw new Error("Set EMAIL_UNSUBSCRIBE_SECRET to sign unsubscribe links.");
+  return hmacHex(serviceRole, "kalm:unsubscribe:v1");
 }
 
 async function hmacHex(key: string, message: string): Promise<string> {
@@ -38,7 +40,7 @@ async function hmacHex(key: string, message: string): Promise<string> {
 }
 
 export async function unsubscribeToken(userId: string): Promise<string> {
-  return hmacHex(unsubscribeSecret(), `unsub:${userId}`);
+  return hmacHex(await unsubscribeSecret(), `unsub:${userId}`);
 }
 
 export async function verifyUnsubscribeToken(userId: string, token: string): Promise<boolean> {

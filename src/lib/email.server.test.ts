@@ -31,6 +31,21 @@ describe("unsubscribe token", () => {
     expect(await verifyUnsubscribeToken("user-1", a)).toBe(false);
   });
 
+  it("without a dedicated secret, never signs with the raw service-role key", async () => {
+    delete process.env["EMAIL_UNSUBSCRIBE_SECRET"];
+    process.env["SUPABASE_SERVICE_ROLE_KEY"] = "service-role-key";
+    const derived = await unsubscribeToken("user-1");
+    expect(await verifyUnsubscribeToken("user-1", derived)).toBe(true);
+
+    // The token a raw-service-role-key HMAC would produce must NOT verify.
+    process.env["EMAIL_UNSUBSCRIBE_SECRET"] = "service-role-key";
+    const raw = await unsubscribeToken("user-1");
+    delete process.env["EMAIL_UNSUBSCRIBE_SECRET"];
+    expect(raw).not.toBe(derived);
+    expect(await verifyUnsubscribeToken("user-1", raw)).toBe(false);
+    delete process.env["SUPABASE_SERVICE_ROLE_KEY"];
+  });
+
   it("builds a URL to the public route carrying u and a valid t", async () => {
     const url = await unsubscribeUrl("user-1");
     expect(url.startsWith("https://app.test/api/public/unsubscribe?u=user-1&t=")).toBe(true);

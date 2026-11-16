@@ -96,6 +96,7 @@
   },
   "chat": {
     "immediateSupport": "Aide immédiate",
+    "supportTitle": "Un soutien, quand vous le voulez",
     "dailyLimitUpgrade": "Vous avez utilisé vos messages gratuits d'aujourd'hui. Passez à un forfait supérieur pour en avoir plus, à tout moment.",
     "dailyLimitReachedTop": "Vous avez atteint la limite de messages d'aujourd'hui. Elle se réinitialise demain.",
     "upgradeCta": "Changer de forfait",

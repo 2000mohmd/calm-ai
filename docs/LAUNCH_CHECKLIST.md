@@ -12,21 +12,22 @@ Work top to bottom. Nothing here needs code changes.
 3. Project → Settings → Environment Variables (Production). `VITE_*` values are baked in at
    build time, so set them **before** the first deploy (or redeploy after changing them).
 
-| Variable                                                    | Required             | Where to get it                                                           |
-| ----------------------------------------------------------- | -------------------- | ------------------------------------------------------------------------- |
-| `VITE_SUPABASE_URL`, `SUPABASE_URL`                         | yes                  | Supabase → Project Settings → API → Project URL                           |
-| `VITE_SUPABASE_PUBLISHABLE_KEY`, `SUPABASE_PUBLISHABLE_KEY` | yes                  | Supabase → API → anon / publishable key                                   |
-| `SUPABASE_SERVICE_ROLE_KEY`                                 | yes (secret)         | Supabase → API → service_role key. Server only; never prefix with `VITE_` |
-| `APP_BASE_URL`                                              | yes                  | Your final origin, e.g. `https://calmai.site` (no trailing slash)     |
-| `NUDGE_SWEEP_SECRET`                                        | yes (secret)         | Generate: `openssl rand -hex 32`                                          |
-| `OPENROUTER_API_KEY`                                        | yes (secret)         | openrouter.ai → Keys                                                      |
-| `RESEND_API_KEY`                                            | yes (secret)         | resend.com → API Keys (verify your sending domain first)                  |
-| `ADMIN_ALERT_EMAIL`                                         | yes                  | The inbox that must receive crisis and human-support alerts               |
-| `EMAIL_FROM`                                                | recommended          | e.g. `Kalm <hello@calmai.site>` on your verified Resend domain        |
-| `OPENAI_API_KEY`                                            | for voice            | platform.openai.com → API keys (voice notes and calls)                    |
-| `CRON_SECRET`                                               | only for Vercel Cron | Same value as `NUDGE_SWEEP_SECRET`                                        |
-| `CHAT_CHECKIN_ENABLED`, `POST_CRISIS_FOLLOWUP_ENABLED`      | optional             | `true` to enable                                                          |
-| `EXPO_ACCESS_TOKEN`, `FCM_SERVICE_ACCOUNT_JSON`             | optional             | Push notifications only                                                   |
+| Variable                                                    | Required             | Where to get it                                                                                                                                                                                        |
+| ----------------------------------------------------------- | -------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `VITE_SUPABASE_URL`, `SUPABASE_URL`                         | yes                  | Supabase → Project Settings → API → Project URL                                                                                                                                                        |
+| `VITE_SUPABASE_PUBLISHABLE_KEY`, `SUPABASE_PUBLISHABLE_KEY` | yes                  | Supabase → API → anon / publishable key                                                                                                                                                                |
+| `SUPABASE_SERVICE_ROLE_KEY`                                 | yes (secret)         | Supabase → API → service_role key. Server only; never prefix with `VITE_`                                                                                                                              |
+| `APP_BASE_URL`                                              | yes                  | Your final origin, e.g. `https://calmai.site` (no trailing slash)                                                                                                                                      |
+| `NUDGE_SWEEP_SECRET`                                        | yes (secret)         | Generate: `openssl rand -hex 32`                                                                                                                                                                       |
+| `OPENROUTER_API_KEY`                                        | yes (secret)         | openrouter.ai → Keys                                                                                                                                                                                   |
+| `RESEND_API_KEY`                                            | yes (secret)         | resend.com → API Keys (verify your sending domain first)                                                                                                                                               |
+| `ADMIN_ALERT_EMAIL`                                         | yes                  | The inbox that must receive crisis and human-support alerts                                                                                                                                            |
+| `EMAIL_FROM`                                                | recommended          | e.g. `Kalm <hello@calmai.site>` on your verified Resend domain                                                                                                                                         |
+| `EMAIL_UNSUBSCRIBE_SECRET`                                  | recommended (secret) | Generate: `openssl rand -hex 32`. Signs unsubscribe links; if unset a key is derived from the service-role key. Set it before the first email goes out (changing it later breaks links in sent emails) |
+| `OPENAI_API_KEY`                                            | for voice            | platform.openai.com → API keys (voice notes and calls)                                                                                                                                                 |
+| `CRON_SECRET`                                               | only for Vercel Cron | Same value as `NUDGE_SWEEP_SECRET`                                                                                                                                                                     |
+| `CHAT_CHECKIN_ENABLED`, `POST_CRISIS_FOLLOWUP_ENABLED`      | optional             | `true` to enable                                                                                                                                                                                       |
+| `EXPO_ACCESS_TOKEN`, `FCM_SERVICE_ACCOUNT_JSON`             | optional             | Push notifications only                                                                                                                                                                                |
 
 Billing/plan variables are covered in `docs/PAYMENTS.md`. The server logs one warning at
 first request naming any missing REQUIRED variable (never values): check

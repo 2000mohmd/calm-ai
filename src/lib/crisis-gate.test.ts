@@ -1,5 +1,11 @@
 import { describe, expect, it, vi } from "vitest";
-import { triageCrisis, severityRank, crisisCopy, buildCrisisResponse } from "./crisis";
+import {
+  triageCrisis,
+  severityRank,
+  crisisCopy,
+  buildCrisisResponse,
+  buildSupportCard,
+} from "./crisis";
 import { runCrisisGate } from "./crisis-gate.server";
 
 const hasUsLines = (resources: { contact: string }[]) =>
@@ -121,6 +127,43 @@ describe("crisis gate ordering guarantee", () => {
     expect(supabase.touched).not.toContain("chat_rate_limits");
   });
 
+  it("reports high via onFlag (for the support card) without interrupting; never for critical", async () => {
+    const onFlag = vi.fn();
+    const high = await runCrisisGate(fakeSupabase(), {
+      ...input,
+      content: "I want to kill myself",
+      onFlag,
+    });
+    expect(high).toBeNull();
+    expect(onFlag).toHaveBeenCalledWith("high");
+
+    const onFlagCritical = vi.fn();
+    const critical = await runCrisisGate(fakeSupabase(), {
+      ...input,
+      content: "I have the pills ready for tonight",
+      onFlag: onFlagCritical,
+    });
+    expect(critical?.crisis.severity).toBe("critical");
+    expect(onFlagCritical).not.toHaveBeenCalled();
+  });
+
+  it("reports high from the semantic classifier too", async () => {
+    const { classifyCrisisRisk } = await import("./crisis-classifier.server");
+    vi.mocked(classifyCrisisRisk).mockResolvedValueOnce({
+      flagged: true,
+      severity: "high",
+      reason: "clear ideation",
+    } as never);
+    const onFlag = vi.fn();
+    const result = await runCrisisGate(fakeSupabase(), {
+      ...input,
+      content: "everything feels pointless and I keep thinking about not being here",
+      onFlag,
+    });
+    expect(result).toBeNull();
+    expect(onFlag).toHaveBeenCalledWith("high");
+  });
+
   it("logs moderate severity for admin review but does not interrupt the chat", async () => {
     const { logCrisisEvent } = await import("./crisis-alert.server");
     const supabase = fakeSupabase();
@@ -230,6 +273,17 @@ describe("localized crisis resources", () => {
   it("unknown / missing locale falls back to English copy", () => {
     expect(hasUsLines(crisisCopy("de").resources)).toBe(false);
     expect(crisisCopy(null)).toBe(crisisCopy("en"));
+  });
+
+  it("buildSupportCard uses the same resources as the crisis card, localized", () => {
+    for (const lang of ["en", "ar", "fr"]) {
+      const card = buildSupportCard(lang);
+      expect(card.resources).toBe(crisisCopy(lang).resources);
+      expect(card.message.length).toBeGreaterThan(20);
+      expect(card.message).not.toBe(crisisCopy(lang).message);
+    }
+    expect(buildSupportCard("fr").message).toContain("Vous");
+    expect(buildSupportCard(null).message).toBe(buildSupportCard("en").message);
   });
 
   it("buildCrisisResponse threads the locale into message and resources", () => {

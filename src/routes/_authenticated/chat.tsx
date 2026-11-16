@@ -20,6 +20,7 @@ import {
 import { getPrimaryThread, getThreadHistory, sendMessage } from "@/lib/chat.functions";
 import { transcribeVoiceNote } from "@/lib/voice.functions";
 import type { CompanionAction } from "@/lib/companion-tools.server";
+import type { SupportCard as SupportCardData } from "@/lib/crisis";
 import { QUICK_ACTIONS } from "@/lib/quick-actions";
 import { DailyPromptCard } from "@/components/DailyPromptCard";
 import { InlineExerciseWidget } from "@/components/InlineExerciseWidget";
@@ -75,6 +76,28 @@ function CrisisCard({ onAskHuman }: { onAskHuman?: () => void }) {
           </button>
         </div>
       )}
+    </div>
+  );
+}
+
+/** Gentle, non-interrupting help lines shown under a reply (server decides when). */
+function SupportCard({ support }: { support: SupportCardData }) {
+  const { t } = useTranslation();
+  return (
+    <div className="ms-10 space-y-3 rounded-2xl border border-primary/25 bg-primary/5 p-4">
+      <p className="flex items-center gap-2 text-sm font-semibold">
+        <LifeBuoy className="size-4" aria-hidden /> {t("chat.supportTitle")}
+      </p>
+      <p className="text-sm leading-relaxed">{support.message}</p>
+      <ul className="space-y-2 text-sm">
+        {support.resources.map((resource) => (
+          <li key={resource.name}>
+            <p className="font-medium">{resource.name}</p>
+            <p>{resource.contact}</p>
+            <p className="text-xs text-muted-foreground">{resource.detail}</p>
+          </li>
+        ))}
+      </ul>
     </div>
   );
 }
@@ -202,6 +225,7 @@ function ChatPage() {
   const [quickAction, setQuickAction] = useState<string | null>(null);
   const [input, setInput] = useState("");
   const [actions, setActions] = useState<CompanionAction[]>([]);
+  const [support, setSupport] = useState<SupportCardData | null>(null);
   const [dailyLimit, setDailyLimit] = useState<{ tier: string; resetsAt: string } | null>(null);
   const [pending, setPending] = useState<string | null>(null);
   const [sidebarOpen, setSidebarOpen] = useState(true);
@@ -276,6 +300,7 @@ function ChatPage() {
     onSuccess: async (result) => {
       const nextActions = result.reply.type === "message" ? result.reply.actions : [];
       setActions(nextActions);
+      setSupport(result.reply.type === "message" ? (result.reply.support ?? null) : null);
       if (nextActions.some((action) => action.type === "human_support_requested")) {
         await queryClient.invalidateQueries({ queryKey: ["my-human-support"] });
         setViewMode("support");
@@ -484,6 +509,8 @@ function ChatPage() {
                   </div>
                 ),
               )}
+
+              {support && <SupportCard support={support} />}
 
               {actions.length > 0 && (
                 <div className="ms-10 space-y-2 rounded-2xl border border-primary/20 bg-primary/5 p-4">

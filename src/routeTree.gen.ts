@@ -14,6 +14,8 @@ import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as CrisisRouteImport } from './routes/crisis'
 import { Route as LegalRouteImport } from './routes/legal'
+import { Route as PrivacyRouteImport } from './routes/privacy'
+import { Route as TermsRouteImport } from './routes/terms'
 import { Route as AuthenticatedAdminRouteRouteImport } from './routes/_authenticated/admin/route'
 import { Route as AuthenticatedCareRouteImport } from './routes/_authenticated/care'
 import { Route as AuthenticatedChatRouteImport } from './routes/_authenticated/chat'
@@ -110,6 +112,16 @@ const CrisisRoute = CrisisRouteImport.update({
 const LegalRoute = LegalRouteImport.update({
   id: '/legal',
   path: '/legal',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PrivacyRoute = PrivacyRouteImport.update({
+  id: '/privacy',
+  path: '/privacy',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const TermsRoute = TermsRouteImport.update({
+  id: '/terms',
+  path: '/terms',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthenticatedAdminRouteRoute = AuthenticatedAdminRouteRouteImport.update({
@@ -495,6 +507,8 @@ export interface FileRoutesByFullPath {
   '/auth': typeof AuthRoute
   '/crisis': typeof CrisisRoute
   '/legal': typeof LegalRoute
+  '/privacy': typeof PrivacyRoute
+  '/terms': typeof TermsRoute
   '/admin': typeof AuthenticatedAdminRouteRouteWithChildren
   '/care': typeof AuthenticatedCareRoute
   '/chat': typeof AuthenticatedChatRoute
@@ -574,6 +588,8 @@ export interface FileRoutesByTo {
   '/auth': typeof AuthRoute
   '/crisis': typeof CrisisRoute
   '/legal': typeof LegalRoute
+  '/privacy': typeof PrivacyRoute
+  '/terms': typeof TermsRoute
   '/care': typeof AuthenticatedCareRoute
   '/chat': typeof AuthenticatedChatRoute
   '/check-ins': typeof AuthenticatedCheckInsRoute
@@ -654,6 +670,8 @@ export interface FileRoutesById {
   '/auth': typeof AuthRoute
   '/crisis': typeof CrisisRoute
   '/legal': typeof LegalRoute
+  '/privacy': typeof PrivacyRoute
+  '/terms': typeof TermsRoute
   '/_authenticated/admin': typeof AuthenticatedAdminRouteRouteWithChildren
   '/_authenticated/care': typeof AuthenticatedCareRoute
   '/_authenticated/chat': typeof AuthenticatedChatRoute
@@ -735,6 +753,8 @@ export interface FileRouteTypes {
     | '/auth'
     | '/crisis'
     | '/legal'
+    | '/privacy'
+    | '/terms'
     | '/admin'
     | '/care'
     | '/chat'
@@ -814,6 +834,8 @@ export interface FileRouteTypes {
     | '/auth'
     | '/crisis'
     | '/legal'
+    | '/privacy'
+    | '/terms'
     | '/care'
     | '/chat'
     | '/check-ins'
@@ -893,6 +915,8 @@ export interface FileRouteTypes {
     | '/auth'
     | '/crisis'
     | '/legal'
+    | '/privacy'
+    | '/terms'
     | '/_authenticated/admin'
     | '/_authenticated/care'
     | '/_authenticated/chat'
@@ -974,6 +998,8 @@ export interface RootRouteChildren {
   AuthRoute: typeof AuthRoute
   CrisisRoute: typeof CrisisRoute
   LegalRoute: typeof LegalRoute
+  PrivacyRoute: typeof PrivacyRoute
+  TermsRoute: typeof TermsRoute
   ApiPublicGuardianConsentRoute: typeof ApiPublicGuardianConsentRoute
   ApiPublicUnsubscribeRoute: typeof ApiPublicUnsubscribeRoute
   ApiPublicHealthRoute: typeof ApiPublicHealthRoute
@@ -1049,6 +1075,20 @@ declare module '@tanstack/react-router' {
       path: '/legal'
       fullPath: '/legal'
       preLoaderRoute: typeof LegalRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/privacy': {
+      id: '/privacy'
+      path: '/privacy'
+      fullPath: '/privacy'
+      preLoaderRoute: typeof PrivacyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/terms': {
+      id: '/terms'
+      path: '/terms'
+      fullPath: '/terms'
+      preLoaderRoute: typeof TermsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_authenticated/admin': {
@@ -1767,6 +1807,8 @@ const rootRouteChildren: RootRouteChildren = {
   AuthRoute: AuthRoute,
   CrisisRoute: CrisisRoute,
   LegalRoute: LegalRoute,
+  PrivacyRoute: PrivacyRoute,
+  TermsRoute: TermsRoute,
   ApiPublicGuardianConsentRoute: ApiPublicGuardianConsentRoute,
   ApiPublicUnsubscribeRoute: ApiPublicUnsubscribeRoute,
   ApiPublicHealthRoute: ApiPublicHealthRoute,

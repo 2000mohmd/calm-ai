@@ -30,6 +30,8 @@ export type CrisisGateResult = {
  * logged here — admins still see them in the crisis queue and get the alert
  * email — but the conversation itself continues normally rather than showing
  * the same takeover UI for passive/ambivalent language as for an active plan.
+ * ("high" additionally gets a gentle support card attached to the normal reply
+ * by the caller, via `onFlag`.)
  */
 async function logCrisisOnly(
   supabase: AnyClient,
@@ -112,6 +114,11 @@ export async function runCrisisGate(
     recentTurns: { sender: string; content: string }[];
     /** The person's selected app language; drives the localized crisis copy. */
     language?: string | null;
+    /**
+     * Called (after the event is logged) when the message was flagged but does
+     * NOT interrupt: lets the caller attach the gentle support card for "high".
+     */
+    onFlag?: (severity: "high" | "moderate") => void;
   },
 ): Promise<CrisisGateResult> {
   const language = normalizeLanguage(input.language);
@@ -127,6 +134,7 @@ export async function runCrisisGate(
         severity,
         matched: triage.matched,
       });
+      input.onFlag?.(severity);
       return null;
     }
     const systemMessage = await recordCrisis(supabase, {
@@ -187,6 +195,7 @@ export async function runCrisisGate(
       matched: [],
       notes: semantic.reason,
     });
+    input.onFlag?.(severity);
     return null;
   }
 

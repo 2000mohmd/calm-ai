@@ -17,10 +17,10 @@ screener escalation) is identical on both.
 
 ### 1.1 What you need from the backend team
 
-| Value                           | Where to get it                                                                 |
-| ------------------------------- | ------------------------------------------------------------------------------- |
-| Supabase Project URL            | your Supabase project URL (`https://<ref>.supabase.co`)                         |
-| Supabase publishable (anon) key | your project's publishable key (Settings → API)                                 |
+| Value                           | Where to get it                                                               |
+| ------------------------------- | ----------------------------------------------------------------------------- |
+| Supabase Project URL            | your Supabase project URL (`https://<ref>.supabase.co`)                       |
+| Supabase publishable (anon) key | your project's publishable key (Settings → API)                               |
 | API base URL                    | `https://calmai.site/api/v1`, the deployed web app (see docs/SELF_HOSTING.md) |
 
 The publishable key is meant to be embedded in a client app (it is the
@@ -169,8 +169,7 @@ an expired or revoked token is rejected, not just a malformed one.
 | GET / POST     | `/api/v1/daily-prompt`                 | yes         | today's reflection prompt / answer it                      |
 | GET            | `/api/v1/digests`                      | yes         | weekly summaries                                           |
 | GET / PATCH    | `/api/v1/nudges`                       | yes         | proactive coach cards / dismiss                            |
-| GET            | `/api/v1/care-resources`               | yes         | professional-support options for their region              |
-| GET            | `/api/v1/memories`                     | yes         | "What Kalm remembers about you"                            |
+| GET            | `/api/v1/care-resources`               | yes         | professional-support options for their region              |     | GET | `/api/v1/memories` | yes | "What Kalm remembers about you" |
 | DELETE         | `/api/v1/memories/:id`                 | yes         | forget one memory                                          |
 | GET            | `/api/v1/data-summary`                 | yes         | what data is stored about them (counts)                    |
 | GET            | `/api/v1/screeners`                    | yes         | PHQ-9/GAD-7 state (due dates, history)                     |
@@ -290,10 +289,23 @@ no pre-check ahead of it — this ordering is safety-critical and tested.
     "id": "uuid",
     "content": "…",
     "created_at": "ISO-8601",
-    "actions": [/* see §5.4 */]
+    "actions": [/* see §5.4 */],
+    "support": {
+      "message": "localized gentle note",
+      "resources": [{ "name": "…", "contact": "…", "detail": "…" }]
+    }
   }
 }
 ```
+
+`reply.support` is **optional** and normally absent. It is present only on a
+normal reply to a message the safety gate rated `high` (clear self-harm
+ideation without a plan). Render it as a gentle, non-blocking card under the
+reply bubble (resources use the same shape and source as the crisis card and
+`GET /api/v1/crisis-resources`, localized to the member's language). It is
+not persisted: it is not returned when you reload history, so show it only
+for the reply that carried it. The same `reply.support` appears in the
+`done` event of §5.2.
 
 **Crisis reply** — always the full structured object, never raw text to
 parse:
@@ -320,7 +332,8 @@ this text through your normal message bubble renderer.
 (an explicit plan, method, or timeframe) produces this crisis object in
 ordinary chat. `high`/`moderate` severities are still logged for the admin
 team and still trigger their alert email, but the conversation continues
-normally rather than interrupting the person — do not build client UI that
+normally rather than interrupting the person (`high` additionally attaches the
+optional `reply.support` card described above) — do not build client UI that
 assumes every flagged message shows a crisis card. A flagged message of any
 severity is never answered with a rate-limit / daily-cap notice.
 
@@ -361,7 +374,8 @@ crisis-gate/rate-limiter code path) — the difference is the response is
   companion's reply is generated.
 - Exactly one `event: done` frame at the end, `data:` being the **same JSON
   shape** `POST /api/v1/chat/messages` returns in one shot — so you can
-  reuse one response model for both endpoints.
+  reuse one response model for both endpoints (including the optional
+  `reply.support` of §5.1, which only ever arrives in this final frame).
 - A crisis reply or a rate-limit notice is **never** split into deltas —
   those arrive whole, immediately, as a single `done` event with nothing
   before it.
