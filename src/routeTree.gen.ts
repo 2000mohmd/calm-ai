@@ -36,6 +36,7 @@ import { Route as AuthenticatedAdminSupportRouteImport } from './routes/_authent
 import { Route as AuthenticatedAdminTeamRouteImport } from './routes/_authenticated/admin/team'
 import { Route as ApiPublicGuardianConsentRouteImport } from './routes/api/public/guardian-consent'
 import { Route as ApiPublicUnsubscribeRouteImport } from './routes/api/public/unsubscribe'
+import { Route as ApiPublicWaitlistRouteImport } from './routes/api/public/waitlist'
 import { Route as ApiPublicHealthRouteImport } from './routes/api/public/health'
 import { Route as ApiV1AccountRouteImport } from './routes/api/v1/account'
 import { Route as ApiV1BillingCheckoutRouteImport } from './routes/api/v1/billing/checkout'
@@ -225,6 +226,11 @@ const ApiPublicGuardianConsentRoute =
 const ApiPublicUnsubscribeRoute = ApiPublicUnsubscribeRouteImport.update({
   id: '/api/public/unsubscribe',
   path: '/api/public/unsubscribe',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPublicWaitlistRoute = ApiPublicWaitlistRouteImport.update({
+  id: '/api/public/waitlist',
+  path: '/api/public/waitlist',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiPublicHealthRoute = ApiPublicHealthRouteImport.update({
@@ -528,6 +534,7 @@ export interface FileRoutesByFullPath {
   '/admin/team': typeof AuthenticatedAdminTeamRoute
   '/api/public/guardian-consent': typeof ApiPublicGuardianConsentRoute
   '/api/public/unsubscribe': typeof ApiPublicUnsubscribeRoute
+  '/api/public/waitlist': typeof ApiPublicWaitlistRoute
   '/api/public/health': typeof ApiPublicHealthRoute
   '/api/v1/account': typeof ApiV1AccountRoute
   '/api/v1/billing/checkout': typeof ApiV1BillingCheckoutRoute
@@ -608,6 +615,7 @@ export interface FileRoutesByTo {
   '/admin/team': typeof AuthenticatedAdminTeamRoute
   '/api/public/guardian-consent': typeof ApiPublicGuardianConsentRoute
   '/api/public/unsubscribe': typeof ApiPublicUnsubscribeRoute
+  '/api/public/waitlist': typeof ApiPublicWaitlistRoute
   '/api/public/health': typeof ApiPublicHealthRoute
   '/api/v1/account': typeof ApiV1AccountRoute
   '/api/v1/billing/checkout': typeof ApiV1BillingCheckoutRoute
@@ -691,6 +699,7 @@ export interface FileRoutesById {
   '/_authenticated/admin/team': typeof AuthenticatedAdminTeamRoute
   '/api/public/guardian-consent': typeof ApiPublicGuardianConsentRoute
   '/api/public/unsubscribe': typeof ApiPublicUnsubscribeRoute
+  '/api/public/waitlist': typeof ApiPublicWaitlistRoute
   '/api/public/health': typeof ApiPublicHealthRoute
   '/api/v1/account': typeof ApiV1AccountRoute
   '/api/v1/billing/checkout': typeof ApiV1BillingCheckoutRoute
@@ -774,6 +783,7 @@ export interface FileRouteTypes {
     | '/admin/team'
     | '/api/public/guardian-consent'
     | '/api/public/unsubscribe'
+    | '/api/public/waitlist'
     | '/api/public/health'
     | '/api/v1/account'
     | '/api/v1/billing/checkout'
@@ -854,6 +864,7 @@ export interface FileRouteTypes {
     | '/admin/team'
     | '/api/public/guardian-consent'
     | '/api/public/unsubscribe'
+    | '/api/public/waitlist'
     | '/api/public/health'
     | '/api/v1/account'
     | '/api/v1/billing/checkout'
@@ -936,6 +947,7 @@ export interface FileRouteTypes {
     | '/_authenticated/admin/team'
     | '/api/public/guardian-consent'
     | '/api/public/unsubscribe'
+    | '/api/public/waitlist'
     | '/api/public/health'
     | '/api/v1/account'
     | '/api/v1/billing/checkout'
@@ -1002,6 +1014,7 @@ export interface RootRouteChildren {
   TermsRoute: typeof TermsRoute
   ApiPublicGuardianConsentRoute: typeof ApiPublicGuardianConsentRoute
   ApiPublicUnsubscribeRoute: typeof ApiPublicUnsubscribeRoute
+  ApiPublicWaitlistRoute: typeof ApiPublicWaitlistRoute
   ApiPublicHealthRoute: typeof ApiPublicHealthRoute
   ApiV1AccountRoute: typeof ApiV1AccountRoute
   ApiV1BillingCheckoutRoute: typeof ApiV1BillingCheckoutRoute
@@ -1229,6 +1242,13 @@ declare module '@tanstack/react-router' {
       path: '/api/public/unsubscribe'
       fullPath: '/api/public/unsubscribe'
       preLoaderRoute: typeof ApiPublicUnsubscribeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/waitlist': {
+      id: '/api/public/waitlist'
+      path: '/api/public/waitlist'
+      fullPath: '/api/public/waitlist'
+      preLoaderRoute: typeof ApiPublicWaitlistRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/public/health': {
@@ -1811,6 +1831,7 @@ const rootRouteChildren: RootRouteChildren = {
   TermsRoute: TermsRoute,
   ApiPublicGuardianConsentRoute: ApiPublicGuardianConsentRoute,
   ApiPublicUnsubscribeRoute: ApiPublicUnsubscribeRoute,
+  ApiPublicWaitlistRoute: ApiPublicWaitlistRoute,
   ApiPublicHealthRoute: ApiPublicHealthRoute,
   ApiV1AccountRoute: ApiV1AccountRoute,
   ApiV1BillingCheckoutRoute: ApiV1BillingCheckoutRoute,

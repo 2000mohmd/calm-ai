@@ -119,6 +119,24 @@ is not you, review `select * from public.user_roles;` and remove stale grants.
 - [ ] Unsubscribe link in a proactive email works.
 - [ ] `https://calmai.site/robots.txt` loads.
 
+## Waitlist
+
+The landing page "get notified" form writes to `public.waitlist_signups` (service role only;
+no client access). It is rate limited (5 per hour per hashed client, 300 per hour overall).
+Apply migration `20260918000000_waitlist.sql` before launch.
+
+Export (Supabase SQL editor):
+
+```sql
+select email, source, created_at from public.waitlist_signups order by created_at;
+```
+
+Delete a person on request (they ask via Support or by replying to an email):
+
+```sql
+delete from public.waitlist_signups where lower(email) = lower('person@example.com');
+```
+
 ## G. Backups and monitoring
 
 - Supabase automatic daily backups and point-in-time recovery need the **Pro** plan. This app

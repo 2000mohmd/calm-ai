@@ -113,6 +113,18 @@ const SECTIONS: LegalSection[] = [
     ),
   },
   {
+    heading: "Waitlist",
+    body: (
+      <p>
+        If you join the notify list on our website we store your email address and the page you
+        signed up from. We use it only to tell you about launches of paid plans, voice and the
+        iPhone and Android apps. We keep it until you ask us to delete it or the list is closed; you
+        can ask through Support in the app or by replying to any email we send. It is not shared or
+        sold.
+      </p>
+    ),
+  },
+  {
     heading: "Age and guardian consent",
     body: (
       <p>
@@ -157,7 +169,7 @@ function PrivacyPage() {
   return (
     <LegalDocument
       title="Privacy Policy"
-      updated="2026-11-17"
+      updated="2026-11-18"
       intro="This policy explains what Calm AI collects about you, who helps us process it, and the control you have over it."
       sections={SECTIONS}
     />
