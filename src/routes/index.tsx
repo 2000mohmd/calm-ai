@@ -379,7 +379,7 @@ function Index() {
             <nav
               aria-label="Sections"
               className="flex flex-col gap-1 rounded-3xl p-3 shadow-[0_26px_54px_-24px_rgba(23,23,40,.9)]"
-              style={{ background: "rgba(23,23,40,.97)" }}
+              style={{ background: "#171728" }}
             >
               {MENU_LINKS.map((l) => (
                 <a
