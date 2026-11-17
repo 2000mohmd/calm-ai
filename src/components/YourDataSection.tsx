@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useTranslation } from "@/lib/i18n";
 
-/** Plain-language view of what Kalm stores, plus a shareable report export. */
+/** Plain-language view of what Calm AI stores, plus a shareable report export. */
 export function YourDataSection() {
   const { t } = useTranslation();
   const fetchSummary = useServerFn(getMyDataSummary);

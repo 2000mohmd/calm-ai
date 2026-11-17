@@ -65,13 +65,13 @@ function PlanControl({ userId, current }: { userId: string; current: string }) {
 export const Route = createFileRoute("/_authenticated/admin/users/$userId")({
   head: () => ({
     meta: [
-      { title: "Member detail — Kalm admin" },
+      { title: "Member detail — Calm AI admin" },
       {
         name: "description",
         content:
-          "Admin view of one Kalm member: self-introduction, mood trend, activity summary, and crisis event history.",
+          "Admin view of one Calm AI member: self-introduction, mood trend, activity summary, and crisis event history.",
       },
-      { property: "og:title", content: "Member detail — Kalm admin" },
+      { property: "og:title", content: "Member detail — Calm AI admin" },
       {
         property: "og:description",
         content: "Self-introduction, mood trend, activity, and crisis history for one member.",

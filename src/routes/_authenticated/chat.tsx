@@ -36,13 +36,13 @@ import { getEntitlements } from "@/lib/entitlements.functions";
 export const Route = createFileRoute("/_authenticated/chat")({
   head: () => ({
     meta: [
-      { title: "Talk it through — Kalm companion" },
+      { title: "Talk it through — Calm AI companion" },
       {
         name: "description",
         content:
           "A warm AI companion that remembers your introduction, goals and recent check-ins — with crisis support built in.",
       },
-      { property: "og:title", content: "Talk it through — Kalm companion" },
+      { property: "og:title", content: "Talk it through — Calm AI companion" },
       {
         property: "og:description",
         content:

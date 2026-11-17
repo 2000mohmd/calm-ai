@@ -7,16 +7,16 @@ import { useTranslation } from "@/lib/i18n";
 export const Route = createFileRoute("/legal")({
   head: () => ({
     meta: [
-      { title: "Disclaimers, privacy & terms — Kalm" },
+      { title: "Disclaimers, privacy & terms — Calm AI" },
       {
         name: "description",
         content:
-          "How Kalm handles sensitive wellness data, what the AI companion is and isn't, and your data rights.",
+          "How Calm AI handles sensitive wellness data, what the AI companion is and isn't, and your data rights.",
       },
-      { property: "og:title", content: "Disclaimers, privacy & terms — Kalm" },
+      { property: "og:title", content: "Disclaimers, privacy & terms — Calm AI" },
       {
         property: "og:description",
-        content: "What Kalm is, what it isn't, and how your wellness data is handled.",
+        content: "What Calm AI is, what it isn't, and how your wellness data is handled.",
       },
     ],
   }),

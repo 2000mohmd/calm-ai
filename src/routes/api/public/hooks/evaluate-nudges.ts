@@ -100,7 +100,7 @@ async function sweep(request: Request): Promise<Response> {
   }
 
   // --- 2b. Deliver proactive email (nudges + weekly digests generated on
-  // earlier sweeps). Content-free "there's something for you in Kalm"
+  // earlier sweeps). Content-free "there's something for you in Calm AI"
   // only; respects profiles.email_opt_out; stamps emailed_at so nothing
   // sends twice. Small budget slice — never starves the coaching pass. ---
   let emails = { nudgeEmails: 0, digestEmails: 0, skippedOptOut: 0, failed: 0 };

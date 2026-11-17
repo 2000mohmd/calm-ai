@@ -22,16 +22,17 @@ export const Route = createFileRoute("/_authenticated/support")({
   validateSearch: z.object({ thread: z.string().uuid().optional() }),
   head: () => ({
     meta: [
-      { title: "Contact support — Kalm" },
+      { title: "Contact support — Calm AI" },
       {
         name: "description",
         content:
-          "Message the Kalm team about your account, billing, or feedback, and read replies right here in the app.",
+          "Message the Calm AI team about your account, billing, or feedback, and read replies right here in the app.",
       },
-      { property: "og:title", content: "Contact support — Kalm" },
+      { property: "og:title", content: "Contact support — Calm AI" },
       {
         property: "og:description",
-        content: "Message the Kalm team about account questions and read their replies in the app.",
+        content:
+          "Message the Calm AI team about account questions and read their replies in the app.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },

@@ -90,7 +90,7 @@ describe("deliverProactiveEmails", () => {
     expect(res.nudgeEmails).toBe(1);
     expect(h.sent).toHaveLength(1);
     expect(h.sent[0]!.to).toBe("u1@example.com");
-    expect(h.sent[0]!.subject).toBe("A note from Kalm");
+    expect(h.sent[0]!.subject).toBe("A note from Calm AI");
     expect(h.state.updates).toContainEqual({ table: "nudges", id: "n1" });
   });
 
@@ -151,7 +151,7 @@ describe("deliverProactiveEmails", () => {
     const res = await deliverProactiveEmails(fakeAdmin());
 
     expect(res.digestEmails).toBe(1);
-    expect(h.sent[0]!.subject).toBe("Your week in Kalm is ready");
+    expect(h.sent[0]!.subject).toBe("Your week in Calm AI is ready");
     expect(h.state.updates).toContainEqual({ table: "weekly_digests", id: "d1" });
   });
 

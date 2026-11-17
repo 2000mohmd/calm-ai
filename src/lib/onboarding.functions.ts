@@ -97,7 +97,7 @@ export async function completeOnboardingCore(
     const age = ageFromDateOfBirth(data.date_of_birth);
     if (age === null) throw new UserInputError("Invalid date of birth");
     if (age < MIN_AGE) {
-      throw new UserInputError(`Kalm is for people aged ${MIN_AGE} and over.`);
+      throw new UserInputError(`Calm AI is for people aged ${MIN_AGE} and over.`);
     }
     if (age < MINOR_AGE && data.guardian_email) {
       assertGuardianEmailAllowed(data.guardian_email, accountEmail);
@@ -225,7 +225,7 @@ export async function completeOnboardingCore(
       if (threadId) {
         const opening = await generateReaction(
           [
-            `${data.preferred_name} has just finished setting up their Kalm profile. This is the very first message in the conversation and they haven't written anything yet — you are opening it.`,
+            `${data.preferred_name} has just finished setting up their Calm AI profile. This is the very first message in the conversation and they haven't written anything yet — you are opening it.`,
             data.intro_text ? `In their own words: "${data.intro_text}"` : "",
             data.goals.length ? `Goals they picked: ${data.goals.join(", ")}.` : "",
             data.stressors.length ? `Stressors they named: ${data.stressors.join(", ")}.` : "",

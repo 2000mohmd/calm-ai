@@ -38,7 +38,7 @@ function AdminLayout() {
             <p className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
               Internal
             </p>
-            <p className="font-display text-lg leading-tight">Kalm admin</p>
+            <p className="font-display text-lg leading-tight">Calm AI admin</p>
           </div>
           <Button asChild variant="ghost" size="sm">
             <Link to="/chat">
@@ -59,7 +59,7 @@ function AdminLayout() {
               This area is for administrators only.
             </p>
             <Button asChild variant="secondary" className="mt-4">
-              <Link to="/chat">Back to Kalm</Link>
+              <Link to="/chat">Back to Calm AI</Link>
             </Button>
           </div>
         ) : (

@@ -116,28 +116,28 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Kalm — Calm, private AI mental wellness support" },
+      { title: "Calm AI — Private mental wellness support" },
       {
         name: "description",
         content:
-          "Kalm blends an AI companion, mood and habit tracking, and guided CBT exercises into one calm daily wellness practice.",
+          "Calm AI blends an AI companion, mood and habit tracking, and guided CBT exercises into one calm daily wellness practice.",
       },
-      { name: "author", content: "Kalm" },
-      { property: "og:title", content: "Kalm — Calm, private AI mental wellness support" },
+      { name: "author", content: "Calm AI" },
+      { property: "og:title", content: "Calm AI — Private mental wellness support" },
       {
         property: "og:description",
         content:
-          "Kalm blends an AI companion, mood and habit tracking, and guided CBT exercises into one calm daily wellness practice.",
+          "Calm AI blends an AI companion, mood and habit tracking, and guided CBT exercises into one calm daily wellness practice.",
       },
       { property: "og:type", content: "website" },
-      { property: "og:site_name", content: "Kalm" },
+      { property: "og:site_name", content: "Calm AI" },
       { name: "theme-color", content: "#ffffff" },
       { name: "twitter:card", content: "summary_large_image" },
-      { name: "twitter:title", content: "Kalm — Calm, private AI mental wellness support" },
+      { name: "twitter:title", content: "Calm AI — Private mental wellness support" },
       {
         name: "twitter:description",
         content:
-          "Kalm blends an AI companion, mood and habit tracking, and guided CBT exercises into one calm daily wellness practice.",
+          "Calm AI blends an AI companion, mood and habit tracking, and guided CBT exercises into one calm daily wellness practice.",
       },
     ],
     links: [

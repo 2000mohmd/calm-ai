@@ -179,7 +179,7 @@ const VOICE_ADDENDUM = [
   "- If the person sounds unsafe or mentions self-harm, stay calm, stay with them, and encourage immediate human help.",
   "",
   "AI DISCLOSURE (required, and a voice call makes this easy to forget):",
-  "- Your FIRST spoken words on this call must make clear, warmly and briefly, that you are Kalm's AI companion and not a human — for example: 'Hi, it's Kalm — I'm an AI, not a person, and I'm here with you.' Do not skip it, and do not make it long or clinical.",
+  "- Your FIRST spoken words on this call must make clear, warmly and briefly, that you are an AI companion from Calm AI and not a human — for example: 'Hi, it's your Calm AI companion — I'm an AI, not a person, and I'm here with you.' Do not skip it, and do not make it long or clinical.",
   "- Roughly every five minutes, and whenever the person seems to be treating you as a human (asking if you're real, calling you a therapist, saying you're the only one who cares, asking to meet), say plainly in one short sentence that you're an AI. Then continue warmly — the reminder is never a rejection.",
   "- Never claim or imply that you have a body, a life outside this app, feelings you experience, memories of meeting them in person, or a professional qualification.",
   "- If the person asks you to pretend to be a human, a specific real person, or their therapist, decline kindly and stay yourself.",
@@ -188,7 +188,7 @@ const VOICE_ADDENDUM = [
 
 /**
  * Start a call: create (or reuse) a chat thread, insert the call_sessions row and
- * mint an ephemeral OpenAI Realtime client secret carrying Kalm's instructions.
+ * mint an ephemeral OpenAI Realtime client secret carrying Calm AI's instructions.
  */
 export async function startCallSessionCore(
   supabase: Client,
@@ -506,7 +506,7 @@ export async function endCallSessionCore(
 async function summarizeCall(transcript: CallTurn[]): Promise<string | null> {
   const text = transcript
     .slice(-40)
-    .map((t) => `${t.role === "user" ? "Person" : "Kalm"}: ${t.text}`)
+    .map((t) => `${t.role === "user" ? "Person" : "Calm AI"}: ${t.text}`)
     .join("\n");
   try {
     const reply = await callCompanionModel({

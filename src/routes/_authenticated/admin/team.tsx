@@ -22,16 +22,16 @@ import { changeUserRole, listTeam, searchUsersForRole } from "@/lib/admin-suppor
 export const Route = createFileRoute("/_authenticated/admin/team")({
   head: () => ({
     meta: [
-      { title: "Team & roles — Kalm admin" },
+      { title: "Team & roles — Calm AI admin" },
       {
         name: "description",
         content:
-          "Super-admin only: grant or revoke admin access for Kalm, with every change written to the audit log.",
+          "Super-admin only: grant or revoke admin access for Calm AI, with every change written to the audit log.",
       },
-      { property: "og:title", content: "Team & roles — Kalm admin" },
+      { property: "og:title", content: "Team & roles — Calm AI admin" },
       {
         property: "og:description",
-        content: "Manage who can review crisis events and answer support in Kalm.",
+        content: "Manage who can review crisis events and answer support in Calm AI.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
@@ -293,7 +293,7 @@ function AdminTeamPage() {
             </AlertDialogTitle>
             <AlertDialogDescription>
               {pending?.role === "super_admin"
-                ? "Super admin is the highest privilege in Kalm — it controls who else can administer the app. Confirm you intend to "
+                ? "Super admin is the highest privilege in Calm AI — it controls who else can administer the app. Confirm you intend to "
                 : "This changes who can review crisis events, read member summaries and answer support. Confirm you intend to "}
               {pending?.grant ? "grant " : "revoke "}
               {pending?.label}.

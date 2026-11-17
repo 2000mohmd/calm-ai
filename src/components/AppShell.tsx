@@ -52,7 +52,7 @@ export function AppShell({ children }: { children: ReactNode }) {
         <header className="sticky top-0 z-20 flex items-center gap-1 border-b border-border/70 bg-background/85 px-3 py-2 backdrop-blur md:hidden">
           <Link to="/chat" className="mr-auto flex items-center gap-2 font-display text-lg">
             <KalmLogo className="size-5 text-primary" aria-hidden />
-            Kalm
+            Calm AI
           </Link>
           {SIDEBAR_NAV.map(({ to, labelKey, icon: Icon }) => (
             <Link

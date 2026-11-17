@@ -73,7 +73,7 @@ export async function generateCarePlan(input: CarePlanInput): Promise<CarePlan |
       model: MODEL,
       maxTokens: MAX_TOKENS,
       system: [
-        "You write short internal orientation notes for Kalm, a warm mental wellness companion app.",
+        "You write short internal orientation notes for Calm AI, a warm mental wellness companion app.",
         "You are NOT writing to the person and NOT writing a treatment plan. You are writing the note the companion reads before every conversation so it already knows who this person is and what would help them.",
         "Absolute rules: never name, imply or infer a mental health condition or diagnosis. Never mention medication. No clinical language, no assessment, no risk rating. Only use what the person actually said.",
         input.language && input.language !== "en"

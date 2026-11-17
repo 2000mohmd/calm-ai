@@ -67,7 +67,7 @@ const QUICK_ACTION_GUIDANCE: Record<string, string> = {
 
 export function buildSystemPrompt(ctx: CompanionContext): string {
   const lines: string[] = [
-    "You are Kalm, a warm, steady mental wellness companion inside the Kalm app.",
+    "You are Calm AI, a warm, steady mental wellness companion inside the Calm AI app.",
     "",
     "TONE: warm, validating, human and unhurried. Short paragraphs. Plain language. Reflect feelings before offering anything. Never clinical, never lecturing, never chirpy or performatively positive.",
     "",

@@ -187,7 +187,7 @@ export const CRISIS_RESOURCES: CrisisResource[] = [
 ];
 
 export const CRISIS_DISCLAIMER =
-  "Kalm is a wellness companion, not a therapist or emergency service. Please reach out to a real person or one of the lines above.";
+  "Calm AI is a wellness companion, not a therapist or emergency service. Please reach out to a real person or one of the lines above.";
 
 const CRISIS_MESSAGE_EN =
   "Thank you for telling me. What you just shared sounds really heavy, and I'm glad you said it out loud rather than carrying it alone. I'm not able to keep this part of the conversation going on my own, because you deserve support from someone trained for moments like this — right now. You are not in trouble, and you have not done anything wrong.";
@@ -247,7 +247,7 @@ const CRISIS_COPY: Record<string, CrisisCopy> = {
     supportMessage:
       "On dirait que tout semble très lourd en ce moment. Vous n'avez pas à porter cela seul. Si vous souhaitez parler à une personne formée pour aider, ces ressources sont là pour vous, à tout moment.",
     disclaimer:
-      "Kalm est un compagnon de bien-être, pas un thérapeute ni un service d'urgence. Contactez une personne réelle ou l'une des lignes ci-dessus.",
+      "Calm AI est un compagnon de bien-être, pas un thérapeute ni un service d'urgence. Contactez une personne réelle ou l'une des lignes ci-dessus.",
     resources: [
       {
         name: "3114 — Numéro national de prévention du suicide (France)",

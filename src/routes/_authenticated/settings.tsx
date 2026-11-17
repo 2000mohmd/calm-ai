@@ -35,16 +35,16 @@ import {
 export const Route = createFileRoute("/_authenticated/settings")({
   head: () => ({
     meta: [
-      { title: "Your profile & data — Kalm" },
+      { title: "Your profile & data — Calm AI" },
       {
         name: "description",
         content:
-          "Review what Kalm knows about you, your account mode, and delete your data anytime.",
+          "Review what Calm AI knows about you, your account mode, and delete your data anytime.",
       },
-      { property: "og:title", content: "Your profile & data — Kalm" },
+      { property: "og:title", content: "Your profile & data — Calm AI" },
       {
         property: "og:description",
-        content: "Review what Kalm knows about you and delete your data anytime.",
+        content: "Review what Calm AI knows about you and delete your data anytime.",
       },
     ],
   }),

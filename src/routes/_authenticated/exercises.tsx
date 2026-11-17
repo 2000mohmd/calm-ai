@@ -15,13 +15,13 @@ import { useTranslation } from "@/lib/i18n";
 export const Route = createFileRoute("/_authenticated/exercises")({
   head: () => ({
     meta: [
-      { title: "Guided exercises — Kalm" },
+      { title: "Guided exercises — Calm AI" },
       {
         name: "description",
         content:
           "Work through CBT thought records, behavioral activation, grounding, box breathing and worry-time journaling at your own pace.",
       },
-      { property: "og:title", content: "Guided exercises — Kalm" },
+      { property: "og:title", content: "Guided exercises — Calm AI" },
       {
         property: "og:description",
         content:

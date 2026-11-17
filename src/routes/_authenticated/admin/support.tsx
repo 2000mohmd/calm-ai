@@ -25,13 +25,13 @@ import { SUPPORT_STATUS_LABELS } from "@/lib/support.functions";
 export const Route = createFileRoute("/_authenticated/admin/support")({
   head: () => ({
     meta: [
-      { title: "Support inbox — Kalm admin" },
+      { title: "Support inbox — Calm AI admin" },
       {
         name: "description",
         content:
-          "Internal inbox for account and product support threads from Kalm members, with replies and status tracking.",
+          "Internal inbox for account and product support threads from Calm AI members, with replies and status tracking.",
       },
-      { property: "og:title", content: "Support inbox — Kalm admin" },
+      { property: "og:title", content: "Support inbox — Calm AI admin" },
       {
         property: "og:description",
         content: "Reply to member support threads and track their status.",
@@ -204,7 +204,7 @@ function AdminSupportPage() {
                 >
                   <p className="mb-1 text-[11px] uppercase tracking-wide text-muted-foreground">
                     {message.sender === "admin"
-                      ? "Kalm support"
+                      ? "Calm AI support"
                       : (detail.data.thread.preferred_name ?? "Member")}{" "}
                     · {new Date(message.created_at).toLocaleString()}
                   </p>

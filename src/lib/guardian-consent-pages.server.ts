@@ -26,7 +26,7 @@ function page(title: string, body: string): Response {
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <meta name="robots" content="noindex" />
-<title>${title} — Kalm</title>
+<title>${title} — Calm AI</title>
 <style>
   body { margin:0; min-height:100vh; display:flex; align-items:center; justify-content:center;
          background:#f4f2fb; color:#241f36; font-family:ui-sans-serif,system-ui,-apple-system,sans-serif; padding:24px; }
@@ -69,7 +69,7 @@ export function confirmPage(token: string, action: ConsentAction): Response {
     ? page(
         "Give permission?",
         [
-          "<p>Someone in your care has asked to use Kalm, a wellness companion app with an AI companion, mood check-ins and guided exercises. It is not a therapist, a doctor or an emergency service.</p>",
+          "<p>Someone in your care has asked to use Calm AI, a wellness companion app with an AI companion, mood check-ins and guided exercises. It is not a therapist, a doctor or an emergency service.</p>",
           "<p>If it ever detects that someone may be in danger, it stops the conversation, shows real crisis helplines, and alerts our safety team.</p>",
           form,
         ].join(""),
@@ -103,7 +103,7 @@ export function resultPage(result: ConsentActionResult): Response {
       "Thank you — permission given",
       [
         "<p>Their account is now active. They can use the companion, the exercises and the check-ins.</p>",
-        "<p>Kalm is a wellness companion, not a therapist or an emergency service. If it ever detects that someone may be in danger, it stops the conversation, shows real crisis helplines, and alerts our safety team.</p>",
+        "<p>Calm AI is a wellness companion, not a therapist or an emergency service. If it ever detects that someone may be in danger, it stops the conversation, shows real crisis helplines, and alerts our safety team.</p>",
         "<p>You can withdraw this permission at any time using the withdraw link in the same email.</p>",
       ].join(""),
     );

@@ -30,7 +30,7 @@ Where it lives — entirely in chat:
 - A persistent "Talk to a human" button in the chat header, plus a prominent one inside the crisis card whenever a moment is flagged.
 - Pressing it creates a **human support request**: status queued, the flagged severity, and an AI-written short summary of what is going on (last few turns condensed, no raw transcript dump beyond what the reviewer needs), plus their preferred name, language, and time zone.
 - The member sees an immediate acknowledgement: request received, someone will reply here, and the crisis lines stay visible while they wait — never a spinner that implies a human is already reading.
-- Admin panel gets a **Human support** queue: newest and most urgent first, claim / respond / close, with a live unclaimed count badge in the admin nav so it works as a 24/7 desk. Replies land back in the member's chat as clearly-labelled human messages ("Kalm team", not the companion).
+- Admin panel gets a **Human support** queue: newest and most urgent first, claim / respond / close, with a live unclaimed count badge in the admin nav so it works as a 24/7 desk. Replies land back in the member's chat as clearly-labelled human messages ("Calm AI team", not the companion).
 - Every request also fires the existing admin alert email, and joins the existing 30-minute unreviewed escalation sweep.
 
 ## 3. AI-disclosure reminders in voice calls
@@ -43,7 +43,7 @@ Where it lives — entirely in chat:
 ## 4. Parental consent for 13-17
 
 - When the server computes an age under 18 during onboarding, the account enters `awaiting_guardian_consent` instead of going straight to chat.
-- The teen enters a parent/guardian email. We send that guardian a consent request explaining plainly what Kalm is, what it is not, what data is kept, and how to withdraw consent.
+- The teen enters a parent/guardian email. We send that guardian a consent request explaining plainly what Calm AI is, what it is not, what data is kept, and how to withdraw consent.
 - The guardian approves through a signed one-time link (no account needed). We store who consented, when, from what email, and the IP, as the audit record.
 - Until consent lands, the chat screen itself shows a waiting state in place of the composer, with full crisis resources available — safety is never gated — and companion replies and voice calls held back. No extra page.
 - Guardians can withdraw consent later through the same link, which returns the account to the waiting state.
@@ -61,5 +61,5 @@ Where it lives — entirely in chat:
 
 ## Open choices (defaults above unless you say otherwise)
 
-- Human replies land in the member's existing chat thread, labelled as the Kalm team. The alternative is a separate "Talk to a human" thread.
+- Human replies land in the member's existing chat thread, labelled as the Calm AI team. The alternative is a separate "Talk to a human" thread.
 - Guardian consent is email-link based. Stronger verification (card check, ID) exists but is heavier and usually unnecessary for this risk tier.

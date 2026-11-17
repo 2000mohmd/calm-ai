@@ -1,6 +1,6 @@
-# Kalm Mobile API — connecting the Flutter app
+# Calm AI Mobile API — connecting the Flutter app
 
-This is the complete, verified contract between the Flutter app and the Kalm
+This is the complete, verified contract between the Flutter app and the Calm AI
 backend. Every endpoint here calls the **same server-side logic the web app
 uses** — nothing is reimplemented, so behavior (crisis handling, rate limits,
 screener escalation) is identical on both.
@@ -169,7 +169,7 @@ an expired or revoked token is rejected, not just a malformed one.
 | GET / POST     | `/api/v1/daily-prompt`                 | yes         | today's reflection prompt / answer it                      |
 | GET            | `/api/v1/digests`                      | yes         | weekly summaries                                           |
 | GET / PATCH    | `/api/v1/nudges`                       | yes         | proactive coach cards / dismiss                            |
-| GET            | `/api/v1/care-resources`               | yes         | professional-support options for their region              |     | GET | `/api/v1/memories` | yes | "What Kalm remembers about you" |
+| GET            | `/api/v1/care-resources`               | yes         | professional-support options for their region              |     | GET | `/api/v1/memories` | yes | "What Calm AI remembers about you" |
 | DELETE         | `/api/v1/memories/:id`                 | yes         | forget one memory                                          |
 | GET            | `/api/v1/data-summary`                 | yes         | what data is stored about them (counts)                    |
 | GET            | `/api/v1/screeners`                    | yes         | PHQ-9/GAD-7 state (due dates, history)                     |
@@ -240,7 +240,7 @@ Calls the same core the web onboarding flow uses.
 
 **Response `200`:** `{ "ok": true }`.
 **Errors:** `400` for a malformed body, a non-`YYYY-MM-DD` DOB, or an
-under-13 DOB (`"Kalm is for people aged 13 and over."`).
+under-13 DOB (`"Calm AI is for people aged 13 and over."`).
 
 ### `GET /api/v1/profile`
 
@@ -466,7 +466,7 @@ join (the member asked for a real person). Open/refresh the human-support view
 
 ### 5.5 In-chat human support ("Talk to a human")
 
-A member can ask a **real human coach** from the Kalm team to join their
+A member can ask a **real human coach** from the Calm AI team to join their
 conversation. On the web this is the "Talk to a human" button in the chat
 header (and inside the crisis card); the companion can also open a request
 itself (the `human_support_requested` action, §5.4). Staff answer from the
@@ -497,8 +497,8 @@ reachable from the crisis card.
    - as a chat message with `content_type: "human_support"` in their
      conversation, **only if the request was opened with a `thread_id`**.
      Always send one.
-     A content-free push notification also goes out ("Kalm team" / "Someone
-     from the Kalm team replied to you."), once push is configured (§14). It
+     A content-free push notification also goes out ("Calm AI team" / "Someone
+     from the Calm AI team replied to you."), once push is configured (§14). It
      carries no data payload: on tap, open the chat and refresh this endpoint.
 4. The member replies with `POST /api/v1/human-support/messages`.
 5. Staff close the request when done (status `closed`). The next
@@ -552,7 +552,7 @@ Their current request, or the most recent closed one:
 
 `coach_available`: whether they may open a NEW request (paid tier). `request: null` = they've never asked. `queued` = waiting for a person,
 `claimed` = a coach has picked it up / replied, `closed` = finished. Render
-`human` messages clearly as a person from the Kalm team, never as the AI.
+`human` messages clearly as a person from the Calm AI team, never as the AI.
 `severity` is the most recent safety flag from the last 6 hours, for the
 team; don't show it to the member.
 
@@ -1076,7 +1076,7 @@ Professional-support options for the member's region (by their language):
 
 ### `GET /api/v1/memories` · `DELETE /api/v1/memories/:id`
 
-"What Kalm remembers about you" (Settings): short summaries the companion
+"What Calm AI remembers about you" (Settings): short summaries the companion
 keeps of past conversations.
 GET → `[ { "id": "uuid", "summary_text": "…", "created_at": "ISO-8601" } ]`
 (a bare array, newest first, up to 100). DELETE → `{ "ok": true }`; the
@@ -1113,7 +1113,7 @@ Keys: `mood_logs`, `habit_logs`, `screener_responses`, `thread_summaries`,
 A therapist-shareable plain-text report.
 
 ```json
-{ "filename": "kalm-report-2026-09-16.txt", "content": "KALM WELLNESS REPORT\n…" }
+{ "filename": "kalm-report-2026-09-16.txt", "content": "CALM AI WELLNESS REPORT\n…" }
 ```
 
 Save/share `content` as a `.txt` file (e.g. via `share_plus`).
@@ -1280,7 +1280,7 @@ server-side by the time you get this response.
 
 **Two token kinds are accepted** by `POST /api/v1/push/register-token`:
 
-- **Expo push tokens** (`ExponentPushToken[…]`), what the Kalm Expo app
+- **Expo push tokens** (`ExponentPushToken[…]`), what the Calm AI Expo app
   (`kalm-mobile`) registers. The backend sends these through Expo's push
   service, which delivers to iOS and Android using the APNs key and FCM
   credentials uploaded to the Expo project. No server-side key needed
@@ -1317,7 +1317,7 @@ the chat and refresh):
 | When                                         | Notes                                                                                   |
 | -------------------------------------------- | --------------------------------------------------------------------------------------- |
 | The companion checks in after ~12 h of quiet | body is the companion's message; off unless `CHAT_CHECKIN_ENABLED` is set on the server |
-| A human coach replies (§5.5)                 | content-free: "Kalm team" / "Someone from the Kalm team replied to you."                |
+| A human coach replies (§5.5)                 | content-free: "Calm AI team" / "Someone from the Calm AI team replied to you."          |
 
 ---
 

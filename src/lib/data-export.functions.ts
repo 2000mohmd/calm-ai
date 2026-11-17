@@ -111,7 +111,7 @@ export const buildMyReport = createServerFn({ method: "GET" })
         : null;
 
     const lines: string[] = [
-      "KALM WELLNESS REPORT",
+      "CALM AI WELLNESS REPORT",
       `Prepared for: ${profile.data?.preferred_name ?? "you"}`,
       `Generated: ${new Date().toLocaleString()}`,
       "",

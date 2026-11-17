@@ -191,7 +191,7 @@ const SUBMIT_SCREENER_IN_CHAT: AnthropicTool = {
 const REQUEST_HUMAN_SUPPORT: AnthropicTool = {
   name: "request_human_support",
   description:
-    "Ask a real human mental-health coach from the Kalm team to join this conversation. Use when the person asks for a real person/human/therapist/coach, or clearly needs more help than you can give. Creates a request with a summary; their replies then go to the human coach in the app.",
+    "Ask a real human mental-health coach from the Calm AI team to join this conversation. Use when the person asks for a real person/human/therapist/coach, or clearly needs more help than you can give. Creates a request with a summary; their replies then go to the human coach in the app.",
   input_schema: {
     type: "object",
     properties: {

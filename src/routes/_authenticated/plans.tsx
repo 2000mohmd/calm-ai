@@ -21,9 +21,9 @@ import { useTranslation } from "@/lib/i18n";
 export const Route = createFileRoute("/_authenticated/plans")({
   head: () => ({
     meta: [
-      { title: "Plans — Kalm" },
-      { name: "description", content: "Kalm plans and pricing." },
-      { property: "og:title", content: "Plans — Kalm" },
+      { title: "Plans — Calm AI" },
+      { name: "description", content: "Calm AI plans and pricing." },
+      { property: "og:title", content: "Plans — Calm AI" },
       { property: "og:type", content: "website" },
     ],
   }),

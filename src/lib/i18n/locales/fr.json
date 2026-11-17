@@ -40,7 +40,7 @@
     "companionNote": "Votre compagnon répondra dans cette langue."
   },
   "safety": {
-    "disclaimer": "Kalm ne fournit ni avis médical ni services d'urgence.",
+    "disclaimer": "Calm AI ne fournit ni avis médical ni services d'urgence.",
     "getCrisisSupport": "Obtenir de l'aide en cas de crise"
   },
   "auth": {
@@ -58,7 +58,7 @@
     "continueWithGoogle": "Continuer avec Google",
     "termsPrefix": "En continuant, vous acceptez nos",
     "termsLink": "conditions et notre avis de confidentialité",
-    "termsSuffix": ". Kalm est un soutien au bien-être, pas une thérapie ni des soins d'urgence.",
+    "termsSuffix": ". Calm AI est un soutien au bien-être, pas une thérapie ni des soins d'urgence.",
     "continueWithApple": "Continuer avec Apple",
     "appleFailed": "La connexion avec Apple n'a pas abouti. Veuillez réessayer.",
     "magicTitle": "Se connecter avec un lien",
@@ -72,7 +72,7 @@
   },
   "landing": {
     "headline": "Un espace plus calme pour faire le point avec vous-même.",
-    "subhead": "Kalm est un compagnon de soutien au bien-être — conversation avec une IA, suivi de l'humeur et exercices guidés, construits autour de ce que vous lui confiez de votre vie.",
+    "subhead": "Calm AI est un compagnon de soutien au bien-être — conversation avec une IA, suivi de l'humeur et exercices guidés, construits autour de ce que vous lui confiez de votre vie.",
     "createAccount": "Créer votre compte",
     "alreadyHere": "Déjà inscrit ?",
     "pillars": {
@@ -90,7 +90,7 @@
       }
     },
     "supportTitle": "Un soutien, pas un traitement",
-    "supportBody": "Kalm est un outil de soutien au bien-être. Ce n'est ni une thérapie, ni un diagnostic, ni un service d'urgence. Chaque conversation est analysée pour détecter un langage de crise, et les ressources de crise sont toujours accessibles en un geste, jamais derrière un paiement.",
+    "supportBody": "Calm AI est un outil de soutien au bien-être. Ce n'est ni une thérapie, ni un diagnostic, ni un service d'urgence. Chaque conversation est analysée pour détecter un langage de crise, et les ressources de crise sont toujours accessibles en un geste, jamais derrière un paiement.",
     "crisisResources": "Ressources de crise",
     "privacyDisclaimers": "Confidentialité et mentions"
   },
@@ -112,14 +112,14 @@
     "greeting": "Bonjour.",
     "emptyPrompt": "Qu'avez-vous en tête en ce moment ? Écrivez-le, ou maintenez le micro et parlez simplement.",
     "listening": "J'écoute votre note vocale…",
-    "thinking": "Kalm réfléchit…",
+    "thinking": "Calm AI réfléchit…",
     "inputPlaceholder": "Écrivez un message…",
     "recordingHint": "Enregistrement… appuyez sur stop quand vous avez terminé",
     "enterToSend": "Entrée pour envoyer",
     "stopRecording": "Arrêter l'enregistrement",
     "recordVoice": "Enregistrer un message vocal",
     "sendMessage": "Envoyer le message",
-    "disclaimer": "Kalm est un compagnon IA, pas un thérapeute. En cas de crise, utilisez l'aide immédiate.",
+    "disclaimer": "Calm AI est un compagnon IA, pas un thérapeute. En cas de crise, utilisez l'aide immédiate.",
     "limitCoachMessage": "Nous avons atteint la limite de messages de votre forfait pour aujourd'hui. Passez à un forfait supérieur pour que nous puissions continuer ensemble — j'aimerais poursuivre avec vous.",
     "limitStillHere": "L'aide en cas de crise est toujours disponible, et je serai là demain.",
     "introLimitMessage": "J'ai vraiment apprécié faire ta connaissance. Notre première conversation a atteint sa limite pour le moment, et d'autres conversations s'ouvriront avec un forfait.",
@@ -134,7 +134,7 @@
   },
   "onboarding": {
     "stepLabel": "Étape {{current}} sur {{total}}",
-    "saved": "Tout est prêt. Bienvenue sur Kalm.",
+    "saved": "Tout est prêt. Bienvenue sur Calm AI.",
     "saveFailed": "Nous n'avons pas pu enregistrer votre profil. Veuillez réessayer.",
     "finishSetup": "Terminer la configuration",
     "steps": {
@@ -145,19 +145,19 @@
     },
     "consent": {
       "title": "Avant de commencer",
-      "body": "Kalm est un outil de soutien au bien-être — ni thérapie, ni diagnostic, ni service d'urgence. Tout ce que vous écrivez vous appartient : vous pouvez l'exporter ou le supprimer quand vous voulez.",
-      "agreePrivacy": "Je comprends que Kalm est un soutien au bien-être, pas des soins médicaux, et j'accepte l'avis de confidentialité et les conditions.",
-      "aiOptIn": "Facultatif : autoriser Kalm à utiliser mes check-ins et ma présentation pour personnaliser les conversations. Vous pouvez le désactiver à tout moment.",
+      "body": "Calm AI est un outil de soutien au bien-être — ni thérapie, ni diagnostic, ni service d'urgence. Tout ce que vous écrivez vous appartient : vous pouvez l'exporter ou le supprimer quand vous voulez.",
+      "agreePrivacy": "Je comprends que Calm AI est un soutien au bien-être, pas des soins médicaux, et j'accepte l'avis de confidentialité et les conditions.",
+      "aiOptIn": "Facultatif : autoriser Calm AI à utiliser mes check-ins et ma présentation pour personnaliser les conversations. Vous pouvez le désactiver à tout moment.",
       "dobLabel": "Votre date de naissance",
       "dobHint": "Elle sert à adapter le contenu et la sécurité à votre âge. Elle n'est pas partagée.",
       "guardianTitle": "L'e-mail d'un parent ou tuteur",
       "guardianHint": "Comme vous avez moins de 18 ans, nous lui écrirons pour demander son accord avant que le compagnon puisse vous parler. Les lignes d'écoute restent accessibles dans tous les cas.",
-      "under13": "Kalm est destiné aux personnes de {{min}} ans et plus."
+      "under13": "Calm AI est destiné aux personnes de {{min}} ans et plus."
     },
     "mode": {
       "title": "Qu'est-ce qui vous amène ?",
-      "body": "Cela définit le ton, le contenu et les garde-fous de sécurité que Kalm utilise avec vous.",
-      "teenLocked": "Comme vous avez moins de 18 ans, Kalm utilise le mode ado — langage plus simple et garde-fous de sécurité plus stricts."
+      "body": "Cela définit le ton, le contenu et les garde-fous de sécurité que Calm AI utilise avec vous.",
+      "teenLocked": "Comme vous avez moins de 18 ans, Calm AI utilise le mode ado — langage plus simple et garde-fous de sécurité plus stricts."
     },
     "modes": {
       "general": {
@@ -166,7 +166,7 @@
       },
       "condition": {
         "title": "Gérer une affection diagnostiquée",
-        "body": "Pour les personnes suivies ou en recherche de soins professionnels en parallèle de Kalm."
+        "body": "Pour les personnes suivies ou en recherche de soins professionnels en parallèle de Calm AI."
       },
       "teen": {
         "title": "Mode ado / étudiant",
@@ -179,8 +179,8 @@
     },
     "about": {
       "title": "Présentez-vous",
-      "body": "Kalm garde cela pour chaque conversation, pour ne jamais repartir de zéro. Partagez autant ou aussi peu que vous le souhaitez.",
-      "nameLabel": "Comment Kalm doit-il vous appeler ?",
+      "body": "Calm AI garde cela pour chaque conversation, pour ne jamais repartir de zéro. Partagez autant ou aussi peu que vous le souhaitez.",
+      "nameLabel": "Comment Calm AI doit-il vous appeler ?",
       "namePlaceholder": "Nom d'usage",
       "introLabel": "Avec vos mots, qu'est-ce qui se passe en ce moment ?",
       "introPlaceholder": "Je me sens débordé au travail et mon sommeil s'est dégradé…",
@@ -188,7 +188,7 @@
       "stressorsLabel": "Qu'est-ce qui vous pèse ?",
       "commLabel": "Comment aimez-vous qu'on vous parle ? (facultatif)",
       "commPlaceholder": "Doux et direct, sans positivité toxique",
-      "avoidLabel": "Y a-t-il un sujet que Kalm devrait éviter ? (facultatif)",
+      "avoidLabel": "Y a-t-il un sujet que Calm AI devrait éviter ? (facultatif)",
       "avoidPlaceholder": "Merci de ne pas parler de mon père",
       "diagnosisLabel": "Diagnostic existant, si vous souhaitez le partager (facultatif)",
       "diagnosisPlaceholder": "ex. anxiété généralisée",
@@ -224,9 +224,9 @@
     },
     "plan": {
       "buildingTitle": "Nous préparons votre plan",
-      "buildingBody": "Kalm relit ce que vous avez partagé et rédige un court plan de départ — cela prend quelques secondes.",
+      "buildingBody": "Calm AI relit ce que vous avez partagé et rédige un court plan de départ — cela prend quelques secondes.",
       "readyTitle": "Voici votre plan de départ",
-      "fallbackBody": "Votre plan se précisera au fil de vos échanges avec Kalm. Pour l'instant, tout ce que vous avez partagé est enregistré.",
+      "fallbackBody": "Votre plan se précisera au fil de vos échanges avec Calm AI. Pour l'instant, tout ce que vous avez partagé est enregistré.",
       "start": "Commencer à parler"
     }
   },
@@ -236,7 +236,7 @@
     "weekOf": "Semaine du {{range}}",
     "oneThing": "Une chose pour cette semaine",
     "firstRecapTitle": "Votre premier récapitulatif arrive",
-    "firstRecapBody": "Après une semaine de check-ins, d'habitudes cochées ou d'exercices essayés, Kalm vous écrira un bref récapitulatif de son déroulement — en langage clair, avec un petit point d'attention pour la semaine à venir. Rien à configurer ; il sera simplement là.",
+    "firstRecapBody": "Après une semaine de check-ins, d'habitudes cochées ou d'exercices essayés, Calm AI vous écrira un bref récapitulatif de son déroulement — en langage clair, avec un petit point d'attention pour la semaine à venir. Rien à configurer ; il sera simplement là.",
     "earlierWeeks": "Semaines précédentes",
     "focusSet": "Point défini",
     "focusThatWeek": "Point de cette semaine : {{focus}}",
@@ -275,7 +275,7 @@
     "reviewProfile": "Consulter votre profil et vos données"
   },
   "nudge": {
-    "aNoteFromKalm": "Un mot de Kalm",
+    "aNoteFromKalm": "Un mot de Calm AI",
     "dismiss": "Ignorer",
     "tryExercise": "Essayer l'exercice",
     "moreSupport": "Voir plus d'options de soutien"
@@ -334,30 +334,30 @@
     "questionsData": "Des questions sur vos données ? Contactez-nous depuis les paramètres du profil.",
     "sections": {
       "notMedical": {
-        "heading": "Kalm n'est pas un soin médical",
-        "body": "Kalm est un outil de soutien au bien-être. Il ne diagnostique pas, ne traite pas et ne donne pas d'avis médical, et il ne remplace ni une thérapie, ni des soins psychiatriques, ni des services d'urgence. En cas de crise, utilisez la page des ressources de crise ou votre numéro d'urgence local."
+        "heading": "Calm AI n'est pas un soin médical",
+        "body": "Calm AI est un outil de soutien au bien-être. Il ne diagnostique pas, ne traite pas et ne donne pas d'avis médical, et il ne remplace ni une thérapie, ni des soins psychiatriques, ni des services d'urgence. En cas de crise, utilisez la page des ressources de crise ou votre numéro d'urgence local."
       },
       "howAiWorks": {
         "heading": "Comment fonctionne l'IA",
-        "body": "Les conversations sont générées par un grand modèle de langage à partir de votre présentation et des données de check-in que vous choisissez de partager. Chaque message est analysé pour détecter un langage de crise avant qu'une réponse normale ne soit générée ; en cas de détection, Kalm interrompt la conversation et affiche des ressources de soutien à la place."
+        "body": "Les conversations sont générées par un grand modèle de langage à partir de votre présentation et des données de check-in que vous choisissez de partager. Chaque message est analysé pour détecter un langage de crise avant qu'une réponse normale ne soit générée ; en cas de détection, Calm AI interrompt la conversation et affiche des ressources de soutien à la place."
       },
       "yourData": {
         "heading": "Vos données",
-        "body": "Les informations de santé mentale sont des données personnelles sensibles. Kalm conserve votre profil, vos check-ins, vos conversations et les transcriptions de sessions pour que votre expérience reste continue. Vous pouvez exporter ou supprimer vos données à tout moment depuis les paramètres du profil, sans procédé trompeur de rétention."
+        "body": "Les informations de santé mentale sont des données personnelles sensibles. Calm AI conserve votre profil, vos check-ins, vos conversations et les transcriptions de sessions pour que votre expérience reste continue. Vous pouvez exporter ou supprimer vos données à tout moment depuis les paramètres du profil, sans procédé trompeur de rétention."
       },
       "ageRequirement": {
         "heading": "Condition d'âge",
-        "body": "Kalm est destiné aux personnes de 13 ans et plus. Le mode ado applique des garde-fous de sécurité plus stricts et un contenu adapté à l'âge. Kalm n'est pas destiné aux enfants de moins de 13 ans."
+        "body": "Calm AI est destiné aux personnes de 13 ans et plus. Le mode ado applique des garde-fous de sécurité plus stricts et un contenu adapté à l'âge. Calm AI n'est pas destiné aux enfants de moins de 13 ans."
       },
       "workplace": {
         "heading": "Comptes employeur",
-        "body": "Si vous accédez à Kalm via un programme employeur, votre employeur ne voit que des statistiques d'usage agrégées et anonymisées. Vos conversations, check-ins et contenus de session ne leur sont jamais communiqués."
+        "body": "Si vous accédez à Calm AI via un programme employeur, votre employeur ne voit que des statistiques d'usage agrégées et anonymisées. Vos conversations, check-ins et contenus de session ne leur sont jamais communiqués."
       }
     }
   },
   "care": {
     "title": "Parler à une personne",
-    "subtitle": "Kalm est là pour le quotidien, mais certaines choses sont mieux faites par une personne formée. Voici des points de départ — sans pression, et jamais au mauvais moment.",
+    "subtitle": "Calm AI est là pour le quotidien, mais certaines choses sont mieux faites par une personne formée. Voici des points de départ — sans pression, et jamais au mauvais moment.",
     "groups": {
       "directory": "Trouver un thérapeute",
       "low_cost": "Options moins coûteuses",
@@ -372,9 +372,9 @@
     "openResources": "ouvrez les ressources de soutien",
     "instead": "à la place.",
     "allMessages": "Tous les messages",
-    "kalmTeam": "Équipe Kalm",
+    "kalmTeam": "Équipe Calm AI",
     "you": "Vous",
-    "kalmTeamPrefix": "Équipe Kalm : ",
+    "kalmTeamPrefix": "Équipe Calm AI : ",
     "youPrefix": "Vous : ",
     "replyPlaceholder": "Ajoutez à cette conversation…",
     "send": "Envoyer",
@@ -432,7 +432,7 @@
     "downloaded": "Rapport téléchargé.",
     "reportFailed": "Nous n'avons pas pu générer ce rapport. Veuillez réessayer.",
     "title": "Vos données",
-    "subtitle": "Tout ce que Kalm conserve sur vous, en langage clair. Rien ici n'est partagé avec qui que ce soit, sauf si vous le choisissez.",
+    "subtitle": "Tout ce que Calm AI conserve sur vous, en langage clair. Rien ici n'est partagé avec qui que ce soit, sauf si vous le choisissez.",
     "nothingStored": "Rien d'enregistré pour l'instant.",
     "onDate": "Le {{date}}.",
     "dateRange": "Du {{from}} au {{to}}.",
@@ -508,14 +508,14 @@
     "startFailed": "Impossible de démarrer l'appel pour le moment.",
     "dropped": "L'appel a été interrompu. Réessayez.",
     "micBlocked": "L'accès au microphone est bloqué. Autorisez-le dans les paramètres de votre navigateur.",
-    "disclaimer": "Kalm est un compagnon IA, pas un thérapeute. En cas de crise, utilisez l'aide immédiate.",
+    "disclaimer": "Calm AI est un compagnon IA, pas un thérapeute. En cas de crise, utilisez l'aide immédiate.",
     "aiLabel": "Compagnon IA — pas une personne",
-    "aiReminder": "Petit rappel : vous parlez à l'IA de Kalm, pas à un humain.",
-    "aiReminderLate": "L'appel se termine bientôt. Rappelez-vous qu'il s'agit de l'IA de Kalm — le soutien de vraies personnes compte aussi."
+    "aiReminder": "Petit rappel : vous parlez à l'IA de Calm AI, pas à un humain.",
+    "aiReminderLate": "L'appel se termine bientôt. Rappelez-vous qu'il s'agit de l'IA de Calm AI — le soutien de vraies personnes compte aussi."
   },
   "settings": {
     "title": "Votre profil et vos données",
-    "subtitle": "Tout ce que Kalm sait de vous, au même endroit.",
+    "subtitle": "Tout ce que Calm AI sait de vous, au même endroit.",
     "account": "Compte",
     "preferredName": "Prénom souhaité",
     "mode": "Mode",
@@ -530,7 +530,7 @@
       "org_member": "Formule entreprise"
     },
     "emails": {
-      "title": "E-mails de Kalm",
+      "title": "E-mails de Calm AI",
       "body": "De temps en temps, un message bienveillant et une réflexion hebdomadaire, envoyés à l'adresse de votre compte. Ils ne mentionnent jamais votre état émotionnel — juste une invitation à ouvrir l'application. Les e-mails de sécurité et de compte sont toujours envoyés.",
       "toggle": "M'envoyer les messages de suivi et la réflexion hebdomadaire"
     },
@@ -548,7 +548,7 @@
     },
     "support": {
       "title": "Contacter l'assistance",
-      "body": "Une question sur votre compte, la facturation, un bug ou un retour à nous faire ? Envoyez un message et nous répondrons directement dans Kalm. Pour tout ce qui est urgent concernant votre état, utilisez plutôt la page des ressources de soutien.",
+      "body": "Une question sur votre compte, la facturation, un bug ou un retour à nous faire ? Envoyez un message et nous répondrons directement dans Calm AI. Pour tout ce qui est urgent concernant votre état, utilisez plutôt la page des ressources de soutien.",
       "message": "Écrire à l'assistance",
       "resources": "Ressources de soutien"
     },
@@ -566,7 +566,7 @@
     },
     "deleteAccount": {
       "title": "Supprimer mon compte",
-      "body": "C'est différent — et plus définitif — que la suppression des données ci-dessus. Cela ferme entièrement votre compte Kalm : vous êtes déconnecté partout et ne pourrez plus vous reconnecter avec cette adresse. Vos bilans d'humeur, habitudes, conversations, exercices et votre présentation sont effacés définitivement. Cette action est irréversible.",
+      "body": "C'est différent — et plus définitif — que la suppression des données ci-dessus. Cela ferme entièrement votre compte Calm AI : vous êtes déconnecté partout et ne pourrez plus vous reconnecter avec cette adresse. Vos bilans d'humeur, habitudes, conversations, exercices et votre présentation sont effacés définitivement. Cette action est irréversible.",
       "note": "Les dossiers de sécurité en situation de crise et les journaux d'audit de l'assistance sont conservés, sans votre identité, comme l'exige notre politique de conservation des données.",
       "button": "Supprimer mon compte",
       "confirmTitle": "Supprimer définitivement votre compte ?",
@@ -582,15 +582,15 @@
     "legalLink": "avertissements et la notice de confidentialité"
   },
   "memory": {
-    "title": "Ce que Kalm retient de vous",
-    "body": "Pour reprendre là où vous vous êtes arrêté, Kalm s'écrit une courte note privée à la fin de chaque conversation — l'essentiel de ce dont vous avez parlé. C'est ainsi qu'il semble se souvenir de vous. Voici toutes les notes conservées. Supprimez ce que vous préférez qu'il oublie ; cela prend effet à votre prochaine conversation.",
-    "empty": "Rien pour l'instant — Kalm écrit sa première note après une ou deux conversations.",
+    "title": "Ce que Calm AI retient de vous",
+    "body": "Pour reprendre là où vous vous êtes arrêté, Calm AI s'écrit une courte note privée à la fin de chaque conversation — l'essentiel de ce dont vous avez parlé. C'est ainsi qu'il semble se souvenir de vous. Voici toutes les notes conservées. Supprimez ce que vous préférez qu'il oublie ; cela prend effet à votre prochaine conversation.",
+    "empty": "Rien pour l'instant — Calm AI écrit sa première note après une ou deux conversations.",
     "forget": "Oublier cette note",
     "confirmTitle": "Oublier cette note ?",
-    "confirmBody": "Kalm cessera de l'utiliser dans les prochaines conversations. C'est irréversible, mais Kalm pourra écrire une nouvelle note après un futur échange.",
+    "confirmBody": "Calm AI cessera de l'utiliser dans les prochaines conversations. C'est irréversible, mais Calm AI pourra écrire une nouvelle note après un futur échange.",
     "keep": "La conserver",
     "confirmForget": "Oublier",
-    "forgotten": "Oubliée. Kalm ne l'utilisera plus dans les prochaines conversations.",
+    "forgotten": "Oubliée. Calm AI ne l'utilisera plus dans les prochaines conversations.",
     "error": "Nous n'avons pas pu supprimer cela pour le moment. Veuillez réessayer."
   },
   "resetPassword": {
@@ -639,7 +639,7 @@
     "button": "Parler à une personne",
     "title": "Parler à une personne",
     "backToChat": "Retour à la discussion",
-    "intro": "Nous transmettrons un court résumé de la situation à l'équipe de soutien de Kalm, et une vraie personne vous répondra ici. Kalm n'est pas un service d'urgence — si vous êtes en danger maintenant, utilisez les lignes ci-dessus.",
+    "intro": "Nous transmettrons un court résumé de la situation à l'équipe de soutien de Calm AI, et une vraie personne vous répondra ici. Calm AI n'est pas un service d'urgence — si vous êtes en danger maintenant, utilisez les lignes ci-dessus.",
     "request": "Demander une personne",
     "requesting": "Envoi de votre demande…",
     "requested": "Votre demande est entre les mains de notre équipe.",
@@ -651,9 +651,9 @@
     "replyPlaceholder": "Écrivez à la personne qui vous accompagne…",
     "send": "Envoyer",
     "youLabel": "Vous",
-    "teamLabel": "Soutien Kalm",
+    "teamLabel": "Soutien Calm AI",
     "noMessages": "Pas encore de message — quelqu'un vous écrira ici.",
-    "inChat": "Soutien Kalm",
+    "inChat": "Soutien Calm AI",
     "paidOnly": "Les coachs humains font partie de Pro et Premium. Si tu n'es pas en sécurité maintenant, utilise les lignes ci-dessus — elles sont toujours gratuites."
   },
   "guardian": {

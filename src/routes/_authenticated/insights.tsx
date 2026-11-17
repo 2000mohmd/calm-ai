@@ -15,13 +15,13 @@ import { useTranslation } from "@/lib/i18n";
 export const Route = createFileRoute("/_authenticated/insights")({
   head: () => ({
     meta: [
-      { title: "Your progress — Kalm" },
+      { title: "Your progress — Calm AI" },
       {
         name: "description",
         content:
           "A weekly recap of how things have been going, one small focus for the week ahead, and the numbers behind it if you want them.",
       },
-      { property: "og:title", content: "Your progress — Kalm" },
+      { property: "og:title", content: "Your progress — Calm AI" },
       {
         property: "og:description",
         content: "A warm weekly recap of your wellbeing, plus one small focus for the week ahead.",

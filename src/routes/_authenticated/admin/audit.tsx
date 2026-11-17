@@ -8,16 +8,16 @@ import { listAdminAuditLog } from "@/lib/admin.functions";
 export const Route = createFileRoute("/_authenticated/admin/audit")({
   head: () => ({
     meta: [
-      { title: "Admin audit log — Kalm" },
+      { title: "Admin audit log — Calm AI" },
       {
         name: "description",
         content:
-          "Record of privileged admin actions in Kalm: user detail views, crisis reviews, support replies, and role grants.",
+          "Record of privileged admin actions in Calm AI: user detail views, crisis reviews, support replies, and role grants.",
       },
-      { property: "og:title", content: "Admin audit log — Kalm" },
+      { property: "og:title", content: "Admin audit log — Calm AI" },
       {
         property: "og:description",
-        content: "Who did what, and when, across the Kalm admin area.",
+        content: "Who did what, and when, across the Calm AI admin area.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },

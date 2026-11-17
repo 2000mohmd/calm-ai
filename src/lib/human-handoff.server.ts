@@ -11,7 +11,7 @@ import { sendEmail } from "./resend.server";
 
 type Client = SupabaseClient<Database>;
 
-const FROM = "Kalm Safety <onboarding@resend.dev>";
+const FROM = "Calm AI Safety <onboarding@resend.dev>";
 const MODEL = "claude-haiku-4-5";
 
 export type HandoffRequestRow = {
@@ -53,7 +53,7 @@ export async function summarizeForHuman(
       model: MODEL,
       maxTokens: 400,
       system: [
-        "You write handover notes for a human support worker at Kalm, a mental wellness app.",
+        "You write handover notes for a human support worker at Calm AI, a mental wellness app.",
         "Someone has just asked to talk to a real person. The worker needs to walk in already knowing the situation.",
         "Write 3-5 short sentences, plain language, in this order: what is going on right now, how they seem to be doing, what they appear to be asking for, and anything the worker should be careful with.",
         "Do not diagnose. Do not rate risk. Do not invent facts. Quote at most one short phrase of theirs.",
@@ -108,7 +108,7 @@ export async function sendHandoffAlertEmail(input: {
   const escalating = (input.escalation ?? 0) > 0;
   const subject = escalating
     ? `URGENT (reminder #${input.escalation}) — someone is still waiting for a human`
-    : `Kalm — someone asked to talk to a human${input.severity ? ` (${input.severity})` : ""}`;
+    : `Calm AI — someone asked to talk to a human${input.severity ? ` (${input.severity})` : ""}`;
   const text = [
     escalating
       ? "A member asked to speak to a human more than 30 minutes ago and nobody has picked it up."

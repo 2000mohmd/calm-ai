@@ -1,6 +1,6 @@
 # App Store / TestFlight submission guide
 
-Practical checklist for submitting the Kalm iOS app (repo `kalm-mobile`, Expo). Facts below
+Practical checklist for submitting the Calm AI iOS app (repo `kalm-mobile`, Expo). Facts below
 come from the code and docs in both repos; anything marked **OWNER** is a decision only you
 can make. Last reviewed 2026-11-17.
 
@@ -8,7 +8,7 @@ can make. Last reviewed 2026-11-17.
 
 | Field            | Suggestion                                                                                                          |
 | ---------------- | ------------------------------------------------------------------------------------------------------------------- |
-| App name         | `Kalm: AI Wellness Companion` (30 char limit; check availability)                                                   |
+| App name         | `Calm AI` (30 char limit; check availability)                                                                       |
 | Subtitle         | `Check-ins, calming exercises` (30 chars; avoid "therapy", "treatment")                                             |
 | Promotional text | `Somewhere to start at 2am. Chat or talk, track your mood, try a guided exercise.`                                  |
 | Keywords         | `wellness,mood,journal,breathing,anxiety,calm,check-in,mindfulness,stress` (100 chars; do not use competitor names) |
@@ -91,7 +91,7 @@ uses just standard HTTPS/OS-provided encryption. Re-check if any custom crypto i
 ## 5. Review notes template (App Store Connect, "Notes")
 
 ```
-Kalm is an AI wellness companion (not therapy, no diagnosis, not emergency care).
+Calm AI is an AI wellness companion (not therapy, no diagnosis, not emergency care).
 Sign-in normally uses an emailed link, which you cannot open, so please use the
 password sign-in:
 

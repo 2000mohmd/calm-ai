@@ -17,7 +17,7 @@ type Client = SupabaseClient<Database>;
 /** No second admin alert email for the same user inside this window. */
 const ALERT_DEDUPE_MS = 10 * 60 * 1000;
 
-const FROM = "Kalm Safety <onboarding@resend.dev>";
+const FROM = "Calm AI Safety <onboarding@resend.dev>";
 
 const SOURCE_LABELS: Record<string, string> = {
   chat: "Chat (regex gate)",
@@ -58,7 +58,7 @@ export async function sendCrisisAlertEmail(input: {
   const escalating = (input.escalation ?? 0) > 0;
   const subject = escalating
     ? `URGENT (reminder #${input.escalation}) — unreviewed ${input.severity} crisis event`
-    : `Kalm crisis alert — ${input.severity} (${sourceLabel(input.source)})`;
+    : `Calm AI crisis alert — ${input.severity} (${sourceLabel(input.source)})`;
 
   const text = [
     escalating

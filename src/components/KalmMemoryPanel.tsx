@@ -18,7 +18,7 @@ import {
 } from "@/components/ui/alert-dialog";
 
 /**
- * Trust feature: shows the plain-language notes Kalm keeps about the person
+ * Trust feature: shows the plain-language notes Calm AI keeps about the person
  * (thread_summaries) and lets them remove any of them. View + delete only.
  */
 export function KalmMemoryPanel() {

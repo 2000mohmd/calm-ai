@@ -10,13 +10,13 @@ import { listCrisisEvents, markCrisisReviewed } from "@/lib/admin.functions";
 export const Route = createFileRoute("/_authenticated/admin/crisis")({
   head: () => ({
     meta: [
-      { title: "Crisis review — Kalm admin" },
+      { title: "Crisis review — Calm AI admin" },
       {
         name: "description",
         content:
           "Internal safety queue: review crisis events flagged by the regex gate, screener escalation, or the semantic backstop.",
       },
-      { property: "og:title", content: "Crisis review — Kalm admin" },
+      { property: "og:title", content: "Crisis review — Calm AI admin" },
       {
         property: "og:description",
         content: "Internal safety review queue for flagged crisis events.",

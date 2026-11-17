@@ -6,16 +6,16 @@ import { LegalDocument, type LegalSection } from "@/components/LegalDocument";
 export const Route = createFileRoute("/privacy")({
   head: () => ({
     meta: [
-      { title: "Privacy Policy — Kalm" },
+      { title: "Privacy Policy — Calm AI" },
       {
         name: "description",
         content:
-          "What Kalm collects, who processes it, how long it is kept, and how to export or delete your data.",
+          "What Calm AI collects, who processes it, how long it is kept, and how to export or delete your data.",
       },
-      { property: "og:title", content: "Privacy Policy — Kalm" },
+      { property: "og:title", content: "Privacy Policy — Calm AI" },
       {
         property: "og:description",
-        content: "What Kalm collects, who processes it, and how to export or delete your data.",
+        content: "What Calm AI collects, who processes it, and how to export or delete your data.",
       },
     ],
   }),
@@ -24,12 +24,12 @@ export const Route = createFileRoute("/privacy")({
 
 const SECTIONS: LegalSection[] = [
   {
-    heading: "What Kalm is",
+    heading: "What Calm AI is",
     body: (
       <p>
-        Kalm is a wellness companion. It is not therapy, it does not diagnose or treat anything, and
-        it is not emergency care. You are talking to an AI, not a person. Because what you share can
-        be very personal, we collect only what the app needs and we do not sell it.
+        Calm AI is a wellness companion. It is not therapy, it does not diagnose or treat anything,
+        and it is not emergency care. You are talking to an AI, not a person. Because what you share
+        can be very personal, we collect only what the app needs and we do not sell it.
       </p>
     ),
   },
@@ -116,10 +116,10 @@ const SECTIONS: LegalSection[] = [
     heading: "Age and guardian consent",
     body: (
       <p>
-        Kalm is not for children under 13, and you cannot create an account if you are under 13. If
-        you are 13 to 17, a parent or guardian must approve your use of Kalm, and teen mode applies
-        stricter safety guardrails. Until approval is given, chat stays unavailable. We email the
-        parent or guardian address you provide to ask for that approval.
+        Calm AI is not for children under 13, and you cannot create an account if you are under 13.
+        If you are 13 to 17, a parent or guardian must approve your use of Calm AI, and teen mode
+        applies stricter safety guardrails. Until approval is given, chat stays unavailable. We
+        email the parent or guardian address you provide to ask for that approval.
       </p>
     ),
   },
@@ -128,8 +128,8 @@ const SECTIONS: LegalSection[] = [
     body: (
       <p>
         If you are in danger or thinking about harming yourself, contact your local emergency number
-        or a crisis line right away. Crisis resources are always available in Kalm, without signing
-        in, on the crisis resources page and inside the app.
+        or a crisis line right away. Crisis resources are always available in Calm AI, without
+        signing in, on the crisis resources page and inside the app.
       </p>
     ),
   },
@@ -158,7 +158,7 @@ function PrivacyPage() {
     <LegalDocument
       title="Privacy Policy"
       updated="2026-11-17"
-      intro="This policy explains what Kalm collects about you, who helps us process it, and the control you have over it."
+      intro="This policy explains what Calm AI collects about you, who helps us process it, and the control you have over it."
       sections={SECTIONS}
     />
   );

@@ -1,4 +1,4 @@
-# Kalm
+# Calm AI
 
 An AI mental-wellness companion: chat and voice with a warm AI coach, mood and
 habit tracking, guided exercises, PHQ-9 / GAD-7 check-ins, a deterministic

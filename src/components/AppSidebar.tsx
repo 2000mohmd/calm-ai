@@ -88,7 +88,7 @@ export function AppSidebar({
         {open && (
           <Link to="/chat" className="flex items-center gap-2 font-display text-xl">
             <KalmLogo className="size-5 text-primary" aria-hidden />
-            Kalm
+            Calm AI
           </Link>
         )}
         <button

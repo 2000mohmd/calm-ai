@@ -1,5 +1,5 @@
 /**
- * Kalm brand mark — an abstract four-petal bloom in the Soft Glass palette.
+ * Calm AI brand mark — an abstract four-petal bloom in the Soft Glass palette.
  * Uses semantic tokens only so it themes correctly in light and dark mode.
  */
 export function KalmLogo({ className = "size-5" }: { className?: string }) {

@@ -215,7 +215,7 @@ export async function sendPushToUser(
   const staleIds: string[] = [];
   for (const row of tokens) {
     try {
-      // Expo push tokens (the Kalm mobile app) go through Expo's push service;
+      // Expo push tokens (the Calm AI mobile app) go through Expo's push service;
       // raw FCM tokens need FCM_SERVICE_ACCOUNT_JSON (silent no-op without it).
       const result = isExpoPushToken(row.token)
         ? await sendToExpo(row.token, notification)

@@ -5,13 +5,13 @@ import { CheckInsSection } from "@/components/insights/CheckInsSection";
 export const Route = createFileRoute("/_authenticated/check-ins")({
   head: () => ({
     meta: [
-      { title: "Periodic check-ins — Kalm" },
+      { title: "Periodic check-ins — Calm AI" },
       {
         name: "description",
         content:
           "Take the PHQ-9 and GAD-7 every couple of weeks and see how your scores move over time. Not a diagnosis.",
       },
-      { property: "og:title", content: "Periodic check-ins — Kalm" },
+      { property: "og:title", content: "Periodic check-ins — Calm AI" },
       {
         property: "og:description",
         content: "PHQ-9 and GAD-7 check-ins with a score history over time.",

@@ -19,16 +19,16 @@ import { getAdminOverview } from "@/lib/admin.functions";
 export const Route = createFileRoute("/_authenticated/admin/")({
   head: () => ({
     meta: [
-      { title: "Admin overview — Kalm" },
+      { title: "Admin overview — Calm AI" },
       {
         name: "description",
         content:
-          "Aggregate Kalm platform metrics: signups, activity, message volume, mood trend, and crisis events by severity.",
+          "Aggregate Calm AI platform metrics: signups, activity, message volume, mood trend, and crisis events by severity.",
       },
-      { property: "og:title", content: "Admin overview — Kalm" },
+      { property: "og:title", content: "Admin overview — Calm AI" },
       {
         property: "og:description",
-        content: "Aggregate, non-identifying platform health and safety metrics for Kalm.",
+        content: "Aggregate, non-identifying platform health and safety metrics for Calm AI.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },

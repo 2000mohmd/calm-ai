@@ -15,17 +15,17 @@ export const Route = createFileRoute("/auth")({
   ssr: false,
   head: () => ({
     meta: [
-      { title: "Sign in to Kalm" },
+      { title: "Sign in to Calm AI" },
       {
         name: "description",
         content:
-          "Get a secure sign-in link by email and start your private Kalm wellness check-ins.",
+          "Get a secure sign-in link by email and start your private Calm AI wellness check-ins.",
       },
-      { property: "og:title", content: "Sign in to Kalm" },
+      { property: "og:title", content: "Sign in to Calm AI" },
       {
         property: "og:description",
         content:
-          "Get a secure sign-in link by email and start your private Kalm wellness check-ins.",
+          "Get a secure sign-in link by email and start your private Calm AI wellness check-ins.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
@@ -104,7 +104,7 @@ function AuthPage() {
             className="mb-8 flex items-center justify-center gap-2 font-display text-2xl"
           >
             <KalmLogo className="size-5 text-primary" aria-hidden />
-            Kalm
+            Calm AI
           </Link>
 
           <div className="surface-soft p-7">

@@ -1,6 +1,6 @@
-# Running Kalm on your own infrastructure
+# Running Calm AI on your own infrastructure
 
-Kalm is a standard TanStack Start (React 19 + Vite + Nitro) app backed by a
+Calm AI is a standard TanStack Start (React 19 + Vite + Nitro) app backed by a
 Supabase project. Sign-in goes
 through Supabase directly, and the production build target is a Nitro preset you
 choose.

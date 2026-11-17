@@ -1,4 +1,4 @@
-# Kalm — Project Documentation
+# Calm AI — Project Documentation
 
 An AI mental wellness companion: a full web app plus the `/api/v1` backend that the
 mobile app consumes. The mobile app is **not** in this repo; it lives in the sibling
@@ -141,7 +141,7 @@ today's message and weekly call usage.
 
 Languages: every member-facing page (landing, auth, onboarding,
 chat, exercises, progress, habits, check-ins, care, support, plans, settings,
-Kalm-memory panel) reads its copy from `src/lib/i18n/locales/{en,ar,fr}.json`.
+Calm AI memory panel) reads its copy from `src/lib/i18n/locales/{en,ar,fr}.json`.
 Admin screens stay English on purpose. Voice notes and live calls run on the
 OpenAI account; when that account has no credits the app now says so explicitly
 instead of showing a generic failure. French/Arabic clinical copy still wants a

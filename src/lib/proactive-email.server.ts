@@ -1,7 +1,7 @@
 // Delivery worker for the proactive engine. Runs inside the pg_cron sweep
 // (src/routes/api/public/hooks/evaluate-nudges.ts). For each nudge / weekly
 // digest that hasn't been emailed yet, it sends ONE content-free "there's
-// something for you in Kalm" email and stamps `emailed_at` so it never repeats.
+// something for you in Calm AI" email and stamps `emailed_at` so it never repeats.
 //
 // PRIVACY: the email body and subject NEVER contain the nudge text, the digest
 // narrative, mood scores, or screener results — those land in shared inboxes.
@@ -33,7 +33,7 @@ export type ProactiveEmailResult = {
 };
 
 // Only email items generated recently — an older one is stale and the person
-// will see it in-app next time they open Kalm anyway.
+// will see it in-app next time they open Calm AI anyway.
 const MAX_AGE_MS = 3 * 24 * 60 * 60 * 1000;
 
 type ResolvedUser = { email: string; optedOut: boolean; preferredName: string | null } | null;
@@ -100,14 +100,14 @@ export async function deliverProactiveEmails(
     const ok = await sendProactiveEmail({
       to: user.email,
       userId: row.user_id,
-      subject: "A note from Kalm",
+      subject: "A note from Calm AI",
       bodyText: [
         greeting(user.preferredName),
         "",
-        "Kalm has a short note for you — a gentle check-in based on how things have been going lately.",
+        "Calm AI has a short note for you — a gentle check-in based on how things have been going lately.",
         "It's waiting in the app. Nothing here needs a reply.",
         "",
-        `Open Kalm: ${appBaseUrl()}/insights`,
+        `Open Calm AI: ${appBaseUrl()}/insights`,
       ].join("\n"),
     });
     if (ok) {
@@ -142,13 +142,13 @@ export async function deliverProactiveEmails(
     const ok = await sendProactiveEmail({
       to: user.email,
       userId: row.user_id,
-      subject: "Your week in Kalm is ready",
+      subject: "Your week in Calm AI is ready",
       bodyText: [
         greeting(user.preferredName),
         "",
         "Your weekly reflection is ready — a short, private look back at how the week went, written for you.",
         "",
-        `Read it in Kalm: ${appBaseUrl()}/insights`,
+        `Read it in Calm AI: ${appBaseUrl()}/insights`,
       ].join("\n"),
     });
     if (ok) {

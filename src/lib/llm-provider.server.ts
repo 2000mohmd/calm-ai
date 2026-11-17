@@ -198,7 +198,7 @@ async function callOpenRouter(
     headers: {
       Authorization: `Bearer ${apiKey}`,
       "Content-Type": "application/json",
-      "X-Title": "Kalm",
+      "X-Title": "Calm AI",
     },
     body: JSON.stringify({
       model: toOpenRouterModel(model),
@@ -347,7 +347,7 @@ async function streamOpenRouter(
     headers: {
       Authorization: `Bearer ${apiKey}`,
       "Content-Type": "application/json",
-      "X-Title": "Kalm",
+      "X-Title": "Calm AI",
     },
     body: JSON.stringify({
       model: toOpenRouterModel(model),

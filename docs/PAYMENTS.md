@@ -1,6 +1,6 @@
 # Payments
 
-Kalm's billing layer is gateway-agnostic. The app talks to a `PaymentProvider`
+Calm AI's billing layer is gateway-agnostic. The app talks to a `PaymentProvider`
 (`src/lib/billing/provider.ts`); a payment gateway (Stripe, Paddle, Lemon Squeezy,
 Tap, Moyasar, ...) is one file implementing it. **No gateway is implemented yet**:
 with `PAYMENT_PROVIDER` unset, billing is off:

@@ -15,16 +15,16 @@ import { useTranslation } from "@/lib/i18n";
 export const Route = createFileRoute("/crisis")({
   head: () => ({
     meta: [
-      { title: "Crisis resources — Kalm" },
+      { title: "Crisis resources — Calm AI" },
       {
         name: "description",
         content:
-          "Immediate crisis support lines and text services. Always free and never gated in Kalm.",
+          "Immediate crisis support lines and text services. Always free and never gated in Calm AI.",
       },
-      { property: "og:title", content: "Crisis resources — Kalm" },
+      { property: "og:title", content: "Crisis resources — Calm AI" },
       {
         property: "og:description",
-        content: "Immediate crisis support lines and text services, always available in Kalm.",
+        content: "Immediate crisis support lines and text services, always available in Calm AI.",
       },
     ],
   }),

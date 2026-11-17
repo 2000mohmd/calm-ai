@@ -14,7 +14,7 @@ export { appBaseUrl };
 
 type Client = SupabaseClient<Database>;
 
-const FROM = "Kalm <onboarding@resend.dev>";
+const FROM = "Calm AI <onboarding@resend.dev>";
 
 export function hashToken(token: string): string {
   return createHash("sha256").update(token).digest("hex");
@@ -40,10 +40,10 @@ export async function sendGuardianConsentEmail(input: {
   const text = [
     input.guardianName ? `Hello ${input.guardianName},` : "Hello,",
     "",
-    `${who} has signed up for Kalm and needs your permission before they can use it.`,
+    `${who} has signed up for Calm AI and needs your permission before they can use it.`,
     "",
-    "What Kalm is: a wellness companion app. It offers guided exercises, mood check-ins, and conversations with an AI companion.",
-    "What Kalm is not: it is not a therapist, not a doctor, and not an emergency service. It does not diagnose or treat anything.",
+    "What Calm AI is: a wellness companion app. It offers guided exercises, mood check-ins, and conversations with an AI companion.",
+    "What Calm AI is not: it is not a therapist, not a doctor, and not an emergency service. It does not diagnose or treat anything.",
     "If it detects that someone may be in danger, it stops the conversation, shows real crisis helplines, and alerts our safety team.",
     "",
     "What we keep: their name, their age, what they choose to write in check-ins and conversations, and how they use the app. We do not sell their data. They can delete their account and data at any time from the app.",
@@ -61,7 +61,7 @@ export async function sendGuardianConsentEmail(input: {
     tag: "[guardian] consent email",
     from: FROM,
     to: input.guardianEmail,
-    subject: "Your permission is needed — Kalm",
+    subject: "Your permission is needed — Calm AI",
     text,
   });
   return result.ok;

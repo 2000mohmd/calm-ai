@@ -1,6 +1,6 @@
 # Data retention — proposal (item 10)
 
-Mental-health data is sensitive personal data. Today Kalm stores everything
+Mental-health data is sensitive personal data. Today Calm AI stores everything
 forever, with only a manual "delete my data" action in Settings. This proposes
 automatic retention windows plus a safe, dry-run-by-default purge job.
 

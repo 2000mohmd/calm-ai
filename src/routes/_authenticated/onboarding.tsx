@@ -19,12 +19,13 @@ import { useTranslation } from "@/lib/i18n";
 export const Route = createFileRoute("/_authenticated/onboarding")({
   head: () => ({
     meta: [
-      { title: "Set up your Kalm profile" },
+      { title: "Set up your Calm AI profile" },
       {
         name: "description",
-        content: "Tell Kalm who you are so your companion feels personal from the first message.",
+        content:
+          "Tell Calm AI who you are so your companion feels personal from the first message.",
       },
-      { property: "og:title", content: "Set up your Kalm profile" },
+      { property: "og:title", content: "Set up your Calm AI profile" },
       {
         property: "og:description",
         content: "Consent, mode selection, self-introduction and your baseline mood check-in.",
@@ -214,7 +215,7 @@ function OnboardingPage() {
       <main className="mx-auto w-full max-w-2xl flex-1 px-5 py-12">
         <div className="mb-8 flex items-center gap-2 font-display text-xl">
           <KalmLogo className="size-5 text-primary" aria-hidden />
-          Kalm
+          Calm AI
         </div>
 
         <Progress value={((step + 1) / STEP_KEYS.length) * 100} className="h-1.5" />

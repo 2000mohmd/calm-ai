@@ -10,16 +10,17 @@ import { listAdminUsers } from "@/lib/admin.functions";
 export const Route = createFileRoute("/_authenticated/admin/users/")({
   head: () => ({
     meta: [
-      { title: "Users — Kalm admin" },
+      { title: "Users — Calm AI admin" },
       {
         name: "description",
         content:
           "Admin user directory: account type, signup date, last activity, engagement state, and crisis history counts.",
       },
-      { property: "og:title", content: "Users — Kalm admin" },
+      { property: "og:title", content: "Users — Calm AI admin" },
       {
         property: "og:description",
-        content: "Search and filter Kalm members by account type, engagement, and crisis history.",
+        content:
+          "Search and filter Calm AI members by account type, engagement, and crisis history.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },

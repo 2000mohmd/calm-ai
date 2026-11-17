@@ -1,6 +1,6 @@
 # Security policy
 
-Kalm handles sensitive mental-health data, so please report vulnerabilities
+Calm AI handles sensitive mental-health data, so please report vulnerabilities
 privately rather than opening a public issue.
 
 ## Reporting a vulnerability

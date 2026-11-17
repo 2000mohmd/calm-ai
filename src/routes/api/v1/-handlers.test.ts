@@ -81,7 +81,7 @@ describe("handleChatMessages", () => {
         message: "Thank you for telling me.",
         matched: ["kill myself"],
         resources: [{ name: "988", contact: "Call or text 988", detail: "24/7" }],
-        disclaimer: "Kalm is a wellbeing companion, not an emergency service.",
+        disclaimer: "Calm AI is a wellbeing companion, not an emergency service.",
         id: "sys-1",
         created_at: "2026-01-01T00:00:00Z",
       },

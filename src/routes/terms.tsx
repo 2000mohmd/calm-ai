@@ -6,15 +6,15 @@ import { LegalDocument, type LegalSection } from "@/components/LegalDocument";
 export const Route = createFileRoute("/terms")({
   head: () => ({
     meta: [
-      { title: "Terms of Use — Kalm" },
+      { title: "Terms of Use — Calm AI" },
       {
         name: "description",
-        content: "The rules for using Kalm, what it is and is not, and your responsibilities.",
+        content: "The rules for using Calm AI, what it is and is not, and your responsibilities.",
       },
-      { property: "og:title", content: "Terms of Use — Kalm" },
+      { property: "og:title", content: "Terms of Use — Calm AI" },
       {
         property: "og:description",
-        content: "The rules for using Kalm, what it is and is not.",
+        content: "The rules for using Calm AI, what it is and is not.",
       },
     ],
   }),
@@ -23,23 +23,23 @@ export const Route = createFileRoute("/terms")({
 
 const SECTIONS: LegalSection[] = [
   {
-    heading: "Using Kalm",
+    heading: "Using Calm AI",
     body: (
       <p>
-        By creating an account or using Kalm you agree to these terms and to our Privacy Policy. If
-        you do not agree, please do not use the service.
+        By creating an account or using Calm AI you agree to these terms and to our Privacy Policy.
+        If you do not agree, please do not use the service.
       </p>
     ),
   },
   {
-    heading: "Kalm is not medical care",
+    heading: "Calm AI is not medical care",
     body: (
       <p>
-        Kalm is wellness support. It is not therapy, it does not give medical advice, diagnosis or
-        treatment, and it is not a substitute for a doctor, a therapist or emergency services. The
-        companion is an AI, not a person, and it can make mistakes. Screening questionnaires track
-        patterns over time and are not a diagnosis. Please do not delay or ignore professional
-        advice because of something Kalm said.
+        Calm AI is wellness support. It is not therapy, it does not give medical advice, diagnosis
+        or treatment, and it is not a substitute for a doctor, a therapist or emergency services.
+        The companion is an AI, not a person, and it can make mistakes. Screening questionnaires
+        track patterns over time and are not a diagnosis. Please do not delay or ignore professional
+        advice because of something Calm AI said.
       </p>
     ),
   },
@@ -48,7 +48,7 @@ const SECTIONS: LegalSection[] = [
     body: (
       <p>
         If you are in danger or may harm yourself or someone else, call your local emergency number
-        or a crisis line immediately. Crisis resources are always free and available in Kalm.
+        or a crisis line immediately. Crisis resources are always free and available in Calm AI.
       </p>
     ),
   },
@@ -57,7 +57,7 @@ const SECTIONS: LegalSection[] = [
     body: (
       <p>
         You must be at least 13. If you are under 18, a parent or guardian must approve your use of
-        Kalm. You are responsible for keeping your sign-in secure and for the accuracy of the
+        Calm AI. You are responsible for keeping your sign-in secure and for the accuracy of the
         details you give us.
       </p>
     ),
@@ -66,7 +66,7 @@ const SECTIONS: LegalSection[] = [
     heading: "Acceptable use",
     body: (
       <ul className="list-disc space-y-1 ps-5">
-        <li>Do not use Kalm to harm yourself or others, or to break the law.</li>
+        <li>Do not use Calm AI to harm yourself or others, or to break the law.</li>
         <li>
           Do not try to break, probe or overload the service, or access other people&apos;s data.
         </li>
@@ -81,7 +81,7 @@ const SECTIONS: LegalSection[] = [
     heading: "Plans and payments",
     body: (
       <p>
-        Kalm currently has a free plan with a daily message limit. If paid plans are introduced,
+        Calm AI currently has a free plan with a daily message limit. If paid plans are introduced,
         their price and what they include will be announced before launch and nothing will be
         charged without your clear agreement.
       </p>
@@ -91,9 +91,9 @@ const SECTIONS: LegalSection[] = [
     heading: "Availability and limits",
     body: (
       <p>
-        We work to keep Kalm available but we do not promise it will always be uninterrupted or
-        error-free, and features can change. To the extent the law allows, Kalm is provided as it is
-        and we are not liable for indirect or consequential loss arising from your use of it.
+        We work to keep Calm AI available but we do not promise it will always be uninterrupted or
+        error-free, and features can change. To the extent the law allows, Calm AI is provided as it
+        is and we are not liable for indirect or consequential loss arising from your use of it.
         Nothing in these terms limits rights you have under law that cannot be limited.
       </p>
     ),
@@ -102,8 +102,8 @@ const SECTIONS: LegalSection[] = [
     heading: "Ending your use",
     body: (
       <p>
-        You can stop using Kalm and delete your data and account at any time from Profile, Your data
-        &amp; privacy. We may suspend or end access if these terms are broken or to protect
+        You can stop using Calm AI and delete your data and account at any time from Profile, Your
+        data &amp; privacy. We may suspend or end access if these terms are broken or to protect
         people&apos;s safety.
       </p>
     ),
@@ -112,7 +112,7 @@ const SECTIONS: LegalSection[] = [
     heading: "Changes",
     body: (
       <p>
-        We may update these terms. We will change the date above, and keep using Kalm after an
+        We may update these terms. We will change the date above, and keep using Calm AI after an
         update means you accept the new version.
       </p>
     ),
@@ -124,7 +124,7 @@ function TermsPage() {
     <LegalDocument
       title="Terms of Use"
       updated="2026-11-17"
-      intro="These terms set out the rules for using Kalm, an AI wellness companion."
+      intro="These terms set out the rules for using Calm AI, an AI wellness companion."
       sections={SECTIONS}
     />
   );

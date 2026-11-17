@@ -9,13 +9,13 @@ import { useTranslation } from "@/lib/i18n";
 export const Route = createFileRoute("/_authenticated/care")({
   head: () => ({
     meta: [
-      { title: "More support than I can offer — Kalm" },
+      { title: "More support than I can offer — Calm AI" },
       {
         name: "description",
         content:
           "Therapist directories, low-cost therapy options, employer support and crisis lines — for when it's time to talk to a person.",
       },
-      { property: "og:title", content: "More support than I can offer — Kalm" },
+      { property: "og:title", content: "More support than I can offer — Calm AI" },
       {
         property: "og:description",
         content: "Therapist directories, low-cost therapy, employer support and crisis lines.",

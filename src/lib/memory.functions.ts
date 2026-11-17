@@ -1,4 +1,4 @@
-// "What Kalm remembers about you" — read + delete over thread_summaries, the
+// "What Calm AI remembers about you" — read + delete over thread_summaries, the
 // per-conversation notes that give the companion cross-session memory
 // (fetchRecentSummaries in chat.functions.ts). Deleting one simply means it is
 // no longer pulled into the AI context; a later conversation on that thread may

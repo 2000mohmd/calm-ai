@@ -11,7 +11,7 @@ import { sendEmail } from "./resend.server";
 
 type Client = SupabaseClient<Database>;
 
-const FROM = "Kalm Support <onboarding@resend.dev>";
+const FROM = "Calm AI Support <onboarding@resend.dev>";
 
 export type AdminSupportThread = {
   id: string;
@@ -163,21 +163,21 @@ export async function sendSupportReplyEmail(input: {
 
     const link = `${appBaseUrl()}/support?thread=${input.threadId}`;
     const text = [
-      "Kalm support replied to your message.",
+      "Calm AI support replied to your message.",
       "",
       `Your request: ${input.subject}`,
       `Reply starts with: "${excerpt(input.reply)}"`,
       "",
       `Read the full reply and respond here: ${link}`,
       "",
-      "This is an account/product support message. If you need urgent help, open Kalm and tap Support resources.",
+      "This is an account/product support message. If you need urgent help, open Calm AI and tap Support resources.",
     ].join("\n");
 
     const result = await sendEmail({
       tag: "[support] reply email",
       from: FROM,
       to,
-      subject: `Kalm support replied — ${input.subject}`,
+      subject: `Calm AI support replied — ${input.subject}`,
       text,
     });
     return result.ok;

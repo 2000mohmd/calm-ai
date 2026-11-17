@@ -158,8 +158,8 @@ export const replyToHumanSupportRequest = createServerFn({ method: "POST" })
       const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
       const { sendPushToUser } = await import("./push.server");
       await sendPushToUser(supabaseAdmin, request.data.user_id, {
-        title: "Kalm team",
-        body: "Someone from the Kalm team replied to you.",
+        title: "Calm AI team",
+        body: "Someone from the Calm AI team replied to you.",
       });
     } catch (error) {
       console.error("[handoff] reply push failed", error);

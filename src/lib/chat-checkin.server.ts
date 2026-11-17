@@ -220,8 +220,8 @@ async function sendChatCheckinIfDue(
     const { sendPushToUser } = await import("./push.server");
     await sendPushToUser(supabase, userId, {
       title: profile.data.preferred_name
-        ? `Kalm — thinking of you, ${profile.data.preferred_name}`
-        : "Kalm",
+        ? `Calm AI — thinking of you, ${profile.data.preferred_name}`
+        : "Calm AI",
       body: message,
     });
   } catch (err) {
