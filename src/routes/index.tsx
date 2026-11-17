@@ -1,6 +1,53 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { useEffect } from "react";
+import { useEffect, useRef, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
+
+const MENU_LINKS = [
+  { href: "#how", label: "How it works" },
+  { href: "#features", label: "Features" },
+  { href: "#safety", label: "Safety" },
+  { href: "#plans", label: "Plans" },
+];
+
+const SCREENS = [
+  {
+    src: "/screens/welcome.jpg",
+    caption: "Welcome",
+    alt: "Calm AI welcome screen: a quiet place to think out loud, with sign-in by email link, Google or Apple",
+  },
+  {
+    src: "/screens/chat.jpg",
+    caption: "A calm conversation",
+    alt: "A chat where Calm AI asks how the day went and suggests a three-minute grounding exercise",
+  },
+  {
+    src: "/screens/progress.jpg",
+    caption: "Your patterns",
+    alt: "The patterns screen with a seven-day mood chart, habit tracker and a mood check-in",
+  },
+  {
+    src: "/screens/exercises.jpg",
+    caption: "Guided exercises",
+    alt: "A list of short guided exercises: grounding, box breathing, reframing a thought, winding down for sleep",
+  },
+];
+
+// Not-yet-published store badge: deliberately not a link.
+function SoonPill({ label, dark = false }: { label: string; dark?: boolean }) {
+  return (
+    <span
+      aria-disabled="true"
+      className="inline-flex min-h-11 cursor-default select-none items-center rounded-full px-4 text-[13px] font-semibold"
+      style={
+        dark
+          ? { background: "rgba(255,255,255,.08)", color: "#c9cbf2" }
+          : { background: "rgba(255,255,255,.7)", border: "1px solid #fff", color: "#4a4c6b" }
+      }
+    >
+      {label}
+    </span>
+  );
+}
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -24,6 +71,21 @@ export const Route = createFileRoute("/")({
 
 function Index() {
   const navigate = useNavigate();
+  const [menuOpen, setMenuOpen] = useState(false);
+  const menuButtonRef = useRef<HTMLButtonElement>(null);
+
+  // Escape closes the mobile menu and returns focus to its button.
+  useEffect(() => {
+    if (!menuOpen) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        setMenuOpen(false);
+        menuButtonRef.current?.focus();
+      }
+    };
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, [menuOpen]);
 
   // Signed-in users who land here are sent straight to the app.
   useEffect(() => {
@@ -192,19 +254,23 @@ function Index() {
           }}
         >
           <div
+            className="gap-2 md:gap-4"
             style={{
               width: "100%",
               maxWidth: "1120px",
               display: "flex",
               alignItems: "center",
-              gap: "16px",
-              padding: "10px 12px 10px 20px",
+              padding: "10px 12px",
+              paddingInlineStart: "20px",
               borderRadius: "999px",
               background: "rgba(23,23,40,.94)",
               boxShadow: "0 18px 40px -22px rgba(23,23,40,.8)",
             }}
           >
-            <div style={{ display: "flex", alignItems: "center", gap: "10px", flex: "none" }}>
+            <div
+              className="me-auto md:me-0"
+              style={{ display: "flex", alignItems: "center", gap: "10px", flex: "none" }}
+            >
               <svg width="26" height="26" viewBox="0 0 100 100">
                 <path
                   d="M25,27 a25,25 0 1,1 50,0 a25,25 0 1,1 -50,0 M48,50 a25,25 0 1,1 50,0 a25,25 0 1,1 -50,0 M25,73 a25,25 0 1,1 50,0 a25,25 0 1,1 -50,0 M2,50 a25,25 0 1,1 50,0 a25,25 0 1,1 -50,0"
@@ -222,15 +288,7 @@ function Index() {
                 Calm <span style={{ color: "#9ea1e6" }}>AI</span>
               </span>
             </div>
-            <div
-              style={{
-                flex: "1",
-                display: "flex",
-                justifyContent: "center",
-                gap: "26px",
-                flexWrap: "wrap",
-              }}
-            >
+            <div className="hidden flex-1 flex-wrap justify-center gap-[26px] md:flex">
               <a
                 href="#how"
                 className="ca-hov-1"
@@ -253,15 +311,16 @@ function Index() {
                 Safety
               </a>
               <a
-                href="#pricing"
+                href="#plans"
                 className="ca-hov-4"
                 style={{ fontSize: "14px", fontWeight: "600", color: "rgba(255,255,255,.72)" }}
               >
-                Pricing
+                Plans
               </a>
             </div>
             <Link
               to="/auth"
+              className="inline-flex min-h-11 items-center rounded-full px-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#9ea1e6]"
               style={{
                 flex: "none",
                 fontSize: "14px",
@@ -271,21 +330,82 @@ function Index() {
             >
               Sign in
             </Link>
-            <a
-              href="#download"
-              className="ca-hov-5"
+            <Link
+              to="/auth"
+              className="ca-hov-5 hidden min-h-11 items-center rounded-full px-5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#9ea1e6] md:inline-flex"
               style={{
                 flex: "none",
-                padding: "11px 20px",
-                borderRadius: "999px",
                 background: "#fff",
                 fontSize: "14px",
                 fontWeight: "700",
                 color: "#171728",
               }}
             >
-              Download
-            </a>
+              Start free
+            </Link>
+            <button
+              type="button"
+              aria-label={menuOpen ? "Close menu" : "Open menu"}
+              aria-expanded={menuOpen}
+              aria-controls="ca-mobile-menu"
+              onClick={() => setMenuOpen((o) => !o)}
+              className="inline-flex size-11 shrink-0 items-center justify-center rounded-full border-0 bg-white/10 text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#9ea1e6] md:hidden"
+              ref={menuButtonRef}
+            >
+              <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+                {menuOpen ? (
+                  <path
+                    d="M5 5l10 10M15 5L5 15"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                  />
+                ) : (
+                  <path
+                    d="M3 6h14M3 10h14M3 14h14"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                  />
+                )}
+              </svg>
+            </button>
+          </div>
+          <div
+            id="ca-mobile-menu"
+            hidden={!menuOpen}
+            className="absolute inset-x-5 top-full md:hidden"
+          >
+            <nav
+              aria-label="Sections"
+              className="flex flex-col gap-1 rounded-3xl p-3 shadow-[0_26px_54px_-24px_rgba(23,23,40,.9)]"
+              style={{ background: "rgba(23,23,40,.97)" }}
+            >
+              {MENU_LINKS.map((l) => (
+                <a
+                  key={l.href}
+                  href={l.href}
+                  onClick={() => setMenuOpen(false)}
+                  className="flex min-h-11 items-center rounded-2xl px-4 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#9ea1e6]"
+                  style={{ fontSize: "16px", fontWeight: "600", color: "rgba(255,255,255,.88)" }}
+                >
+                  {l.label}
+                </a>
+              ))}
+              <Link
+                to="/auth"
+                onClick={() => setMenuOpen(false)}
+                className="mt-2 flex min-h-12 items-center justify-center rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#9ea1e6]"
+                style={{
+                  background: "#fff",
+                  fontSize: "15px",
+                  fontWeight: "700",
+                  color: "#171728",
+                }}
+              >
+                Start free
+              </Link>
+            </nav>
           </div>
         </div>
 
@@ -339,7 +459,7 @@ function Index() {
                 whiteSpace: "nowrap",
               }}
             >
-              Free — eight messages a day, no card
+              Free to start — no card
             </span>
           </div>
           <h1
@@ -382,108 +502,37 @@ function Index() {
               justifyContent: "center",
             }}
           >
-            <a
-              href="#"
+            <Link
+              to="/auth"
               className="ca-hov-6"
               style={{
                 transition: "transform .45s cubic-bezier(.2,.8,.2,1),box-shadow .45s",
-                display: "flex",
+                display: "inline-flex",
                 alignItems: "center",
-                gap: "11px",
-                padding: "14px 24px",
-                borderRadius: "16px",
+                minHeight: "52px",
+                padding: "0 30px",
+                borderRadius: "999px",
                 background: "#171728",
                 boxShadow: "0 18px 40px -20px rgba(23,23,40,.8)",
+                font: "800 16px Manrope,sans-serif",
+                color: "#fff",
               }}
             >
-              <div
-                style={{
-                  width: "26px",
-                  height: "26px",
-                  borderRadius: "8px",
-                  background: "rgba(255,255,255,.14)",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  flex: "none",
-                }}
-              >
-                <div
-                  style={{ width: "11px", height: "11px", borderRadius: "3px", background: "#fff" }}
-                ></div>
-              </div>
-              <div style={{ display: "flex", flexDirection: "column", lineHeight: "1.15" }}>
-                <span
-                  style={{
-                    font: "500 9px IBM Plex Mono,monospace",
-                    color: "#9ea1e6",
-                    letterSpacing: ".12em",
-                  }}
-                >
-                  DOWNLOAD ON THE
-                </span>
-                <span
-                  style={{
-                    font: "800 17px Manrope,sans-serif",
-                    color: "#fff",
-                    letterSpacing: "-.4px",
-                  }}
-                >
-                  App Store
-                </span>
-              </div>
-            </a>
-            <a
-              href="#"
-              className="ca-hov-7"
-              style={{
-                transition: "transform .45s cubic-bezier(.2,.8,.2,1),box-shadow .45s",
-                display: "flex",
-                alignItems: "center",
-                gap: "11px",
-                padding: "14px 24px",
-                borderRadius: "16px",
-                background: "#171728",
-                boxShadow: "0 18px 40px -20px rgba(23,23,40,.8)",
-              }}
-            >
-              <div
-                style={{
-                  width: "26px",
-                  height: "26px",
-                  borderRadius: "8px",
-                  background: "rgba(255,255,255,.14)",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  flex: "none",
-                }}
-              >
-                <svg width="12" height="13" viewBox="0 0 12 13">
-                  <path d="M1 1 L11 6.5 L1 12 Z" fill="#fff"></path>
-                </svg>
-              </div>
-              <div style={{ display: "flex", flexDirection: "column", lineHeight: "1.15" }}>
-                <span
-                  style={{
-                    font: "500 9px IBM Plex Mono,monospace",
-                    color: "#9ea1e6",
-                    letterSpacing: ".12em",
-                  }}
-                >
-                  GET IT ON
-                </span>
-                <span
-                  style={{
-                    font: "800 17px Manrope,sans-serif",
-                    color: "#fff",
-                    letterSpacing: "-.4px",
-                  }}
-                >
-                  Google Play
-                </span>
-              </div>
-            </a>
+              Start free on the web
+            </Link>
+          </div>
+          <div
+            style={{
+              position: "relative",
+              marginTop: "14px",
+              display: "flex",
+              flexWrap: "wrap",
+              gap: "10px",
+              justifyContent: "center",
+            }}
+          >
+            <SoonPill label="Coming soon on iPhone" />
+            <SoonPill label="Coming soon on Android" />
           </div>
           <div
             style={{
@@ -496,156 +545,78 @@ function Index() {
               alignItems: "center",
             }}
           >
-            <span style={{ fontSize: "14px", color: "#4a4c6b" }}>
-              Signing up is free — no card.
-            </span>
+            <span style={{ fontSize: "14px", color: "#4a4c6b" }}>Free to start — no card.</span>
             <a href="#how" style={{ fontSize: "14px", fontWeight: "700", color: "#5b60c4" }}>
               See how it works →
             </a>
           </div>
-
-          <div
-            style={{
-              position: "relative",
-              marginTop: "56px",
-              width: "100%",
-              maxWidth: "1000px",
-              display: "flex",
-              justifyContent: "center",
-              alignItems: "flex-end",
-              gap: "clamp(-40px,-2vw,0px)",
-              minHeight: "420px",
-            }}
-          >
-            <div
-              style={{
-                position: "absolute",
-                bottom: "60px",
-                left: "50%",
-                transform: "translateX(-50%)",
-                width: "min(360px,52%)",
-                aspectRatio: "1",
-                borderRadius: "50%",
-                border: "1px solid rgba(91,96,196,.3)",
-                animation: "caRing 5.5s ease-out infinite",
-                pointerEvents: "none",
-              }}
-            ></div>
-            <div
-              style={{
-                position: "absolute",
-                bottom: "60px",
-                left: "50%",
-                transform: "translateX(-50%)",
-                width: "min(360px,52%)",
-                aspectRatio: "1",
-                borderRadius: "50%",
-                border: "1px solid rgba(91,96,196,.24)",
-                animation: "caRing 5.5s ease-out 2.2s infinite",
-                pointerEvents: "none",
-              }}
-            ></div>
-            <div
-              style={{
-                width: "clamp(150px,20vw,232px)",
-                borderRadius: "36px",
-                padding: "8px",
-                background: "linear-gradient(160deg,#fff,#eeeef9)",
-                boxShadow: "0 30px 70px -32px rgba(70,74,150,.5)",
-                transform: "rotate(-7deg) translateY(24px)",
-                flex: "none",
-                animation: "caFloat 8s ease-in-out infinite",
-              }}
-            >
-              <div
-                style={{
-                  borderRadius: "29px",
-                  overflow: "hidden",
-                  background: "#f4f4fb",
-                  aspectRatio: "736/1600",
-                }}
-              >
-                <img
-                  src="/shots/exercises.jpeg"
-                  alt="Calm AI exercises"
-                  style={{
-                    width: "100%",
-                    height: "100%",
-                    objectFit: "cover",
-                    objectPosition: "top",
-                    display: "block",
-                  }}
-                />
-              </div>
-            </div>
-            <div
-              style={{
-                width: "clamp(190px,25vw,290px)",
-                borderRadius: "44px",
-                padding: "9px",
-                background: "linear-gradient(160deg,#fff,#eaeaf7)",
-                boxShadow: "0 44px 90px -30px rgba(70,74,150,.6)",
-                position: "relative",
-                zIndex: "2",
-                flex: "none",
-              }}
-            >
-              <div
-                style={{
-                  borderRadius: "36px",
-                  overflow: "hidden",
-                  background: "#f4f4fb",
-                  aspectRatio: "736/1600",
-                }}
-              >
-                <img
-                  src="/shots/precall.jpeg"
-                  alt="Calm AI call setup"
-                  style={{
-                    width: "100%",
-                    height: "100%",
-                    objectFit: "cover",
-                    objectPosition: "top",
-                    display: "block",
-                  }}
-                />
-              </div>
-            </div>
-            <div
-              style={{
-                width: "clamp(150px,20vw,232px)",
-                borderRadius: "36px",
-                padding: "8px",
-                background: "linear-gradient(160deg,#fff,#eeeef9)",
-                boxShadow: "0 30px 70px -32px rgba(70,74,150,.5)",
-                transform: "rotate(7deg) translateY(24px)",
-                flex: "none",
-                animation: "caFloat 8s ease-in-out 1.4s infinite",
-              }}
-            >
-              <div
-                style={{
-                  borderRadius: "29px",
-                  overflow: "hidden",
-                  background: "#f4f4fb",
-                  aspectRatio: "736/1600",
-                }}
-              >
-                <img
-                  src="/shots/progress.jpeg"
-                  alt="Calm AI progress"
-                  style={{
-                    width: "100%",
-                    height: "100%",
-                    objectFit: "cover",
-                    objectPosition: "top",
-                    display: "block",
-                  }}
-                />
-              </div>
-            </div>
-          </div>
         </div>
+
+        <section
+          id="screens"
+          aria-labelledby="screens-title"
+          className="flex flex-col items-center pb-2 pt-14 sm:pt-20"
+        >
+          <div className="relative w-full max-w-[1120px]">
+            <div
+              aria-hidden="true"
+              className="pointer-events-none absolute start-1/2 top-1/2 h-[420px] w-[min(900px,140%)] -translate-y-1/2 -translate-x-1/2 rounded-full rtl:translate-x-1/2"
+              style={{
+                background: "radial-gradient(circle,rgba(143,148,224,.28),transparent 64%)",
+              }}
+            ></div>
+            <div className="relative px-6 text-center">
+              <h2
+                id="screens-title"
+                style={{
+                  margin: "0",
+                  font: "800 clamp(28px,4.2vw,46px) Manrope,sans-serif",
+                  color: "#171728",
+                  letterSpacing: "-1.6px",
+                  lineHeight: "1.08",
+                }}
+              >
+                See it in action
+              </h2>
+              <p
+                style={{
+                  margin: "12px auto 0",
+                  fontSize: "17px",
+                  lineHeight: "1.6",
+                  color: "#4a4c6b",
+                  maxWidth: "480px",
+                }}
+              >
+                Real screens from the app.
+              </p>
+            </div>
+            <ul className="relative m-0 mt-10 flex list-none snap-x snap-mandatory gap-5 overflow-x-auto px-6 pb-8 pt-2 [scrollbar-width:none] lg:grid lg:grid-cols-4 lg:gap-6 lg:overflow-visible lg:pb-4 [&::-webkit-scrollbar]:hidden">
+              {SCREENS.map((s, i) => (
+                <li
+                  key={s.src}
+                  className="w-[62%] max-w-[260px] shrink-0 snap-center sm:w-[44%] lg:w-auto lg:max-w-none lg:shrink"
+                >
+                  <figure className="m-0 flex flex-col items-center">
+                    <div className="w-full rounded-[2.5rem] bg-[#171728] p-2 shadow-[0_30px_60px_-28px_rgba(70,74,150,.6)] ring-1 ring-[#171728]/80">
+                      <img
+                        src={s.src}
+                        alt={s.alt}
+                        width={780}
+                        height={1688}
+                        loading={i === 0 ? "eager" : "lazy"}
+                        decoding="async"
+                        className="block h-auto w-full rounded-[2rem]"
+                      />
+                    </div>
+                    <figcaption className="mt-4 text-center text-[15px] font-bold text-[#171728]">
+                      {s.caption}
+                    </figcaption>
+                  </figure>
+                </li>
+              ))}
+            </ul>
+          </div>
+        </section>
 
         <div
           id="how"
@@ -1078,8 +1049,8 @@ function Index() {
                       maxWidth: "380px",
                     }}
                   >
-                    Voice only, or a video avatar if a face helps. Live captions throughout. Nothing
-                    is recorded — only a short summary, and you can delete it.
+                    Talk out loud when typing is too much, with live captions throughout. Our
+                    Privacy notice says exactly what is kept.
                   </p>
                 </div>
                 <div
@@ -1186,7 +1157,7 @@ function Index() {
                       letterSpacing: ".14em",
                     }}
                   >
-                    TWELVE EXERCISES
+                    GUIDED EXERCISES
                   </span>
                   <div
                     style={{
@@ -1196,7 +1167,7 @@ function Index() {
                       letterSpacing: "-.6px",
                     }}
                   >
-                    Three to ten minutes, paced for you
+                    A few minutes each, paced for you
                   </div>
                   <p
                     style={{
@@ -1206,8 +1177,8 @@ function Index() {
                       color: "#4a4c6b",
                     }}
                   >
-                    Box breathing, 5-4-3-2-1 grounding, thought records, an evening journal. Leave
-                    any of them halfway.
+                    Box breathing, 5-4-3-2-1 grounding, reframing a thought, winding down for sleep.
+                    Leave any of them halfway.
                   </p>
                 </div>
                 <div
@@ -1249,8 +1220,7 @@ function Index() {
                       color: "#4a4c6b",
                     }}
                   >
-                    Mood over the week and habits you chose yourself. Export the lot as a PDF for a
-                    doctor's appointment.
+                    Mood over the week and habits you chose yourself, all in one place.
                   </p>
                 </div>
               </div>
@@ -1286,7 +1256,7 @@ function Index() {
                 textWrap: "pretty",
               }}
             >
-              The numbers we can actually stand behind
+              The basics, plainly
             </h2>
             <div
               style={{
@@ -1305,7 +1275,7 @@ function Index() {
                     lineHeight: "1",
                   }}
                 >
-                  8
+                  Free
                 </div>
                 <div
                   style={{
@@ -1315,7 +1285,7 @@ function Index() {
                     color: "#3f4160",
                   }}
                 >
-                  free messages a day, resetting at midnight
+                  to start: a first conversation, no card
                 </div>
               </div>
               <div>
@@ -1327,7 +1297,7 @@ function Index() {
                     lineHeight: "1",
                   }}
                 >
-                  12
+                  Always
                 </div>
                 <div
                   style={{
@@ -1337,7 +1307,7 @@ function Index() {
                     color: "#3f4160",
                   }}
                 >
-                  guided exercises, 3–10 minutes each
+                  free crisis resources, on every plan
                 </div>
               </div>
               <div>
@@ -1360,28 +1330,6 @@ function Index() {
                   }}
                 >
                   languages — English, العربية, Français
-                </div>
-              </div>
-              <div>
-                <div
-                  style={{
-                    font: "800 clamp(34px,5vw,52px) Manrope,sans-serif",
-                    color: "#5b60c4",
-                    letterSpacing: "-2px",
-                    lineHeight: "1",
-                  }}
-                >
-                  0
-                </div>
-                <div
-                  style={{
-                    marginTop: "6px",
-                    fontSize: "15px",
-                    lineHeight: "1.5",
-                    color: "#3f4160",
-                  }}
-                >
-                  calls recorded, ads served, or streaks to keep alive
                 </div>
               </div>
             </div>
@@ -1696,7 +1644,7 @@ function Index() {
         </div>
 
         <div
-          id="pricing"
+          id="plans"
           style={{
             padding: "clamp(72px,10vw,120px) 24px 0",
             display: "flex",
@@ -1721,7 +1669,7 @@ function Index() {
                 letterSpacing: ".14em",
               }}
             >
-              PRICING
+              PLANS
             </div>
             <div
               style={{
@@ -1744,9 +1692,9 @@ function Index() {
                   textWrap: "pretty",
                 }}
               >
-                Signing up is free.
+                Free to start.
                 <br />
-                It stays free.
+                More on the way.
               </h2>
               <p
                 style={{
@@ -1757,7 +1705,8 @@ function Index() {
                   maxWidth: "360px",
                 }}
               >
-                Download, talk tonight, and only pay when eight messages a day stops being enough.
+                Start with a first conversation, free. Paid plans are still being built, and the
+                crisis resources are free for everyone.
               </p>
             </div>
 
@@ -1803,9 +1752,9 @@ function Index() {
                       lineHeight: "1",
                     }}
                   >
-                    $0
+                    Free
                   </span>
-                  <span style={{ fontSize: "14.5px", color: "#4a4c6b" }}>forever</span>
+                  <span style={{ fontSize: "14.5px", color: "#4a4c6b" }}>available now</span>
                 </div>
                 <p
                   style={{
@@ -1815,7 +1764,7 @@ function Index() {
                     color: "#4a4c6b",
                   }}
                 >
-                  No card to sign up. No trial timer counting down at you.
+                  A first conversation with Calm AI after setup. No card needed.
                 </p>
                 <div
                   style={{
@@ -1834,8 +1783,8 @@ function Index() {
                       color: "#171728",
                     }}
                   >
-                    <span style={{ color: "#5b60c4", fontWeight: "700" }}>·</span>Eight messages a
-                    day, resetting at midnight
+                    <span style={{ color: "#5b60c4", fontWeight: "700" }}>·</span>Companion chat for
+                    a first conversation
                   </div>
                   <div
                     style={{
@@ -1846,8 +1795,7 @@ function Index() {
                       color: "#171728",
                     }}
                   >
-                    <span style={{ color: "#5b60c4", fontWeight: "700" }}>·</span>Four guided
-                    exercises
+                    <span style={{ color: "#5b60c4", fontWeight: "700" }}>·</span>Guided exercises
                   </div>
                   <div
                     style={{
@@ -1870,12 +1818,13 @@ function Index() {
                       color: "#171728",
                     }}
                   >
-                    <span style={{ color: "#5b60c4", fontWeight: "700" }}>·</span>30 days of history
+                    <span style={{ color: "#5b60c4", fontWeight: "700" }}>·</span>Crisis resources,
+                    always free
                   </div>
                 </div>
                 <div style={{ flex: "1", minHeight: "20px" }}></div>
-                <a
-                  href="#download"
+                <Link
+                  to="/auth"
                   className="ca-hov-20"
                   style={{
                     marginTop: "22px",
@@ -1888,8 +1837,8 @@ function Index() {
                     color: "#171728",
                   }}
                 >
-                  Download &amp; start free
-                </a>
+                  Start free on the web
+                </Link>
               </div>
 
               <div
@@ -1947,7 +1896,7 @@ function Index() {
                       letterSpacing: ".14em",
                     }}
                   >
-                    PLUS
+                    PAID PLANS
                   </span>
                   <span
                     style={{
@@ -1959,29 +1908,20 @@ function Index() {
                       letterSpacing: ".1em",
                     }}
                   >
-                    MOST PEOPLE START HERE
+                    COMING SOON
                   </span>
                 </div>
                 <div
                   style={{
                     position: "relative",
                     marginTop: "14px",
-                    display: "flex",
-                    alignItems: "baseline",
-                    gap: "7px",
+                    font: "800 clamp(26px,3.4vw,34px) Manrope,sans-serif",
+                    color: "#fff",
+                    letterSpacing: "-1.2px",
+                    lineHeight: "1.1",
                   }}
                 >
-                  <span
-                    style={{
-                      font: "800 clamp(30px,4vw,42px) Manrope,sans-serif",
-                      color: "#fff",
-                      letterSpacing: "-1.8px",
-                      lineHeight: "1",
-                    }}
-                  >
-                    $18
-                  </span>
-                  <span style={{ fontSize: "14.5px", color: "#9ea1e6" }}>/ month</span>
+                  More, when you want it
                 </div>
                 <p
                   style={{
@@ -1992,7 +1932,8 @@ function Index() {
                     color: "#9ea1e6",
                   }}
                 >
-                  Unlimited chat and voice, for talking whenever it hits.
+                  We're still working on these. Nothing to buy yet, and we'll say so here when that
+                  changes.
                 </p>
                 <div
                   style={{
@@ -2012,7 +1953,8 @@ function Index() {
                       color: "#fff",
                     }}
                   >
-                    <span style={{ color: "#9ea1e6", fontWeight: "700" }}>·</span>Unlimited messages
+                    <span style={{ color: "#9ea1e6", fontWeight: "700" }}>·</span>More daily
+                    conversation
                   </div>
                   <div
                     style={{
@@ -2023,8 +1965,7 @@ function Index() {
                       color: "#fff",
                     }}
                   >
-                    <span style={{ color: "#9ea1e6", fontWeight: "700" }}>·</span>Unlimited voice
-                    calls
+                    <span style={{ color: "#9ea1e6", fontWeight: "700" }}>·</span>Voice calls
                   </div>
                   <div
                     style={{
@@ -2035,181 +1976,25 @@ function Index() {
                       color: "#fff",
                     }}
                   >
-                    <span style={{ color: "#9ea1e6", fontWeight: "700" }}>·</span>All twelve
-                    exercises
-                  </div>
-                  <div
-                    style={{
-                      display: "flex",
-                      gap: "10px",
-                      fontSize: "14.5px",
-                      lineHeight: "1.45",
-                      color: "#fff",
-                    }}
-                  >
-                    <span style={{ color: "#9ea1e6", fontWeight: "700" }}>·</span>Full history,
-                    exportable as PDF
+                    <span style={{ color: "#9ea1e6", fontWeight: "700" }}>·</span>A human coach
                   </div>
                 </div>
                 <div style={{ flex: "1", minHeight: "20px" }}></div>
-                <a
-                  href="#download"
-                  className="ca-hov-22"
+                <span
+                  aria-disabled="true"
                   style={{
                     position: "relative",
                     marginTop: "22px",
                     padding: "15px",
                     borderRadius: "16px",
-                    background: "#fff",
+                    background: "rgba(255,255,255,.12)",
                     textAlign: "center",
                     fontSize: "15px",
                     fontWeight: "700",
-                    color: "#171728",
+                    color: "#c9cbf2",
                   }}
                 >
-                  Get Plus
-                </a>
-                <span
-                  style={{
-                    position: "relative",
-                    marginTop: "10px",
-                    textAlign: "center",
-                    fontSize: "12px",
-                    color: "#7b7d9e",
-                  }}
-                >
-                  Cancel anytime
-                </span>
-              </div>
-
-              <div
-                className="ca-hov-23"
-                style={{
-                  borderRadius: "32px",
-                  padding: "32px",
-                  background: "linear-gradient(160deg,#eeeefb,#dcdcf4)",
-                  border: "1px solid #fff",
-                  display: "flex",
-                  flexDirection: "column",
-                  transition:
-                    "transform .55s cubic-bezier(.2,.8,.2,1),box-shadow .55s cubic-bezier(.2,.8,.2,1)",
-                }}
-              >
-                <span
-                  style={{
-                    font: "500 11px IBM Plex Mono,monospace",
-                    color: "#4a4c6b",
-                    letterSpacing: ".14em",
-                  }}
-                >
-                  COMPLETE
-                </span>
-                <div
-                  style={{ marginTop: "14px", display: "flex", alignItems: "baseline", gap: "7px" }}
-                >
-                  <span
-                    style={{
-                      font: "800 clamp(30px,4vw,42px) Manrope,sans-serif",
-                      color: "#171728",
-                      letterSpacing: "-1.8px",
-                      lineHeight: "1",
-                    }}
-                  >
-                    $50
-                  </span>
-                  <span style={{ fontSize: "14.5px", color: "#4a4c6b" }}>/ month</span>
-                </div>
-                <p
-                  style={{
-                    margin: "10px 0 0",
-                    fontSize: "14.5px",
-                    lineHeight: "1.55",
-                    color: "#4a4c6b",
-                  }}
-                >
-                  Everything, including the face-to-face video companion.
-                </p>
-                <div
-                  style={{
-                    marginTop: "22px",
-                    display: "flex",
-                    flexDirection: "column",
-                    gap: "10px",
-                  }}
-                >
-                  <div
-                    style={{
-                      display: "flex",
-                      gap: "10px",
-                      fontSize: "14.5px",
-                      lineHeight: "1.45",
-                      color: "#171728",
-                    }}
-                  >
-                    <span style={{ color: "#5b60c4", fontWeight: "700" }}>·</span>Everything in Plus
-                  </div>
-                  <div
-                    style={{
-                      display: "flex",
-                      gap: "10px",
-                      fontSize: "14.5px",
-                      lineHeight: "1.45",
-                      color: "#171728",
-                    }}
-                  >
-                    <span style={{ color: "#5b60c4", fontWeight: "700" }}>·</span>Unlimited video
-                    avatar calls
-                  </div>
-                  <div
-                    style={{
-                      display: "flex",
-                      gap: "10px",
-                      fontSize: "14.5px",
-                      lineHeight: "1.45",
-                      color: "#171728",
-                    }}
-                  >
-                    <span style={{ color: "#5b60c4", fontWeight: "700" }}>·</span>Weekly recap &amp;
-                    pattern report
-                  </div>
-                  <div
-                    style={{
-                      display: "flex",
-                      gap: "10px",
-                      fontSize: "14.5px",
-                      lineHeight: "1.45",
-                      color: "#171728",
-                    }}
-                  >
-                    <span style={{ color: "#5b60c4", fontWeight: "700" }}>·</span>Priority support
-                  </div>
-                </div>
-                <div style={{ flex: "1", minHeight: "20px" }}></div>
-                <a
-                  href="#download"
-                  className="ca-hov-24"
-                  style={{
-                    marginTop: "22px",
-                    padding: "15px",
-                    borderRadius: "16px",
-                    background: "#171728",
-                    textAlign: "center",
-                    fontSize: "15px",
-                    fontWeight: "700",
-                    color: "#fff",
-                  }}
-                >
-                  Get Complete
-                </a>
-                <span
-                  style={{
-                    marginTop: "10px",
-                    textAlign: "center",
-                    fontSize: "12px",
-                    color: "#5c5e7d",
-                  }}
-                >
-                  Cancel anytime
+                  Coming soon
                 </span>
               </div>
             </div>
@@ -2300,7 +2085,7 @@ function Index() {
                 maxWidth: "480px",
               }}
             >
-              Two taps from a conversation. No password, no card, no streak to keep alive.
+              Set up in a minute, then start talking. No card, no streak to keep alive.
             </p>
             <div
               style={{
@@ -2312,113 +2097,37 @@ function Index() {
                 justifyContent: "center",
               }}
             >
-              <a
-                href="#"
+              <Link
+                to="/auth"
                 className="ca-hov-25"
                 style={{
                   transition: "transform .45s cubic-bezier(.2,.8,.2,1),box-shadow .45s",
-                  display: "flex",
+                  display: "inline-flex",
                   alignItems: "center",
-                  gap: "11px",
-                  padding: "14px 24px",
-                  borderRadius: "16px",
+                  minHeight: "52px",
+                  padding: "0 30px",
+                  borderRadius: "999px",
                   background: "#171728",
                   boxShadow: "0 18px 40px -20px rgba(23,23,40,.8)",
+                  font: "800 16px Manrope,sans-serif",
+                  color: "#fff",
                 }}
               >
-                <div
-                  style={{
-                    width: "26px",
-                    height: "26px",
-                    borderRadius: "8px",
-                    background: "rgba(255,255,255,.14)",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    flex: "none",
-                  }}
-                >
-                  <div
-                    style={{
-                      width: "11px",
-                      height: "11px",
-                      borderRadius: "3px",
-                      background: "#fff",
-                    }}
-                  ></div>
-                </div>
-                <div style={{ display: "flex", flexDirection: "column", lineHeight: "1.15" }}>
-                  <span
-                    style={{
-                      font: "500 9px IBM Plex Mono,monospace",
-                      color: "#9ea1e6",
-                      letterSpacing: ".12em",
-                    }}
-                  >
-                    DOWNLOAD ON THE
-                  </span>
-                  <span
-                    style={{
-                      font: "800 17px Manrope,sans-serif",
-                      color: "#fff",
-                      letterSpacing: "-.4px",
-                    }}
-                  >
-                    App Store
-                  </span>
-                </div>
-              </a>
-              <a
-                href="#"
-                className="ca-hov-26"
-                style={{
-                  transition: "transform .45s cubic-bezier(.2,.8,.2,1),box-shadow .45s",
-                  display: "flex",
-                  alignItems: "center",
-                  gap: "11px",
-                  padding: "14px 24px",
-                  borderRadius: "16px",
-                  background: "#171728",
-                  boxShadow: "0 18px 40px -20px rgba(23,23,40,.8)",
-                }}
-              >
-                <div
-                  style={{
-                    width: "26px",
-                    height: "26px",
-                    borderRadius: "8px",
-                    background: "rgba(255,255,255,.14)",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    flex: "none",
-                  }}
-                >
-                  <svg width="12" height="13" viewBox="0 0 12 13">
-                    <path d="M1 1 L11 6.5 L1 12 Z" fill="#fff"></path>
-                  </svg>
-                </div>
-                <div style={{ display: "flex", flexDirection: "column", lineHeight: "1.15" }}>
-                  <span
-                    style={{
-                      font: "500 9px IBM Plex Mono,monospace",
-                      color: "#9ea1e6",
-                      letterSpacing: ".12em",
-                    }}
-                  >
-                    GET IT ON
-                  </span>
-                  <span
-                    style={{
-                      font: "800 17px Manrope,sans-serif",
-                      color: "#fff",
-                      letterSpacing: "-.4px",
-                    }}
-                  >
-                    Google Play
-                  </span>
-                </div>
-              </a>
+                Start free on the web
+              </Link>
+            </div>
+            <div
+              style={{
+                position: "relative",
+                marginTop: "14px",
+                display: "flex",
+                flexWrap: "wrap",
+                gap: "10px",
+                justifyContent: "center",
+              }}
+            >
+              <SoonPill label="Coming soon on iPhone" />
+              <SoonPill label="Coming soon on Android" />
             </div>
             <span
               style={{
@@ -2428,7 +2137,7 @@ function Index() {
                 color: "#4a4c6b",
               }}
             >
-              Free to sign up · iOS and Android
+              Free to start · no card · works in your browser today
             </span>
           </div>
         </div>
@@ -2481,153 +2190,8 @@ function Index() {
                   A quiet place to think out loud. Wellness support, not therapy.
                 </p>
                 <div style={{ marginTop: "16px", display: "flex", flexWrap: "wrap", gap: "8px" }}>
-                  <a
-                    href="#"
-                    className="ca-hov-27"
-                    style={{
-                      transition: "transform .45s cubic-bezier(.2,.8,.2,1),box-shadow .45s",
-                      display: "flex",
-                      alignItems: "center",
-                      gap: "11px",
-                      padding: "11px 18px",
-                      borderRadius: "16px",
-                      background: "#fff",
-                      border: "1px solid rgba(23,23,40,.1)",
-                    }}
-                  >
-                    <div
-                      style={{
-                        width: "26px",
-                        height: "26px",
-                        borderRadius: "8px",
-                        background: "rgba(23,23,40,.08)",
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        flex: "none",
-                      }}
-                    >
-                      <div
-                        style={{
-                          width: "11px",
-                          height: "11px",
-                          borderRadius: "3px",
-                          background: "#171728",
-                        }}
-                      ></div>
-                    </div>
-                    <div style={{ display: "flex", flexDirection: "column", lineHeight: "1.15" }}>
-                      <span
-                        style={{
-                          font: "500 9px IBM Plex Mono,monospace",
-                          color: "#5c5e7d",
-                          letterSpacing: ".12em",
-                        }}
-                      >
-                        DOWNLOAD ON THE
-                      </span>
-                      <span
-                        style={{
-                          font: "800 15px Manrope,sans-serif",
-                          color: "#171728",
-                          letterSpacing: "-.4px",
-                        }}
-                      >
-                        App Store
-                      </span>
-                    </div>
-                  </a>
-                  <a
-                    href="#"
-                    className="ca-hov-28"
-                    style={{
-                      transition: "transform .45s cubic-bezier(.2,.8,.2,1),box-shadow .45s",
-                      display: "flex",
-                      alignItems: "center",
-                      gap: "11px",
-                      padding: "11px 18px",
-                      borderRadius: "16px",
-                      background: "#fff",
-                      border: "1px solid rgba(23,23,40,.1)",
-                    }}
-                  >
-                    <div
-                      style={{
-                        width: "26px",
-                        height: "26px",
-                        borderRadius: "8px",
-                        background: "rgba(23,23,40,.08)",
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        flex: "none",
-                      }}
-                    >
-                      <svg width="12" height="13" viewBox="0 0 12 13">
-                        <path d="M1 1 L11 6.5 L1 12 Z" fill="#171728"></path>
-                      </svg>
-                    </div>
-                    <div style={{ display: "flex", flexDirection: "column", lineHeight: "1.15" }}>
-                      <span
-                        style={{
-                          font: "500 9px IBM Plex Mono,monospace",
-                          color: "#5c5e7d",
-                          letterSpacing: ".12em",
-                        }}
-                      >
-                        GET IT ON
-                      </span>
-                      <span
-                        style={{
-                          font: "800 15px Manrope,sans-serif",
-                          color: "#171728",
-                          letterSpacing: "-.4px",
-                        }}
-                      >
-                        Google Play
-                      </span>
-                    </div>
-                  </a>
-                </div>
-                <div
-                  style={{
-                    marginTop: "18px",
-                    display: "flex",
-                    flexDirection: "column",
-                    gap: "9px",
-                    maxWidth: "280px",
-                  }}
-                >
-                  <div
-                    style={{
-                      display: "flex",
-                      alignItems: "center",
-                      padding: "5px 5px 5px 16px",
-                      borderRadius: "999px",
-                      background: "rgba(255,255,255,.08)",
-                    }}
-                  >
-                    <span style={{ flex: "1", fontSize: "13px", color: "rgba(255,255,255,.55)" }}>
-                      your@email.com
-                    </span>
-                    <a
-                      href="#"
-                      className="ca-hov-29"
-                      style={{
-                        padding: "9px 16px",
-                        borderRadius: "999px",
-                        background: "#fff",
-                        fontSize: "13px",
-                        fontWeight: "700",
-                        color: "#171728",
-                      }}
-                    >
-                      Subscribe
-                    </a>
-                  </div>
-                  <span style={{ fontSize: "11.5px", color: "#7b7d9e", paddingLeft: "4px" }}>
-                    Occasional notes on what we're building. Never daily.
-                  </span>
+                  <SoonPill label="Coming soon on iPhone" dark />
+                  <SoonPill label="Coming soon on Android" dark />
                 </div>
               </div>
               <div>
@@ -2663,14 +2227,14 @@ function Index() {
                     Features
                   </a>
                   <a
-                    href="#pricing"
+                    href="#plans"
                     className="ca-hov-32"
                     style={{ fontSize: "14px", color: "rgba(255,255,255,.82)" }}
                   >
-                    Pricing
+                    Plans
                   </a>
                   <a
-                    href="#"
+                    href="#features"
                     className="ca-hov-33"
                     style={{ fontSize: "14px", color: "rgba(255,255,255,.82)" }}
                   >
@@ -2704,7 +2268,7 @@ function Index() {
                     Safety &amp; crisis
                   </a>
                   <a
-                    href="#"
+                    href="#how"
                     className="ca-hov-35"
                     style={{ fontSize: "14px", color: "rgba(255,255,255,.82)" }}
                   >
@@ -2724,47 +2288,6 @@ function Index() {
                   >
                     Terms
                   </Link>
-                </div>
-              </div>
-              <div>
-                <div
-                  style={{
-                    font: "500 10.5px IBM Plex Mono,monospace",
-                    color: "#7b7d9e",
-                    letterSpacing: ".14em",
-                  }}
-                >
-                  ELSEWHERE
-                </div>
-                <div
-                  style={{
-                    marginTop: "14px",
-                    display: "flex",
-                    flexDirection: "column",
-                    gap: "10px",
-                  }}
-                >
-                  <a
-                    href="#"
-                    className="ca-hov-38"
-                    style={{ fontSize: "14px", color: "rgba(255,255,255,.82)" }}
-                  >
-                    Instagram
-                  </a>
-                  <a
-                    href="#"
-                    className="ca-hov-39"
-                    style={{ fontSize: "14px", color: "rgba(255,255,255,.82)" }}
-                  >
-                    Support
-                  </a>
-                  <a
-                    href="#"
-                    className="ca-hov-40"
-                    style={{ fontSize: "14px", color: "rgba(255,255,255,.82)" }}
-                  >
-                    Press
-                  </a>
                 </div>
               </div>
             </div>
