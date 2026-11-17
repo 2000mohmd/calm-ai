@@ -672,13 +672,13 @@ function Index() {
                 />
               </div>
               <ul className="m-0 flex list-none snap-x snap-mandatory gap-5 overflow-x-auto px-6 pb-4 pt-2 [scrollbar-width:none] lg:grid lg:grid-cols-4 lg:gap-6 lg:overflow-visible [&::-webkit-scrollbar]:hidden">
-                {SCREENS.map((s, i) => (
+                {SCREENS.map((s) => (
                   <li
                     key={s.src}
                     className="w-[62%] max-w-[260px] shrink-0 snap-center sm:w-[44%] lg:w-auto lg:max-w-none lg:shrink"
                   >
                     <figure className="m-0 flex flex-col items-center">
-                      <Phone src={s.src} alt={s.alt} eager={i === 0} className="w-full" />
+                      <Phone src={s.src} alt={s.alt} eager className="w-full" />
                       <figcaption className="mt-4 text-center text-[15px] font-bold text-[#171728]">
                         {s.caption}
                       </figcaption>
