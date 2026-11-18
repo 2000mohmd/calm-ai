@@ -457,7 +457,7 @@ export async function runCompanionTool(
     if (inserted.error) return { result: `Could not show the widget: ${inserted.error.message}` };
 
     return {
-      result: `The guided exercise "${data.title}" is now showing inline below your message — just say something brief and warm introducing it (one sentence), you do not need to narrate the steps yourself.`,
+      result: `The guided exercise "${data.title}" is now showing inline below your message. Your written reply is still required and must carry real help: one specific sentence validating what they said, then 2-3 sentences on why this helps and what to notice or do afterwards, then invite them to follow the card. Do not narrate the card's individual steps. A reply of only one short line is a failure.`,
       action: {
         type: "exercise_widget",
         slug: data.slug,
