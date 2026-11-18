@@ -72,3 +72,28 @@ export function dailyCapResetsAt(now: Date = new Date()): string {
     Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() + 1, 0, 0, 0),
   ).toISOString();
 }
+
+// --- Call length + voice-note caps (server-enforced) -------------------------
+
+/** Hard server cap on one live call. The reaper and stored durations use it. */
+export const MAX_CALL_SECONDS = 15 * 60;
+/** An 'active' call older than this is dead (client vanished); the reaper ends it. Keep in sync with the SQL. */
+export const STALE_CALL_SECONDS = 20 * 60;
+
+/** Stored/displayed call duration never exceeds the server max. */
+export function capCallSeconds(seconds: number): number {
+  return Math.min(MAX_CALL_SECONDS, Math.max(0, Math.round(seconds)));
+}
+
+/** True when an active call that began at `startedAt` should be reaped. */
+export function isCallStale(startedAt: string | Date, now: Date = new Date()): boolean {
+  return now.getTime() - new Date(startedAt).getTime() > STALE_CALL_SECONDS * 1000;
+}
+
+/** Free members get a handful of voice notes a day; paid tiers keep the old ceiling. Tune with FREE_DAILY_VOICE_NOTE_CAP. */
+export const FREE_DAILY_VOICE_NOTE_CAP = envInt("FREE_DAILY_VOICE_NOTE_CAP", 5);
+export const PAID_DAILY_VOICE_NOTE_CAP = 300;
+
+export function dailyVoiceNoteCap(tier: string | null | undefined): number {
+  return isUnlimitedishTier(tier) ? PAID_DAILY_VOICE_NOTE_CAP : FREE_DAILY_VOICE_NOTE_CAP;
+}

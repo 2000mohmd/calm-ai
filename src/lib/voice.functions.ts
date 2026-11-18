@@ -2,6 +2,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { z } from "zod";
 import { enforceBurst } from "./burst-limit";
+import { dailyVoiceNoteCap } from "./chat-limits";
 import { UserInputError } from "./user-input-error";
 
 const TranscribeInput = z.object({
@@ -24,7 +25,16 @@ export const transcribeVoiceNote = createServerFn({ method: "POST" })
       throw new UserInputError("Voice isn't available until a guardian approves your account.");
     }
     await enforceBurst(`transcribe:${context.userId}`, 6, 60_000);
-    await enforceBurst(`transcribe-day:${context.userId}`, 300, 86_400_000);
+    const { data: profile } = await context.supabase
+      .from("profiles")
+      .select("subscription_tier")
+      .eq("id", context.userId)
+      .maybeSingle();
+    await enforceBurst(
+      `transcribe-day:${context.userId}`,
+      dailyVoiceNoteCap(profile?.subscription_tier),
+      86_400_000,
+    );
     const { transcribeAudioCore } = await import("./voice.server");
     return transcribeAudioCore(data);
   });

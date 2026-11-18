@@ -32,7 +32,7 @@ export function estimateRecordCostUsd(usage: UsageRecord): number {
 const REALTIME_AUDIO_IN_PER_M = 32;
 const REALTIME_AUDIO_OUT_PER_M = 64;
 /** Blended estimate when only duration is known. Tune with VOICE_COST_PER_MINUTE_USD. */
-const VOICE_PER_MINUTE_FALLBACK = 0.5;
+const VOICE_PER_MINUTE_FALLBACK = 0.15;
 
 function voicePerMinute(): number {
   const raw = Number(process.env["VOICE_COST_PER_MINUTE_USD"]);

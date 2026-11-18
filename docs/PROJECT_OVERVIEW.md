@@ -363,3 +363,12 @@ UI links to `/care` for urgent needs.
   unless explicitly set) → Resend email to the member's account email with a
   short excerpt plus a link back (never the full reply) →
   `replied_support_ticket` audit entry. Email failure never blocks the reply.
+
+### Known limitation: crisis check on call turns is client-reported
+
+Live calls run on OpenAI Realtime over WebRTC directly from the browser, so the server only
+sees the turns the client reports (`appendCallTurnCore`). A modified client could skip
+reporting a turn and avoid the crisis gate. Mitigations: calls are hard-capped at 15 minutes
+(a server-side reaper ends anything active past 20 minutes), a flagged turn ends the call
+server-side, calls are limited to paid tiers at 1-2 per week, and the AI-disclosure/crisis
+instructions are in the session prompt itself.

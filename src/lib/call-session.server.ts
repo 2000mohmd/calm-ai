@@ -15,7 +15,14 @@ import { buildSystemPrompt, type CompanionContext } from "./ai-companion.server"
 import { runCrisisGate } from "./crisis-gate.server";
 import type { CrisisResponse } from "./crisis";
 import { callCompanionModel } from "./llm-provider.server";
-import { CALL_WINDOW_DAYS, CALL_WINDOW_MS, weeklyCallAllowance } from "./chat-limits";
+import {
+  CALL_WINDOW_DAYS,
+  CALL_WINDOW_MS,
+  MAX_CALL_SECONDS,
+  STALE_CALL_SECONDS,
+  capCallSeconds,
+  weeklyCallAllowance,
+} from "./chat-limits";
 import { estimateCallCostUsd } from "./rate-limit/pricing";
 import { fetchRecentSummaries } from "./thread-summary.server";
 
@@ -25,8 +32,6 @@ const REALTIME_SECRETS_URL = "https://api.openai.com/v1/realtime/client_secrets"
 const REALTIME_MODEL = "gpt-realtime";
 const DEFAULT_VOICE = "cedar";
 const WEBRTC_URL = "https://api.openai.com/v1/realtime/calls";
-/** A single call can't run forever — the client should hang up at this point. */
-const MAX_CALL_SECONDS = 30 * 60;
 const SUMMARY_MODEL = "claude-haiku-4-5";
 
 export class CallSessionError extends Error {
@@ -210,6 +215,23 @@ export async function startCallSessionCore(
       403,
     );
   }
+
+  // Lazily reap this user's stuck sessions (client vanished) so one can never
+  // block them; the pg_cron job does the same for everyone every 5 minutes.
+  const reapAdmin = await adminClient();
+  const cutoff = new Date(Date.now() - STALE_CALL_SECONDS * 1000).toISOString();
+  await reapAdmin
+    .from("call_sessions")
+    .update({
+      status: "ended",
+      end_reason: "expired",
+      ended_at: new Date().toISOString(),
+      duration_seconds: MAX_CALL_SECONDS,
+      estimated_cost_usd: estimateCallCostUsd(MAX_CALL_SECONDS),
+    })
+    .eq("user_id", userId)
+    .eq("status", "active")
+    .lt("started_at", cutoff);
 
   // One active call at a time.
   const { data: active } = await supabase
@@ -413,9 +435,8 @@ export async function appendCallTurnCore(
   // A crisis turn ends the call server-side (status 'ended' stops the realtime
   // secret being usable by policy and rejects any further turns), rather than
   // trusting the client to hang up.
-  const durationSeconds = Math.max(
-    0,
-    Math.round((now.getTime() - new Date(session.started_at).getTime()) / 1000),
+  const durationSeconds = capCallSeconds(
+    (now.getTime() - new Date(session.started_at).getTime()) / 1000,
   );
   const admin = await adminClient();
   const update = await admin
@@ -458,9 +479,8 @@ export async function endCallSessionCore(
   if (session.status !== "active") return session;
 
   const endedAt = new Date();
-  const durationSeconds = Math.max(
-    0,
-    Math.round((endedAt.getTime() - new Date(session.started_at).getTime()) / 1000),
+  const durationSeconds = capCallSeconds(
+    (endedAt.getTime() - new Date(session.started_at).getTime()) / 1000,
   );
 
   const transcript = (session.transcript as CallTurn[] | null) ?? [];

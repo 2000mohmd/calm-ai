@@ -149,3 +149,12 @@ delete from public.waitlist_signups where lower(email) = lower('person@example.c
 - Alert on `crisis_events` rows with `reviewed = false` and `alert_sent_at is null`.
 - Keep `SUPABASE_SERVICE_ROLE_KEY`, `NUDGE_SWEEP_SECRET` and API keys only in Vercel
   encrypted env vars; rotate them if exposed. See `SECURITY.md` and `DATA_RETENTION.md`.
+
+## H. Voice hardening
+
+- Apply migration `20260919000000_reap_stale_calls.sql` (needs pg_cron): ends calls stuck
+  `active` for more than 20 minutes, every 5 minutes. Calls are hard-capped at 15 minutes.
+- **`LIVE_SESSIONS_OPEN_BETA` must stay unset/empty in production.** Only the exact value
+  `true` bypasses the Pro/Premium gate and the weekly call allowance.
+- Voice notes: free members get 5/day (`FREE_DAILY_VOICE_NOTE_CAP`); paid tiers 300/day.
+- Call cost estimate defaults to $0.15/min (`VOICE_COST_PER_MINUTE_USD`).
