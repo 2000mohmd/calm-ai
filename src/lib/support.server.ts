@@ -11,7 +11,7 @@ import { sendEmail } from "./resend.server";
 
 type Client = SupabaseClient<Database>;
 
-const FROM = "Calm AI Support <onboarding@resend.dev>";
+const FROM = "Calm AI Support <hello@calmai.site>";
 
 export type AdminSupportThread = {
   id: string;

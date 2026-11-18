@@ -11,7 +11,7 @@ import { sendEmail } from "./resend.server";
 
 type Client = SupabaseClient<Database>;
 
-const FROM = "Calm AI Safety <onboarding@resend.dev>";
+const FROM = "Calm AI Safety <hello@calmai.site>";
 const MODEL = "claude-haiku-4-5";
 
 export type HandoffRequestRow = {

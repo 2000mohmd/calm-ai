@@ -14,7 +14,7 @@ export { appBaseUrl };
 
 type Client = SupabaseClient<Database>;
 
-const FROM = "Calm AI <onboarding@resend.dev>";
+const FROM = "Calm AI <hello@calmai.site>";
 
 export function hashToken(token: string): string {
   return createHash("sha256").update(token).digest("hex");

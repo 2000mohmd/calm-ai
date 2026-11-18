@@ -17,7 +17,7 @@ type Client = SupabaseClient<Database>;
 /** No second admin alert email for the same user inside this window. */
 const ALERT_DEDUPE_MS = 10 * 60 * 1000;
 
-const FROM = "Calm AI Safety <onboarding@resend.dev>";
+const FROM = "Calm AI Safety <hello@calmai.site>";
 
 const SOURCE_LABELS: Record<string, string> = {
   chat: "Chat (regex gate)",

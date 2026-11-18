@@ -74,7 +74,7 @@ type SendArgs = {
  * not re-check it, it only guarantees the unsubscribe affordances are present.
  */
 export async function sendProactiveEmail(args: SendArgs): Promise<boolean> {
-  const from = process.env["EMAIL_FROM"] ?? "Calm AI <onboarding@resend.dev>";
+  const from = process.env["EMAIL_FROM"] ?? "Calm AI <hello@calmai.site>";
   const unsub = await unsubscribeUrl(args.userId);
   const text =
     `${args.bodyText}\n\n` +
