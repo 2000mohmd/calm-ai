@@ -10,6 +10,7 @@ import {
   ArrowUp,
   LifeBuoy,
   Loader2,
+  Lock,
   Mic,
   PanelLeft,
   Phone,
@@ -253,6 +254,8 @@ function ChatPage() {
     queryFn: () => fetchEntitlements(),
   });
   const onFreePlan = Boolean(entitlements?.chat.intro);
+  // Known-free only: no call button state until entitlements load.
+  const voiceLocked = entitlements ? !entitlements.voice.enabled : false;
 
   useEffect(() => {
     if (profileData && !profileData.profile?.onboarding_completed) {
@@ -399,15 +402,28 @@ function ChatPage() {
               <UserRound className="size-3.5" aria-hidden />
               <span className="hidden lg:inline">{t("humanSupport.button")}</span>
             </button>
-            <button
-              type="button"
-              onClick={() => setCallOpen(true)}
-              aria-label={t("call.start")}
-              className="flex items-center gap-1.5 rounded-full border border-border bg-card px-3 py-1.5 text-xs text-muted-foreground hover:bg-muted hover:text-foreground"
-            >
-              <Phone className="size-3.5" aria-hidden />
-              <span className="hidden sm:inline">{t("call.start")}</span>
-            </button>
+            {voiceLocked ? (
+              <button
+                type="button"
+                disabled
+                aria-label={t("call.locked")}
+                title={t("call.locked")}
+                className="flex cursor-not-allowed items-center gap-1.5 rounded-full border border-border bg-card px-3 py-1.5 text-xs text-muted-foreground opacity-60"
+              >
+                <Lock className="size-3.5" aria-hidden />
+                <span className="hidden sm:inline">{t("call.locked")}</span>
+              </button>
+            ) : (
+              <button
+                type="button"
+                onClick={() => setCallOpen(true)}
+                aria-label={t("call.start")}
+                className="flex items-center gap-1.5 rounded-full border border-border bg-card px-3 py-1.5 text-xs text-muted-foreground hover:bg-muted hover:text-foreground"
+              >
+                <Phone className="size-3.5" aria-hidden />
+                <span className="hidden sm:inline">{t("call.start")}</span>
+              </button>
+            )}
           </header>
 
           {/* Transcript: assistant text sits plain on the page, user text in a soft bubble. */}

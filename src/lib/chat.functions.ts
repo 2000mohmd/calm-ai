@@ -526,16 +526,19 @@ async function prepareChatTurn(
   // run above, before the rate limiter; the drift sweep it defers is post-hoc
   // and best-effort, so deferring it does not weaken crisis handling. ---
   const { fetchRecentSummaries } = await import("./thread-summary.server");
-  try {
-    const { enqueueJob } = await import("@/jobs");
-    await enqueueJob(supabase, {
-      kind: "summarize_thread",
-      userId,
-      sinceThreadId: threadId,
-    });
-  } catch (error) {
-    console.error("thread summary enqueue failed", error);
-  }
+  // Runs concurrently with the context queries below (awaited in the Promise.all).
+  const enqueueSummary = (async () => {
+    try {
+      const { enqueueJob } = await import("@/jobs");
+      await enqueueJob(supabase, {
+        kind: "summarize_thread",
+        userId,
+        sinceThreadId: threadId,
+      });
+    } catch (error) {
+      console.error("thread summary enqueue failed", error);
+    }
+  })();
 
   // --- Normal path: assemble personalized context, then call the model ---
 
@@ -552,6 +555,7 @@ async function prepareChatTurn(
     streakDays,
     dailyPrompts,
     openCommitments,
+    safetyPlanRow,
   ] = await Promise.all([
     supabase
       .from("profiles")
@@ -595,6 +599,12 @@ async function prepareChatTurn(
       .eq("status", "pending")
       .order("created_at", { ascending: false })
       .limit(5),
+    supabase
+      .from("safety_plans")
+      .select("warning_signs, coping_steps")
+      .eq("user_id", userId)
+      .maybeSingle(),
+    enqueueSummary,
   ]);
 
   const consented = profile.data?.ai_context_consent !== false;
@@ -602,11 +612,6 @@ async function prepareChatTurn(
   // The safety plan is the person's own writing. The companion is told it
   // EXISTS regardless (so it can point them to it), but only sees its contents
   // when they consented to AI context.
-  const safetyPlanRow = await supabase
-    .from("safety_plans")
-    .select("warning_signs, coping_steps")
-    .eq("user_id", userId)
-    .maybeSingle();
   const planWarningSigns = safetyPlanRow.data?.warning_signs ?? [];
   const planCopingSteps = safetyPlanRow.data?.coping_steps ?? [];
   const hasPlan = Boolean(safetyPlanRow.data);

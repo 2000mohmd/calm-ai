@@ -502,6 +502,7 @@
   },
   "call": {
     "start": "Start a voice call",
+    "locked": "Voice calls - coming with paid plans",
     "connecting": "Connecting your call…",
     "live": "You're on a call — just talk.",
     "end": "End call",

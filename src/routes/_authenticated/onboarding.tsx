@@ -147,8 +147,10 @@ function OnboardingPage() {
         plan: result?.care_plan ?? null,
         focus: result?.care_plan_focus ?? [],
       });
-      setPhase("ready");
+      // Refresh the profile first so the chat onboarding guard sees it, then go
+      // straight to chat (the plan stays reachable from the chat header).
       await queryClient.invalidateQueries({ queryKey: ["my-profile"] });
+      navigate({ to: "/chat", replace: true });
     },
     onError: () => {
       setPhase("form");

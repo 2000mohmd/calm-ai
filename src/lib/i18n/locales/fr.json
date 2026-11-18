@@ -502,6 +502,7 @@
   },
   "call": {
     "start": "Démarrer un appel vocal",
+    "locked": "Appels vocaux - bientôt avec les offres payantes",
     "connecting": "Connexion de votre appel…",
     "live": "Vous êtes en appel — parlez simplement.",
     "end": "Terminer l'appel",
