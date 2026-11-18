@@ -222,29 +222,19 @@ describe("semantic classifier fail-safe", () => {
     expect(supabase.touched).not.toContain("chat_rate_limits");
   });
 
-  it("fails SAFE for a non-English locale when the classifier is unavailable", async () => {
+  it("does NOT take over the chat for a non-English locale when the classifier is unavailable", async () => {
     await withClassifierUnavailable();
     const supabase = fakeSupabase();
     const result = await runCrisisGate(supabase, { ...base, content: benign, language: "fr" });
-    expect(result?.crisis.type).toBe("crisis");
-    expect(result?.crisis.severity).toBe("moderate");
-    expect(result?.updatedUserMessage).toBe(true);
-    // localized copy is threaded all the way through the gate
-    expect(result?.crisis.resources.some((r) => r.contact.includes("3114"))).toBe(true);
-    expect(hasUsLines(result?.crisis.resources ?? [])).toBe(false);
+    expect(result).toBeNull();
     expect(supabase.touched).not.toContain("chat_rate_limits");
   });
 
-  it("fails SAFE for Arabic-script content even when the locale is unset", async () => {
+  it("does NOT take over the chat for ordinary Arabic when the classifier is unavailable", async () => {
     await withClassifierUnavailable();
     const supabase = fakeSupabase();
-    const result = await runCrisisGate(supabase, {
-      ...base,
-      content: "مرحبا كيف حالك اليوم", // no crisis terms; Arabic script
-    });
-    expect(result?.crisis.type).toBe("crisis");
-    expect(result?.crisis.severity).toBe("moderate");
-    expect(result?.updatedUserMessage).toBe(true);
+    const result = await runCrisisGate(supabase, { ...base, content: "كيف" });
+    expect(result).toBeNull();
     expect(supabase.touched).not.toContain("chat_rate_limits");
   });
 });

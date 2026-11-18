@@ -163,22 +163,18 @@ export async function runCrisisGate(
     const nonEnglish = language !== "en" || script === "arabic" || script === "other";
     if (!nonEnglish) return null;
 
-    await supabase.from("chat_messages").update({ flagged_crisis: true }).eq("id", input.messageId);
-
-    const systemMessage = await recordCrisis(supabase, {
-      ...input,
+    // Log for admins but do NOT take over the chat: a classifier outage used to
+    // show the "I can't continue" wall on EVERY Arabic/French message (even "how?").
+    // The regex tier already caught explicit risk; the companion prompt handles the rest.
+    await logCrisisOnly(supabase, {
+      userId: input.userId,
+      messageId: input.messageId,
       source: "classifier_unavailable_non_english",
       severity: "moderate",
       matched: [],
-      notes: `Semantic classifier unavailable for a non-English message (language=${language}, script=${script}); failed safe.`,
-      language,
+      notes: `Semantic classifier unavailable for a non-English message (language=${language}, script=${script}); continued normally.`,
     });
-
-    return {
-      crisis: buildCrisisResponse([], "moderate", language),
-      systemMessage,
-      updatedUserMessage: true,
-    };
+    return null;
   }
 
   if (!semantic.flagged) return null;
