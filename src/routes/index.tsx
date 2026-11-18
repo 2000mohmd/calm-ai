@@ -17,11 +17,6 @@ const MENU_LINKS = [
 
 const SCREENS = [
   {
-    src: "/screens/welcome.jpg",
-    caption: "Welcome",
-    alt: "Calm AI welcome screen: a quiet place to think out loud, with sign-in by email link, Google or Apple",
-  },
-  {
     src: "/screens/chat.jpg",
     caption: "A calm conversation",
     alt: "A chat where Calm AI asks how the day went and suggests a three-minute grounding exercise",
@@ -137,7 +132,7 @@ function Section({
     <section
       id={id}
       aria-labelledby={labelledBy}
-      className={`scroll-mt-24 px-6 py-16 sm:py-24 ${className}`}
+      className={`scroll-mt-24 px-6 py-20 md:py-28 ${className}`}
     >
       <div className="ca-reveal mx-auto w-full max-w-[1120px]">{children}</div>
     </section>
@@ -156,10 +151,10 @@ function SectionHead({
   tone?: "light" | "warm";
 }) {
   return (
-    <div className="mx-auto mb-10 max-w-[640px] text-center sm:mb-14">
+    <div className="mx-auto mb-12 max-w-[640px] text-center md:mb-16">
       <h2
         id={id}
-        className="m-0 text-balance text-[clamp(28px,4.2vw,44px)] font-extrabold leading-[1.1] tracking-[-0.03em]"
+        className="m-0 text-balance text-[clamp(30px,4.2vw,46px)] font-extrabold leading-[1.08] tracking-[-0.035em]"
         style={{ color: tone === "warm" ? "#3a2521" : "#171728" }}
       >
         {title}
@@ -174,12 +169,19 @@ function SectionHead({
   );
 }
 
-function PrimaryCta({ className = "" }: { className?: string }) {
+function PrimaryCta({
+  className = "",
+  tone = "light",
+}: {
+  className?: string;
+  tone?: "light" | "dark";
+}) {
+  const dark = tone === "dark";
   return (
     <Link
       to="/auth"
-      className={`inline-flex min-h-[52px] items-center justify-center rounded-full px-8 text-base font-extrabold shadow-[0_18px_40px_-20px_rgba(23,23,40,.8)] transition-colors hover:bg-[#2a2a42] ${FOCUS} ${className}`}
-      style={{ background: "#171728", color: "#fff" }}
+      className={`ca-btn inline-flex min-h-[54px] items-center justify-center rounded-full px-9 text-base font-extrabold ${dark ? `shadow-[0_18px_40px_-18px_rgba(0,0,0,.6)] hover:bg-[#dedef6] ${FOCUS_DARK}` : `shadow-[0_18px_40px_-18px_rgba(23,23,40,.75)] hover:bg-[#2a2a42] ${FOCUS}`} ${className}`}
+      style={dark ? { background: "#fff", color: "#171728" } : { background: "#171728", color: "#fff" }}
     >
       Start free
     </Link>
@@ -193,6 +195,83 @@ function CtaBlock() {
       <p className="m-0 text-sm" style={{ color: "#4a4c6b" }}>
         Free to start · no card · works in your browser
       </p>
+    </div>
+  );
+}
+
+// Looping chat demo timeline (seconds). Each step fades in, holds, then everything
+// resets together. Only opacity/transform animate; reduced-motion shows the end state.
+const DEMO_LOOP = 16;
+const pc = (s: number) => +((s / DEMO_LOOP) * 100).toFixed(2);
+const demoStep = (n: number, a: number, b: number, c: number) =>
+  `@keyframes caD${n}{0%,${pc(a)}%{opacity:0;transform:translateY(10px)}${pc(a + 0.7)}%,${pc(b)}%{opacity:1;transform:none}${pc(c)}%,100%{opacity:0;transform:translateY(-4px)}}`;
+const DEMO_CSS = [
+  demoStep(1, 0.8, 13.6, 14.6),
+  demoStep(2, 2.4, 4.6, 5.0),
+  demoStep(3, 5.0, 13.6, 14.6),
+  demoStep(4, 7.6, 13.6, 14.6),
+].join("");
+
+function ChatDemo() {
+  return (
+    <div
+      role="img"
+      aria-label="Demo of a Calm AI chat: someone says they can't switch their brain off at 2am, and the companion replies calmly and offers a short box breathing exercise."
+      className="relative rounded-[46px] bg-[#171728] p-[9px] shadow-[0_50px_90px_-40px_rgba(50,54,140,.75),0_0_0_1px_rgba(255,255,255,.08)_inset]"
+    >
+      <div className="relative flex h-[548px] flex-col overflow-hidden rounded-[38px] bg-[#f7f7fd]">
+        <div className="mx-auto mt-2.5 h-[22px] w-24 rounded-full bg-[#171728]"></div>
+        <div className="flex items-center gap-3 border-b border-[#e8e8f5] px-5 pb-3 pt-3">
+          <span className="grid size-9 place-items-center rounded-full bg-[#171728]">
+            <Logo size={20} />
+          </span>
+          <div className="text-start leading-tight">
+            <div className="text-[14px] font-extrabold text-[#171728]">Calm AI</div>
+            <div className="text-[11px] font-semibold text-[#5a5c7c]">Here, whenever you are</div>
+          </div>
+        </div>
+        <div className="flex flex-1 flex-col gap-3 px-4 pb-3 pt-5 text-start text-[13.5px] leading-[1.5]">
+          <div className="ca-d ca-d1 ms-auto max-w-[82%] rounded-[20px] rounded-ee-md bg-[#171728] px-4 py-2.5 text-white">
+            I can't switch my brain off. It's 2am and I have a meeting at nine.
+          </div>
+          <div className="grid">
+            <div className="ca-d ca-d2 ca-typing col-start-1 row-start-1 flex h-10 w-[62px] items-center justify-center gap-1.5 self-start rounded-[20px] rounded-es-md bg-white shadow-[0_6px_16px_-10px_rgba(70,74,150,.5)]">
+              <span className="ca-dot size-1.5 rounded-full bg-[#8f94e0]"></span>
+              <span className="ca-dot size-1.5 rounded-full bg-[#8f94e0]" style={{ animationDelay: ".18s" }}></span>
+              <span className="ca-dot size-1.5 rounded-full bg-[#8f94e0]" style={{ animationDelay: ".36s" }}></span>
+            </div>
+            <div className="ca-d ca-d3 col-start-1 row-start-1 max-w-[88%] self-start rounded-[20px] rounded-es-md bg-white px-4 py-3 text-[#2a2c4a] shadow-[0_6px_16px_-10px_rgba(70,74,150,.5)]">
+              That sounds exhausting. You don't have to solve tomorrow tonight. Want to slow your
+              breathing down for a minute first?
+            </div>
+          </div>
+          <div className="ca-d ca-d4 flex items-center gap-3 rounded-[22px] border border-[#e0e1f4] bg-white p-3.5 shadow-[0_14px_30px_-20px_rgba(70,74,150,.6)]">
+            <span className="relative grid size-12 shrink-0 place-items-center">
+              <span
+                className="ca-breathe absolute inset-0 rounded-full"
+                style={{ background: "radial-gradient(circle,rgba(143,148,224,.85),rgba(143,148,224,.15) 70%)" }}
+              ></span>
+              <span className="relative size-3.5 rounded-full bg-[#5b60c4]"></span>
+            </span>
+            <span className="min-w-0 flex-1 leading-tight">
+              <span className="block text-[14px] font-extrabold text-[#171728]">Box breathing</span>
+              <span className="mt-0.5 block text-[12px] text-[#5a5c7c]">3 min · in 4, hold 4, out 4, hold 4</span>
+            </span>
+            <span className="shrink-0 rounded-full bg-[#171728] px-3.5 py-1.5 text-[12px] font-bold text-white">
+              Begin
+            </span>
+          </div>
+        </div>
+        <div className="mx-4 mb-4 flex items-center justify-between rounded-full border border-[#e0e1f4] bg-white py-2 pe-2 ps-4 text-[13px] text-[#8a8cab]">
+          Say what's on your mind
+          <span className="grid size-8 place-items-center rounded-full bg-[#eceefb]">
+            <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">
+              <rect x="5" y="1" width="4" height="8" rx="2" fill="#5b60c4" />
+              <path d="M2.5 7a4.5 4.5 0 009 0M7 11.5V13" stroke="#5b60c4" strokeWidth="1.4" strokeLinecap="round" />
+            </svg>
+          </span>
+        </div>
+      </div>
     </div>
   );
 }
@@ -438,17 +517,22 @@ function Index() {
       <style>{`#ca-page{font-family:Manrope,system-ui,sans-serif}
 #ca-page a{text-decoration:none}
 #ca-page summary{outline:none}
-@media (prefers-reduced-motion:no-preference){.ca-drift{animation:caDrift 22s ease-in-out infinite}}
+.ca-typing{opacity:0}
 @media (prefers-reduced-motion:no-preference){
-.ca-orb{animation:caOrb 20s ease-in-out infinite}.ca-orb-b{animation-duration:26s;animation-delay:-14s}
+.ca-orb{animation:caOrb 24s ease-in-out infinite}.ca-orb-b{animation-duration:30s;animation-delay:-14s}
 .ca-breathe{animation:caBreathe 8s ease-in-out infinite}.ca-breathe-b{animation-delay:-2.6s}
+.ca-d{animation-duration:${DEMO_LOOP}s;animation-timing-function:ease-out;animation-iteration-count:infinite;animation-fill-mode:both}
+.ca-d1{animation-name:caD1}.ca-d2{animation-name:caD2}.ca-d3{animation-name:caD3}.ca-d4{animation-name:caD4}
+.ca-dot{animation:caDot 1.1s ease-in-out infinite}
 .ca-pre{opacity:0;transform:translateY(18px)}
 .ca-in{opacity:1;transform:none;transition:opacity 1.2s ease-out,transform 1.2s ease-out}
-.ca-card{transition:transform .6s ease,box-shadow .6s ease}.ca-card:hover{transform:translateY(-4px)}}
-@media (prefers-reduced-motion:reduce){.ca-orb,.ca-breathe{animation:none}.ca-pre{opacity:1;transform:none}}
-@keyframes caOrb{0%,100%{transform:translate(0,0) scale(1)}50%{transform:translate(90px,50px) scale(1.2)}}
-@keyframes caBreathe{0%,100%{transform:scale(.72);opacity:.4}50%{transform:scale(1.05);opacity:.9}}
-@keyframes caDrift{0%{transform:translate(-50%,0) scale(1)}50%{transform:translate(-50%,26px) scale(1.08)}100%{transform:translate(-50%,0) scale(1)}}
+.ca-card{transition:transform .6s ease,box-shadow .6s ease}.ca-card:hover{transform:translateY(-4px);box-shadow:0 30px 60px -34px rgba(90,95,180,.6)}
+.ca-btn{transition:transform .3s ease,background-color .3s ease}.ca-btn:hover{transform:translateY(-1px)}}
+@media (prefers-reduced-motion:reduce){.ca-orb,.ca-breathe,.ca-d,.ca-dot{animation:none}.ca-pre{opacity:1;transform:none}}
+@keyframes caOrb{0%,100%{transform:translate(0,0) scale(1)}50%{transform:translate(70px,40px) scale(1.12)}}
+@keyframes caBreathe{0%,100%{transform:scale(.8);opacity:.5}50%{transform:scale(1.04);opacity:1}}
+@keyframes caDot{0%,100%{transform:translateY(0);opacity:.5}50%{transform:translateY(-4px);opacity:1}}
+${DEMO_CSS}
 .ca-hov-1:hover,.ca-hov-2:hover,.ca-hov-3:hover,.ca-hov-4:hover{color:#fff}
 .ca-hov-5:hover{background:#dedef6}`}</style>
       <div
@@ -465,7 +549,7 @@ function Index() {
             display: "flex",
             justifyContent: "center",
             padding: "16px 20px",
-            background: "linear-gradient(180deg,rgba(244,244,251,.95),rgba(244,244,251,0))",
+            background: "transparent",
           }}
         >
           <div
@@ -623,75 +707,94 @@ function Index() {
           <section
             id="ca-hero"
             aria-labelledby="hero-title"
-            className="relative flex flex-col items-center overflow-hidden px-6 pb-14 pt-14 text-center sm:pb-20 sm:pt-20"
+            className="relative px-6 pb-20 pt-10 md:pb-28 md:pt-16"
           >
+            {/* Aurora: transform/opacity only, masked so it dissolves with no hard edge */}
             <div
               aria-hidden="true"
-              className="ca-drift pointer-events-none absolute start-1/2 top-[-260px] h-[760px] w-[min(1100px,150vw)] -translate-x-1/2 rounded-full rtl:translate-x-1/2"
+              className="pointer-events-none absolute inset-x-0 top-0 h-[1100px] overflow-hidden"
               style={{
-                background: "radial-gradient(circle,rgba(143,148,224,.34),transparent 62%)",
+                WebkitMaskImage: "linear-gradient(to bottom,#000 35%,transparent 100%)",
+                maskImage: "linear-gradient(to bottom,#000 35%,transparent 100%)",
               }}
-            ></div>
-            <div
-              aria-hidden="true"
-              className="ca-orb pointer-events-none absolute -start-24 top-24 size-[360px] rounded-full"
-              style={{ background: "radial-gradient(circle,rgba(150,165,240,.8),transparent 65%)" }}
-            ></div>
-            <div
-              aria-hidden="true"
-              className="ca-orb ca-orb-b pointer-events-none absolute -end-24 top-64 size-[420px] rounded-full"
-              style={{ background: "radial-gradient(circle,rgba(190,160,235,.75),transparent 65%)" }}
-            ></div>
-            <div
-              aria-hidden="true"
-              className="pointer-events-none absolute inset-x-0 top-1/2 mx-auto size-[min(460px,86vw)] -translate-y-1/2"
             >
               <div
-                className="ca-breathe size-full rounded-full"
-                style={{ background: "radial-gradient(circle,rgba(143,148,224,.75),transparent 68%)", opacity: 0.35 }}
+                className="ca-orb absolute -start-40 -top-24 size-[620px] rounded-full"
+                style={{ background: "radial-gradient(circle,rgba(150,165,240,.55),transparent 66%)" }}
               ></div>
               <div
-                className="ca-breathe ca-breathe-b absolute inset-[18%] rounded-full border border-2 border-[#8f94e0]/80"
-                style={{ opacity: 0.35 }}
+                className="ca-orb ca-orb-b absolute -end-40 top-10 size-[700px] rounded-full"
+                style={{ background: "radial-gradient(circle,rgba(190,160,235,.45),transparent 66%)" }}
+              ></div>
+              <div
+                className="ca-orb absolute start-1/3 top-72 size-[520px] rounded-full"
+                style={{
+                  background: "radial-gradient(circle,rgba(143,200,235,.3),transparent 66%)",
+                  animationDelay: "-8s",
+                }}
               ></div>
             </div>
-            <h1
-              id="hero-title"
-              className="relative m-0 max-w-[860px] text-balance text-[clamp(40px,6.4vw,72px)] font-extrabold leading-[1.03] tracking-[-0.04em] text-[#171728]"
-            >
-              Somewhere to start
-              <br />
-              at 2am
-            </h1>
-            <p className="relative mb-0 mt-5 max-w-[600px] text-pretty text-[clamp(17px,2.1vw,20px)] leading-[1.55] text-[#4a4c6b]">
-              An AI companion for the days between appointments — or before you've managed to book
-              one. Type, or actually talk. It's not therapy, and it says so.
-            </p>
-            <div className="relative mt-8 flex flex-col items-center gap-4">
-              <PrimaryCta />
-              <a
-                href="#how"
-                className={`inline-flex min-h-11 items-center rounded-full px-3 text-[15px] font-bold text-[#3f4499] hover:underline ${FOCUS}`}
-              >
-                See how it works →
-              </a>
-              <p className="m-0 text-sm text-[#4a4c6b]">
-                Free to start · no card · works in your browser
-              </p>
+
+            <div className="relative mx-auto grid w-full max-w-[1120px] items-center gap-16 lg:grid-cols-[1.05fr_.95fr] lg:gap-10">
+              <div className="text-start">
+                <p className="m-0 inline-flex items-center gap-2 rounded-full border border-[#d9daf3] bg-white/70 px-4 py-1.5 text-[13px] font-bold text-[#3f4499] backdrop-blur">
+                  <span aria-hidden="true" className="size-1.5 rounded-full bg-[#5b60c4]"></span>
+                  An AI companion, not therapy
+                </p>
+                <h1
+                  id="hero-title"
+                  className="m-0 mt-6 max-w-[640px] text-balance text-[clamp(44px,6.2vw,80px)] font-extrabold leading-[1.02] tracking-[-0.045em] text-[#171728]"
+                >
+                  Somewhere to start at 2am
+                </h1>
+                <p className="mb-0 mt-6 max-w-[520px] text-pretty text-[clamp(17px,2vw,20px)] leading-[1.6] text-[#4a4c6b]">
+                  An AI companion for the days between appointments, or before you've managed to
+                  book one. Type, or actually talk. It's not therapy, and it says so.
+                </p>
+                <div className="mt-9 flex flex-col items-start gap-3 sm:flex-row sm:items-center sm:gap-6">
+                  <PrimaryCta />
+                  <a
+                    href="#how"
+                    className={`inline-flex min-h-11 items-center rounded-full text-[15px] font-bold text-[#3f4499] underline-offset-4 hover:underline ${FOCUS}`}
+                  >
+                    See how it works →
+                  </a>
+                </div>
+                <p className="mb-0 mt-5 text-sm text-[#5a5c7c]">
+                  Free to start · no card · works in your browser
+                </p>
+              </div>
+
+              {/* Product demo: a CSS-built phone with a looping, quiet chat */}
+              <div className="relative mx-auto w-full max-w-[320px] lg:ms-auto lg:me-0">
+                <div
+                  aria-hidden="true"
+                  className="pointer-events-none absolute start-1/2 top-1/2 size-[min(560px,150vw)] -translate-x-1/2 -translate-y-1/2 rtl:translate-x-1/2"
+                >
+                  <div
+                    className="ca-breathe size-full rounded-full"
+                    style={{
+                      background: "radial-gradient(circle,rgba(143,148,224,.55),transparent 66%)",
+                    }}
+                  ></div>
+                  <div className="ca-breathe ca-breathe-b absolute inset-[16%] rounded-full border-2 border-[#8f94e0]/50"></div>
+                </div>
+                <ChatDemo />
+              </div>
             </div>
           </section>
 
           {/* Trust bar */}
-          <section aria-label="Trust and safety at a glance" className="px-6">
-            <ul className="mx-auto mb-0 mt-0 grid w-full max-w-[1120px] list-none gap-x-6 gap-y-3 rounded-3xl border border-white bg-white/80 p-5 sm:grid-cols-2 lg:grid-cols-4 lg:rounded-full lg:px-8 lg:py-4">
+          <section aria-label="Trust and safety at a glance" className="relative px-6">
+            <ul className="mx-auto m-0 grid w-full max-w-[1120px] list-none gap-x-6 gap-y-4 rounded-[28px] border border-white bg-white/85 p-6 shadow-[0_24px_60px_-40px_rgba(70,74,150,.55)] backdrop-blur sm:grid-cols-2 lg:grid-cols-4 lg:gap-0 lg:p-0">
               {TRUST.map((t) => (
                 <li
                   key={t}
-                  className="flex items-start gap-3 text-[14px] font-semibold leading-[1.4] text-[#3f4160] lg:items-center"
+                  className="flex items-start gap-3 text-[14px] font-semibold leading-[1.4] text-[#3f4160] lg:items-center lg:px-7 lg:py-6 lg:[&:not(:first-child)]:border-s lg:[&:not(:first-child)]:border-[#e4e5f3]"
                 >
                   <svg
-                    width="18"
-                    height="18"
+                    width="20"
+                    height="20"
                     viewBox="0 0 18 18"
                     fill="none"
                     aria-hidden="true"
@@ -716,9 +819,9 @@ function Index() {
           <section
             id="screens"
             aria-labelledby="screens-title"
-            className="scroll-mt-24 py-16 sm:py-24"
+            className="scroll-mt-24 py-20 md:py-28"
           >
-            <div className="mx-auto w-full max-w-[1120px]">
+            <div className="ca-reveal mx-auto w-full max-w-[1120px]">
               <div className="px-6">
                 <SectionHead
                   id="screens-title"
@@ -726,24 +829,21 @@ function Index() {
                   lead="Real screens from the app: a conversation, your patterns, and short guided exercises."
                 />
               </div>
-              <ul className="m-0 flex list-none snap-x snap-mandatory gap-5 overflow-x-auto px-6 pb-4 pt-2 [scrollbar-width:none] lg:grid lg:grid-cols-4 lg:gap-6 lg:overflow-visible [&::-webkit-scrollbar]:hidden">
+              <ul className="m-0 mx-auto flex list-none snap-x snap-mandatory gap-5 overflow-x-auto px-6 pb-4 pt-2 [scrollbar-width:none] md:max-w-[960px] md:grid md:grid-cols-3 md:gap-8 md:overflow-visible [&::-webkit-scrollbar]:hidden">
                 {SCREENS.map((s) => (
                   <li
                     key={s.src}
-                    className="w-[62%] max-w-[260px] shrink-0 snap-center sm:w-[44%] lg:w-auto lg:max-w-none lg:shrink"
+                    className="w-[62%] max-w-[260px] shrink-0 snap-center sm:w-[44%] md:w-auto md:max-w-none md:shrink"
                   >
                     <figure className="m-0 flex flex-col items-center">
-                      <Phone src={s.src} alt={s.alt} eager className="w-full" />
-                      <figcaption className="mt-4 text-center text-[15px] font-bold text-[#171728]">
+                      <Phone src={s.src} alt={s.alt} className="w-full" />
+                      <figcaption className="mt-5 text-center text-[15px] font-bold text-[#171728]">
                         {s.caption}
                       </figcaption>
                     </figure>
                   </li>
                 ))}
               </ul>
-              <div className="px-6">
-                <CtaBlock />
-              </div>
             </div>
           </section>
 
@@ -758,7 +858,7 @@ function Index() {
               {STEPS.map((s, i) => (
                 <li
                   key={s.title}
-                  className="ca-card rounded-[28px] border border-white bg-white/85 p-7 shadow-[0_20px_46px_-34px_rgba(90,95,180,.5)]"
+                  className="ca-card rounded-[28px] border border-white bg-white/90 p-8 shadow-[0_20px_46px_-34px_rgba(90,95,180,.5)]"
                 >
                   <span className="inline-flex size-9 items-center justify-center rounded-full bg-[#e4e5f8] text-sm font-extrabold text-[#3f4499]">
                     {i + 1}
@@ -798,7 +898,7 @@ function Index() {
                   className="w-[min(240px,70%)] !bg-[#2a2a42]"
                 />
               </div>
-              <div className="grid content-start gap-5">
+              <div className="grid gap-5 lg:grid-rows-3">
                 {[
                   {
                     title: "It knows when to stop being clever",
@@ -815,7 +915,7 @@ function Index() {
                 ].map((f) => (
                   <div
                     key={f.title}
-                    className="ca-card rounded-[28px] border border-white bg-white/85 p-7 shadow-[0_20px_46px_-34px_rgba(90,95,180,.5)]"
+                    className="ca-card flex flex-col justify-center rounded-[28px] border border-white bg-white/90 p-8 shadow-[0_20px_46px_-34px_rgba(90,95,180,.5)]"
                   >
                     <h3 className="m-0 text-[21px] font-extrabold leading-[1.2] tracking-[-0.02em] text-[#171728]">
                       {f.title}
@@ -1009,32 +1109,42 @@ function Index() {
           <section
             id="ca-final"
             aria-labelledby="final-title"
-            className="scroll-mt-24 px-6 pb-16 pt-4 sm:pb-24"
+            className="scroll-mt-24 px-6 pb-20 pt-4 md:pb-28"
           >
             <div
-              className="relative mx-auto flex w-full max-w-[1120px] flex-col items-center overflow-hidden rounded-[40px] border border-white px-6 py-14 text-center sm:px-14 sm:py-[72px]"
-              style={{ background: "linear-gradient(160deg,#f7f7fd,#dcdcf4)" }}
+              className="ca-reveal relative mx-auto flex w-full max-w-[1120px] flex-col items-center overflow-hidden rounded-[40px] px-6 py-16 text-center sm:px-14 md:py-24"
+              style={{ background: "linear-gradient(160deg,#1c1c33,#171728 60%,#222246)" }}
             >
+              <div
+                aria-hidden="true"
+                className="ca-orb pointer-events-none absolute -start-32 -top-32 size-[420px] rounded-full opacity-60"
+                style={{ background: "radial-gradient(circle,rgba(143,148,224,.45),transparent 65%)" }}
+              ></div>
+              <div
+                aria-hidden="true"
+                className="ca-orb ca-orb-b pointer-events-none absolute -bottom-40 -end-24 size-[460px] rounded-full opacity-60"
+                style={{ background: "radial-gradient(circle,rgba(190,160,235,.35),transparent 65%)" }}
+              ></div>
               <h2
                 id="final-title"
-                className="relative m-0 max-w-[620px] text-balance text-[clamp(32px,5vw,52px)] font-extrabold leading-[1.05] tracking-[-0.035em] text-[#171728]"
+                className="relative m-0 max-w-[640px] text-balance text-[clamp(34px,5vw,56px)] font-extrabold leading-[1.05] tracking-[-0.035em] text-white"
               >
                 Talk tonight. It's free to start.
               </h2>
-              <p className="relative mb-0 mt-4 max-w-[480px] text-pretty text-[18px] leading-[1.55] text-[#4a4c6b]">
+              <p className="relative mb-0 mt-5 max-w-[480px] text-pretty text-[18px] leading-[1.55] text-[#c9cbf2]">
                 Set up in a minute, then start talking. No card, no streak to keep alive.
               </p>
-              <div className="relative mt-8 flex flex-col items-center gap-3">
-                <PrimaryCta />
-                <p className="m-0 text-sm text-[#4a4c6b]">
+              <div className="relative mt-9 flex flex-col items-center gap-3">
+                <PrimaryCta tone="dark" />
+                <p className="m-0 text-sm text-[#b4b7ee]">
                   Free to start · no card · works in your browser
                 </p>
               </div>
-              <div className="relative mt-10 w-full max-w-[460px] border-t border-[#c9cbe8] pt-8">
-                <p className="m-0 mb-4 text-[15px] font-semibold text-[#171728]">
+              <div className="relative mt-12 w-full max-w-[460px] border-t border-white/15 pt-8">
+                <p className="m-0 mb-4 text-[15px] font-semibold text-white">
                   Not ready? Get notified when the iPhone and Android apps launch.
                 </p>
-                <WaitlistForm source="final" />
+                <WaitlistForm source="final" tone="dark" />
               </div>
             </div>
           </section>
