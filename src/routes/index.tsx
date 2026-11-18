@@ -440,14 +440,14 @@ function Index() {
 #ca-page summary{outline:none}
 @media (prefers-reduced-motion:no-preference){.ca-drift{animation:caDrift 22s ease-in-out infinite}}
 @media (prefers-reduced-motion:no-preference){
-.ca-orb{animation:caOrb 34s ease-in-out infinite}.ca-orb-b{animation-duration:42s;animation-delay:-14s}
+.ca-orb{animation:caOrb 20s ease-in-out infinite}.ca-orb-b{animation-duration:26s;animation-delay:-14s}
 .ca-breathe{animation:caBreathe 8s ease-in-out infinite}.ca-breathe-b{animation-delay:-2.6s}
 .ca-pre{opacity:0;transform:translateY(18px)}
 .ca-in{opacity:1;transform:none;transition:opacity 1.2s ease-out,transform 1.2s ease-out}
 .ca-card{transition:transform .6s ease,box-shadow .6s ease}.ca-card:hover{transform:translateY(-4px)}}
 @media (prefers-reduced-motion:reduce){.ca-orb,.ca-breathe{animation:none}.ca-pre{opacity:1;transform:none}}
-@keyframes caOrb{0%,100%{transform:translate(0,0) scale(1)}50%{transform:translate(40px,24px) scale(1.12)}}
-@keyframes caBreathe{0%,100%{transform:scale(.72);opacity:.22}50%{transform:scale(1);opacity:.5}}
+@keyframes caOrb{0%,100%{transform:translate(0,0) scale(1)}50%{transform:translate(90px,50px) scale(1.2)}}
+@keyframes caBreathe{0%,100%{transform:scale(.72);opacity:.4}50%{transform:scale(1.05);opacity:.9}}
 @keyframes caDrift{0%{transform:translate(-50%,0) scale(1)}50%{transform:translate(-50%,26px) scale(1.08)}100%{transform:translate(-50%,0) scale(1)}}
 .ca-hov-1:hover,.ca-hov-2:hover,.ca-hov-3:hover,.ca-hov-4:hover{color:#fff}
 .ca-hov-5:hover{background:#dedef6}`}</style>
@@ -635,12 +635,12 @@ function Index() {
             <div
               aria-hidden="true"
               className="ca-orb pointer-events-none absolute -start-24 top-24 size-[360px] rounded-full"
-              style={{ background: "radial-gradient(circle,rgba(180,190,240,.45),transparent 65%)" }}
+              style={{ background: "radial-gradient(circle,rgba(150,165,240,.8),transparent 65%)" }}
             ></div>
             <div
               aria-hidden="true"
               className="ca-orb ca-orb-b pointer-events-none absolute -end-24 top-64 size-[420px] rounded-full"
-              style={{ background: "radial-gradient(circle,rgba(205,185,235,.4),transparent 65%)" }}
+              style={{ background: "radial-gradient(circle,rgba(190,160,235,.75),transparent 65%)" }}
             ></div>
             <div
               aria-hidden="true"
@@ -648,10 +648,10 @@ function Index() {
             >
               <div
                 className="ca-breathe size-full rounded-full"
-                style={{ background: "radial-gradient(circle,rgba(143,148,224,.5),transparent 68%)", opacity: 0.35 }}
+                style={{ background: "radial-gradient(circle,rgba(143,148,224,.75),transparent 68%)", opacity: 0.35 }}
               ></div>
               <div
-                className="ca-breathe ca-breathe-b absolute inset-[18%] rounded-full border border-[#8f94e0]/50"
+                className="ca-breathe ca-breathe-b absolute inset-[18%] rounded-full border border-2 border-[#8f94e0]/80"
                 style={{ opacity: 0.35 }}
               ></div>
             </div>
