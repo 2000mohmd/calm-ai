@@ -1,5 +1,5 @@
-// Model provider: OpenRouter only (OpenAI-compatible) serving Anthropic Claude
-// models. OPENROUTER_API_KEY is required; there is no secondary provider.
+// Model provider: Anthropic direct (its OpenAI-compatible endpoint) when
+// ANTHROPIC_API_KEY is set, otherwise OpenRouter. Both serve Claude models.
 //
 // The rest of the app talks in Anthropic block shapes; this module translates
 // them both ways so tool-calling behavior is identical on both paths.
@@ -43,8 +43,16 @@ export type LlmResponse = {
 
 export class LlmError extends Error {}
 
-function openRouterKey() {
-  return process.env["OPENROUTER_API_KEY"] ?? null;
+const ANTHROPIC_URL = "https://api.anthropic.com/v1/chat/completions";
+
+/** Anthropic direct wins when its key is present; else OpenRouter. */
+function gateway(model: string): { url: string; key: string; model: string } | null {
+  const anthropic = process.env["ANTHROPIC_API_KEY"];
+  if (anthropic) return { url: ANTHROPIC_URL, key: anthropic, model };
+  const openRouter = process.env["OPENROUTER_API_KEY"];
+  return openRouter
+    ? { url: OPENROUTER_URL, key: openRouter, model: toOpenRouterModel(model) }
+    : null;
 }
 
 // --- OpenAI-compatible translation ----------------------------------------
@@ -186,22 +194,22 @@ function parseOpenAiPayload(payload: unknown, provider: LlmResponse["provider"])
 }
 
 async function callOpenRouter(
-  apiKey: string,
+  gw: { url: string; key: string; model: string },
   model: string,
   maxTokens: number,
   system: string,
   messages: LlmMessage[],
   tools: LlmTool[],
 ): Promise<LlmResponse> {
-  const response = await fetch(OPENROUTER_URL, {
+  const response = await fetch(gw.url, {
     method: "POST",
     headers: {
-      Authorization: `Bearer ${apiKey}`,
+      Authorization: `Bearer ${gw.key}`,
       "Content-Type": "application/json",
       "X-Title": "Calm AI",
     },
     body: JSON.stringify({
-      model: toOpenRouterModel(model),
+      model: gw.model,
       max_tokens: maxTokens,
       messages: toGatewayMessages(system, messages),
       ...(tools.length ? { tools: toGatewayTools(tools) } : {}),
@@ -210,7 +218,7 @@ async function callOpenRouter(
 
   if (!response.ok) {
     const body = await response.text();
-    throw new LlmError(`OpenRouter error ${response.status}: ${body.slice(0, 300)}`);
+    throw new LlmError(`LLM gateway error ${response.status}: ${body.slice(0, 300)}`);
   }
 
   const payload = await response.json();
@@ -334,7 +342,7 @@ async function consumeOpenAiStream(
 }
 
 async function streamOpenRouter(
-  apiKey: string,
+  gw: { url: string; key: string; model: string },
   model: string,
   maxTokens: number,
   system: string,
@@ -342,15 +350,15 @@ async function streamOpenRouter(
   tools: LlmTool[],
   onDelta: (text: string) => void,
 ): Promise<LlmResponse> {
-  const response = await fetch(OPENROUTER_URL, {
+  const response = await fetch(gw.url, {
     method: "POST",
     headers: {
-      Authorization: `Bearer ${apiKey}`,
+      Authorization: `Bearer ${gw.key}`,
       "Content-Type": "application/json",
       "X-Title": "Calm AI",
     },
     body: JSON.stringify({
-      model: toOpenRouterModel(model),
+      model: gw.model,
       max_tokens: maxTokens,
       messages: toGatewayMessages(system, messages),
       stream: true,
@@ -361,7 +369,7 @@ async function streamOpenRouter(
 
   if (!response.ok) {
     const body = await response.text();
-    throw new LlmError(`OpenRouter error ${response.status}: ${body.slice(0, 300)}`);
+    throw new LlmError(`LLM gateway error ${response.status}: ${body.slice(0, 300)}`);
   }
   return consumeOpenAiStream(response, "openrouter", onDelta);
 }
@@ -382,10 +390,10 @@ export async function streamCompanionModel(
 ): Promise<LlmResponse> {
   const { model, maxTokens, system, messages } = options;
   const tools = options.tools ?? [];
-  const key = openRouterKey();
-  if (!key) throw new LlmError("The AI companion isn't configured yet.");
+  const gw = gateway(model);
+  if (!gw) throw new LlmError("The AI companion isn't configured yet.");
 
-  return streamOpenRouter(key, model, maxTokens, system, messages, tools, onDelta);
+  return streamOpenRouter(gw, model, maxTokens, system, messages, tools, onDelta);
 }
 
 /**
@@ -400,8 +408,8 @@ export async function callCompanionModel(options: {
 }): Promise<LlmResponse> {
   const { model, maxTokens, system, messages } = options;
   const tools = options.tools ?? [];
-  const key = openRouterKey();
-  if (!key) throw new LlmError("The AI companion isn't configured yet.");
+  const gw = gateway(model);
+  if (!gw) throw new LlmError("The AI companion isn't configured yet.");
 
-  return callOpenRouter(key, model, maxTokens, system, messages, tools);
+  return callOpenRouter(gw, model, maxTokens, system, messages, tools);
 }

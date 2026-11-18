@@ -8,13 +8,15 @@ export const REQUIRED_ENV = [
   "SUPABASE_SERVICE_ROLE_KEY",
   "APP_BASE_URL",
   "NUDGE_SWEEP_SECRET",
-  "OPENROUTER_API_KEY",
   "RESEND_API_KEY",
   "ADMIN_ALERT_EMAIL",
 ] as const;
 
 export function missingRequiredEnv(): string[] {
-  return REQUIRED_ENV.filter((name) => !process.env[name]?.trim());
+  const missing: string[] = REQUIRED_ENV.filter((name) => !process.env[name]?.trim());
+  if (!process.env["ANTHROPIC_API_KEY"]?.trim() && !process.env["OPENROUTER_API_KEY"]?.trim())
+    missing.push("ANTHROPIC_API_KEY (or OPENROUTER_API_KEY)");
+  return missing;
 }
 
 let warned = false;
