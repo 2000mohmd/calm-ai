@@ -139,7 +139,7 @@ function Section({
       aria-labelledby={labelledBy}
       className={`scroll-mt-24 px-6 py-16 sm:py-24 ${className}`}
     >
-      <div className="mx-auto w-full max-w-[1120px]">{children}</div>
+      <div className="ca-reveal mx-auto w-full max-w-[1120px]">{children}</div>
     </section>
   );
 }
@@ -410,12 +410,44 @@ function Index() {
     return () => io.disconnect();
   }, []);
 
+  // Soft scroll reveal: content is visible by default; only armed here when
+  // motion is allowed, so no-JS and reduced-motion users see everything.
+  useEffect(() => {
+    if (typeof IntersectionObserver === "undefined") return;
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    const els = Array.from(document.querySelectorAll<HTMLElement>(".ca-reveal"));
+    const io = new IntersectionObserver(
+      (entries) =>
+        entries.forEach((en) => {
+          if (!en.isIntersecting) return;
+          en.target.classList.add("ca-in");
+          io.unobserve(en.target);
+        }),
+      { threshold: 0.04, rootMargin: "0px 0px -8% 0px" },
+    );
+    els.forEach((el) => {
+      if (el.getBoundingClientRect().top < window.innerHeight) return;
+      el.classList.add("ca-pre");
+      io.observe(el);
+    });
+    return () => io.disconnect();
+  }, []);
+
   return (
     <>
       <style>{`#ca-page{font-family:Manrope,system-ui,sans-serif}
 #ca-page a{text-decoration:none}
 #ca-page summary{outline:none}
 @media (prefers-reduced-motion:no-preference){.ca-drift{animation:caDrift 22s ease-in-out infinite}}
+@media (prefers-reduced-motion:no-preference){
+.ca-orb{animation:caOrb 34s ease-in-out infinite}.ca-orb-b{animation-duration:42s;animation-delay:-14s}
+.ca-breathe{animation:caBreathe 8s ease-in-out infinite}.ca-breathe-b{animation-delay:-2.6s}
+.ca-pre{opacity:0;transform:translateY(18px)}
+.ca-in{opacity:1;transform:none;transition:opacity 1.2s ease-out,transform 1.2s ease-out}
+.ca-card{transition:transform .6s ease,box-shadow .6s ease}.ca-card:hover{transform:translateY(-4px)}}
+@media (prefers-reduced-motion:reduce){.ca-orb,.ca-breathe{animation:none}.ca-pre{opacity:1;transform:none}}
+@keyframes caOrb{0%,100%{transform:translate(0,0) scale(1)}50%{transform:translate(40px,24px) scale(1.12)}}
+@keyframes caBreathe{0%,100%{transform:scale(.72);opacity:.22}50%{transform:scale(1);opacity:.5}}
 @keyframes caDrift{0%{transform:translate(-50%,0) scale(1)}50%{transform:translate(-50%,26px) scale(1.08)}100%{transform:translate(-50%,0) scale(1)}}
 .ca-hov-1:hover,.ca-hov-2:hover,.ca-hov-3:hover,.ca-hov-4:hover{color:#fff}
 .ca-hov-5:hover{background:#dedef6}`}</style>
@@ -600,6 +632,29 @@ function Index() {
                 background: "radial-gradient(circle,rgba(143,148,224,.34),transparent 62%)",
               }}
             ></div>
+            <div
+              aria-hidden="true"
+              className="ca-orb pointer-events-none absolute -start-24 top-24 size-[360px] rounded-full"
+              style={{ background: "radial-gradient(circle,rgba(180,190,240,.45),transparent 65%)" }}
+            ></div>
+            <div
+              aria-hidden="true"
+              className="ca-orb ca-orb-b pointer-events-none absolute -end-24 top-64 size-[420px] rounded-full"
+              style={{ background: "radial-gradient(circle,rgba(205,185,235,.4),transparent 65%)" }}
+            ></div>
+            <div
+              aria-hidden="true"
+              className="pointer-events-none absolute inset-x-0 top-1/2 mx-auto size-[min(460px,86vw)] -translate-y-1/2"
+            >
+              <div
+                className="ca-breathe size-full rounded-full"
+                style={{ background: "radial-gradient(circle,rgba(143,148,224,.5),transparent 68%)", opacity: 0.35 }}
+              ></div>
+              <div
+                className="ca-breathe ca-breathe-b absolute inset-[18%] rounded-full border border-[#8f94e0]/50"
+                style={{ opacity: 0.35 }}
+              ></div>
+            </div>
             <h1
               id="hero-title"
               className="relative m-0 max-w-[860px] text-balance text-[clamp(40px,6.4vw,72px)] font-extrabold leading-[1.03] tracking-[-0.04em] text-[#171728]"
@@ -703,7 +758,7 @@ function Index() {
               {STEPS.map((s, i) => (
                 <li
                   key={s.title}
-                  className="rounded-[28px] border border-white bg-white/85 p-7 shadow-[0_20px_46px_-34px_rgba(90,95,180,.5)]"
+                  className="ca-card rounded-[28px] border border-white bg-white/85 p-7 shadow-[0_20px_46px_-34px_rgba(90,95,180,.5)]"
                 >
                   <span className="inline-flex size-9 items-center justify-center rounded-full bg-[#e4e5f8] text-sm font-extrabold text-[#3f4499]">
                     {i + 1}
@@ -760,7 +815,7 @@ function Index() {
                 ].map((f) => (
                   <div
                     key={f.title}
-                    className="rounded-[28px] border border-white bg-white/85 p-7 shadow-[0_20px_46px_-34px_rgba(90,95,180,.5)]"
+                    className="ca-card rounded-[28px] border border-white bg-white/85 p-7 shadow-[0_20px_46px_-34px_rgba(90,95,180,.5)]"
                   >
                     <h3 className="m-0 text-[21px] font-extrabold leading-[1.2] tracking-[-0.02em] text-[#171728]">
                       {f.title}
