@@ -18,7 +18,7 @@ import type { CompanionContext, CompanionReply } from "./ai-companion.server";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/integrations/supabase/types";
 
-const HISTORY_LIMIT = 20;
+const HISTORY_LIMIT = 14;
 
 /** Shown to a teen whose guardian hasn't approved the account yet. */
 const GUARDIAN_HOLD_MESSAGE =

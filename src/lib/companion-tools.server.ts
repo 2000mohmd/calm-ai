@@ -48,7 +48,7 @@ export type AnthropicTool = {
 const LOG_MOOD: AnthropicTool = {
   name: "log_mood",
   description:
-    "Record a mood check-in for the person, on a 1-5 scale where 1 is very low and 5 is good. Only use this when the person has clearly told you how they are feeling and it makes sense to save it. Mention afterwards that you saved it.",
+    "Save a mood check-in (1 very low to 5 good), only when they clearly said how they feel. Mention that you saved it.",
   input_schema: {
     type: "object",
     properties: {
@@ -67,7 +67,7 @@ const LOG_MOOD: AnthropicTool = {
 const CREATE_COMMITMENT: AnthropicTool = {
   name: "create_commitment",
   description:
-    "Start tracking one small, concrete thing the person has said they will try. Use only when they have named something specific and agreed to it — never to assign them homework.",
+    "Track one small concrete thing they named and agreed to try; never to assign homework.",
   input_schema: {
     type: "object",
     properties: {
@@ -83,7 +83,7 @@ const CREATE_COMMITMENT: AnthropicTool = {
 const COMPLETE_COMMITMENT: AnthropicTool = {
   name: "complete_commitment",
   description:
-    'Close out something the person previously said they would try — ONLY when they\'ve told you where it stands. Use status "done" if they did it, status "skipped" if they\'ve decided to let it go (both are fine, neither is a failure). Optionally pass a few words from the original wording so the right one is matched; otherwise the most recent open one is used. Never use this to chase or pressure them.',
+    "Close an earlier thing they said they'd try, only when they told you where it stands: status done or skipped (neither is failure). Optionally a few words of the original to match it.",
   input_schema: {
     type: "object",
     properties: {
@@ -100,14 +100,14 @@ const COMPLETE_COMMITMENT: AnthropicTool = {
 const GET_EFFECTIVENESS_INSIGHTS: AnthropicTool = {
   name: "get_effectiveness_insights",
   description:
-    "Read what has actually helped this person before, based on their own exercise and habit history and mood changes. Use this before suggesting anything, so suggestions are grounded in their data rather than guessed.",
+    "Read what has helped this person before; use before suggesting a practice.",
   input_schema: { type: "object", properties: {} },
 };
 
 const LAUNCH_EXERCISE: AnthropicTool = {
   name: "launch_exercise",
   description:
-    "Hand off to a structured guided exercise in the app instead of describing the steps in prose. Valid slugs come from get_effectiveness_insights or from these: cbt-thought-record, behavioral-activation, grounding-54321, box-breathing, worry-time.",
+    "Open a guided exercise page in the app. Slugs: cbt-thought-record, behavioral-activation, grounding-54321, box-breathing, worry-time.",
   input_schema: {
     type: "object",
     properties: { exercise_slug: { type: "string" } },
@@ -118,14 +118,14 @@ const LAUNCH_EXERCISE: AnthropicTool = {
 const SUGGEST_STEPUP: AnthropicTool = {
   name: "suggest_stepup",
   description:
-    "Signal that this conversation suggests the person could use more support than you can offer, so the app surfaces professional care options. This is NOT for acute risk, which is handled separately before you ever see the message. Use sparingly, warmly, and never as a way to end the conversation.",
+    "Signal the person could use more support than you offer, so the app shows professional care options. Not for acute risk; use sparingly, never to end the chat.",
   input_schema: { type: "object", properties: {} },
 };
 
 const GET_EXERCISE_STEPS: AnthropicTool = {
   name: "get_exercise_steps",
   description:
-    "Read the ordered steps of an exercise so you can walk the person through it inline, one step per message, inside the conversation. Valid slugs: cbt-thought-record, behavioral-activation, grounding-54321, box-breathing, worry-time.",
+    "Read an exercise's steps to walk through inline, one step per message. Slugs: cbt-thought-record, behavioral-activation, grounding-54321, box-breathing, worry-time.",
   input_schema: {
     type: "object",
     properties: { exercise_slug: { type: "string" } },
@@ -136,7 +136,7 @@ const GET_EXERCISE_STEPS: AnthropicTool = {
 const SHOW_EXERCISE_WIDGET: AnthropicTool = {
   name: "show_exercise_widget",
   description:
-    "Show a self-contained interactive guided player inline in the chat for a timed or passive exercise — grounding or breathing only (slugs: grounding-54321, box-breathing, teen-grounding-54321). Use this INSTEAD of get_exercise_steps for those, because they need no back-and-forth. The widget handles the steps, the timing and the before/after mood check itself.",
+    "Show an inline guided player for grounding or breathing only (grounding-54321, box-breathing, teen-grounding-54321); it handles steps, timing and mood check.",
   input_schema: {
     type: "object",
     properties: { exercise_slug: { type: "string" } },
@@ -147,7 +147,7 @@ const SHOW_EXERCISE_WIDGET: AnthropicTool = {
 const COMPLETE_EXERCISE_IN_CHAT: AnthropicTool = {
   name: "complete_exercise_in_chat",
   description:
-    "Record that the person completed an exercise with you inside the conversation, so it counts the same as doing it on the Exercises page. Use only after you have actually walked them through the steps.",
+    "Record an exercise completed in chat, only after actually walking them through it.",
   input_schema: {
     type: "object",
     properties: {
@@ -166,7 +166,7 @@ const COMPLETE_EXERCISE_IN_CHAT: AnthropicTool = {
 const GET_SCREENER_QUESTIONS: AnthropicTool = {
   name: "get_screener_questions",
   description:
-    "Read the standard item text of a validated check-in questionnaire (PHQ-9 for low mood, GAD-7 for anxiety) so you can ask the items conversationally, one at a time, inside the chat.",
+    "Read the item text of PHQ-9 (low mood) or GAD-7 (anxiety) to ask conversationally, one at a time.",
   input_schema: {
     type: "object",
     properties: { screener_type: { type: "string", enum: ["phq9", "gad7"] } },
@@ -177,7 +177,7 @@ const GET_SCREENER_QUESTIONS: AnthropicTool = {
 const SUBMIT_SCREENER_IN_CHAT: AnthropicTool = {
   name: "submit_screener_in_chat",
   description:
-    "Record a completed check-in questionnaire the person answered with you in conversation. Responses are 0-3 per item in the original item order (0 = not at all, 1 = several days, 2 = more than half the days, 3 = nearly every day). PHQ-9 needs 9 responses, GAD-7 needs 7. Only use this after they have actually answered every item.",
+    "Record a screener answered in chat: 0-3 per item in order (PHQ-9 needs 9, GAD-7 needs 7), only after every item was answered.",
   input_schema: {
     type: "object",
     properties: {
@@ -191,7 +191,7 @@ const SUBMIT_SCREENER_IN_CHAT: AnthropicTool = {
 const REQUEST_HUMAN_SUPPORT: AnthropicTool = {
   name: "request_human_support",
   description:
-    "Ask a real human mental-health coach from the Calm AI team to join this conversation. Use when the person asks for a real person/human/therapist/coach, or clearly needs more help than you can give. Creates a request with a summary; their replies then go to the human coach in the app.",
+    "Ask a human coach from the Calm AI team to join, when they ask for a real person or need more than you can give. Their replies then go to the coach.",
   input_schema: {
     type: "object",
     properties: {
