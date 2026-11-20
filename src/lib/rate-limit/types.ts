@@ -26,6 +26,9 @@ export type RateLimitDecision = {
 export type UsageRecord = {
   inputTokens: number;
   outputTokens: number;
+  /** Subset of inputTokens served from / written to the prompt cache (optional). */
+  cacheReadTokens?: number;
+  cacheWriteTokens?: number;
   /** Provider that actually served the call (currently always "openrouter"). */
   provider: string;
   /** App-level model id, e.g. "claude-sonnet-5". */

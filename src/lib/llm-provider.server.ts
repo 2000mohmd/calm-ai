@@ -1,4 +1,4 @@
-// Model provider: Anthropic direct (its OpenAI-compatible endpoint) when
+// Model provider: Anthropic direct (native Messages API, prompt-cached) when
 // ANTHROPIC_API_KEY is set, otherwise OpenRouter. Both serve Claude models.
 //
 // The rest of the app talks in Anthropic block shapes; this module translates
@@ -36,19 +36,30 @@ export type LlmResponse = {
   content: LlmContentBlock[];
   stop_reason: string | null;
   /** Which provider actually answered — useful for logs. */
-  provider: "openrouter";
-  /** Token counts for this single call (0 when the provider omits `usage`). */
-  usage: { inputTokens: number; outputTokens: number };
+  provider: "openrouter" | "anthropic";
+  /**
+   * Token counts for this single call (0 when the provider omits `usage`).
+   * inputTokens is the TOTAL prompt (uncached + cache read + cache write); the
+   * optional cache fields break out the cached part (native Anthropic path).
+   */
+  usage: {
+    inputTokens: number;
+    outputTokens: number;
+    cacheReadTokens?: number;
+    cacheWriteTokens?: number;
+  };
 };
 
 export class LlmError extends Error {}
 
-const ANTHROPIC_URL = "https://api.anthropic.com/v1/chat/completions";
+const ANTHROPIC_URL = "https://api.anthropic.com/v1/messages";
 
 /** Anthropic direct wins when its key is present; else OpenRouter. */
-function gateway(model: string): { url: string; key: string; model: string } | null {
+function gateway(
+  model: string,
+): { url: string; key: string; model: string; native?: boolean } | null {
   const anthropic = process.env["ANTHROPIC_API_KEY"];
-  if (anthropic) return { url: ANTHROPIC_URL, key: anthropic, model };
+  if (anthropic) return { url: ANTHROPIC_URL, key: anthropic, model, native: true };
   const openRouter = process.env["OPENROUTER_API_KEY"];
   return openRouter
     ? { url: OPENROUTER_URL, key: openRouter, model: toOpenRouterModel(model) }
@@ -374,6 +385,228 @@ async function streamOpenRouter(
   return consumeOpenAiStream(response, "openrouter", onDelta);
 }
 
+// --- Native Anthropic Messages API (prompt caching) ----------------------
+// Anthropic's OpenAI-compatible endpoint ignores cache_control, so the large,
+// identical prefix (system + tools) was billed at full price every turn. This
+// path talks to /v1/messages and sets three breakpoints: system, last tool,
+// and the last-but-one history message (so a growing chat reuses its prefix).
+
+type CacheControl = { type: "ephemeral" };
+type NativeBlock =
+  | { type: "text"; text: string; cache_control?: CacheControl }
+  | {
+      type: "tool_use";
+      id: string;
+      name: string;
+      input: Record<string, unknown>;
+      cache_control?: CacheControl;
+    }
+  | { type: "tool_result"; tool_use_id: string; content: string; cache_control?: CacheControl };
+type NativeMessage = { role: "user" | "assistant"; content: NativeBlock[] };
+
+const EPHEMERAL: CacheControl = { type: "ephemeral" };
+
+export function toNativeMessages(messages: LlmMessage[]): NativeMessage[] {
+  const out: NativeMessage[] = [];
+  for (const message of messages) {
+    const blocks: NativeBlock[] =
+      typeof message.content === "string"
+        ? [{ type: "text", text: message.content }]
+        : message.content.map((b) => ({ ...b }));
+    // Anthropic rejects empty text blocks; tool_result blocks must lead a user turn.
+    const kept = blocks.filter((b) => b.type !== "text" || b.text.trim() !== "");
+    if (message.role === "user") {
+      kept.sort((a, b) => +(b.type === "tool_result") - +(a.type === "tool_result"));
+    }
+    if (kept.length) out.push({ role: message.role, content: kept });
+  }
+  // Third breakpoint: last-but-one message (the previous turn's tail).
+  const prior = out[out.length - 2];
+  if (prior) prior.content[prior.content.length - 1]!.cache_control = EPHEMERAL;
+  return out;
+}
+
+export function buildNativeBody(
+  model: string,
+  maxTokens: number,
+  system: string,
+  messages: LlmMessage[],
+  tools: LlmTool[],
+  stream: boolean,
+) {
+  return {
+    model,
+    max_tokens: maxTokens,
+    system: [{ type: "text", text: system, cache_control: EPHEMERAL }],
+    messages: toNativeMessages(messages),
+    ...(stream ? { stream: true } : {}),
+    ...(tools.length
+      ? {
+          tools: tools.map((tool, i) => ({
+            name: tool.name,
+            description: tool.description,
+            input_schema: tool.input_schema,
+            ...(i === tools.length - 1 ? { cache_control: EPHEMERAL } : {}),
+          })),
+        }
+      : {}),
+  };
+}
+
+type NativeUsage = {
+  input_tokens?: number;
+  output_tokens?: number;
+  cache_creation_input_tokens?: number;
+  cache_read_input_tokens?: number;
+};
+
+/** inputTokens = total prompt tokens (input + cache read + cache write). */
+function nativeUsage(u: NativeUsage | undefined): LlmResponse["usage"] {
+  const read = u?.cache_read_input_tokens ?? 0;
+  const write = u?.cache_creation_input_tokens ?? 0;
+  return {
+    inputTokens: (u?.input_tokens ?? 0) + read + write,
+    outputTokens: u?.output_tokens ?? 0,
+    cacheReadTokens: read,
+    cacheWriteTokens: write,
+  };
+}
+
+async function postNative(gw: { url: string; key: string }, body: unknown): Promise<Response> {
+  const response = await fetch(gw.url, {
+    method: "POST",
+    headers: {
+      "x-api-key": gw.key,
+      "anthropic-version": "2023-06-01",
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(body),
+  });
+  if (!response.ok) {
+    const text = await response.text();
+    throw new LlmError(`LLM gateway error ${response.status}: ${text.slice(0, 300)}`);
+  }
+  return response;
+}
+
+async function callAnthropicNative(
+  gw: { url: string; key: string; model: string },
+  maxTokens: number,
+  system: string,
+  messages: LlmMessage[],
+  tools: LlmTool[],
+): Promise<LlmResponse> {
+  const response = await postNative(
+    gw,
+    buildNativeBody(gw.model, maxTokens, system, messages, tools, false),
+  );
+  const payload = (await response.json()) as {
+    content?: (
+      | { type: "text"; text: string }
+      | { type: "tool_use"; id: string; name: string; input?: Record<string, unknown> }
+    )[];
+    stop_reason?: string | null;
+    usage?: NativeUsage;
+  };
+  const blocks: LlmContentBlock[] = [];
+  for (const b of payload.content ?? []) {
+    if (b.type === "text" && b.text) blocks.push({ type: "text", text: b.text });
+    else if (b.type === "tool_use") {
+      blocks.push({ type: "tool_use", id: b.id, name: b.name, input: b.input ?? {} });
+    }
+  }
+  return {
+    content: blocks,
+    stop_reason: payload.stop_reason ?? null,
+    provider: "anthropic",
+    usage: nativeUsage(payload.usage),
+  };
+}
+
+async function streamAnthropicNative(
+  gw: { url: string; key: string; model: string },
+  maxTokens: number,
+  system: string,
+  messages: LlmMessage[],
+  tools: LlmTool[],
+  onDelta: (text: string) => void,
+): Promise<LlmResponse> {
+  const response = await postNative(
+    gw,
+    buildNativeBody(gw.model, maxTokens, system, messages, tools, true),
+  );
+  if (!response.body) throw new LlmError("Streaming response had no body");
+
+  // Content blocks keyed by event `index`.
+  const acc = new Map<
+    number,
+    { type: "text" | "tool_use"; text: string; id: string; name: string; json: string }
+  >();
+  let stopReason: string | null = null;
+  const usage: NativeUsage = {};
+
+  for await (const data of readSseEvents(response.body)) {
+    let ev: {
+      type?: string;
+      index?: number;
+      message?: { usage?: NativeUsage };
+      content_block?: { type?: string; id?: string; name?: string };
+      delta?: { type?: string; text?: string; partial_json?: string; stop_reason?: string | null };
+      usage?: NativeUsage;
+      error?: { message?: string };
+    };
+    try {
+      ev = JSON.parse(data);
+    } catch {
+      continue;
+    }
+    if (ev.type === "error") {
+      throw new LlmError(
+        `LLM gateway error 529: ${(ev.error?.message ?? "stream error").slice(0, 300)}`,
+      );
+    }
+    if (ev.type === "message_start") Object.assign(usage, ev.message?.usage);
+    else if (ev.type === "message_delta") {
+      Object.assign(usage, ev.usage);
+      if (ev.delta?.stop_reason) stopReason = ev.delta.stop_reason;
+    } else if (ev.type === "content_block_start" && ev.index !== undefined) {
+      const cb = ev.content_block;
+      acc.set(ev.index, {
+        type: cb?.type === "tool_use" ? "tool_use" : "text",
+        text: "",
+        id: cb?.id ?? "",
+        name: cb?.name ?? "",
+        json: "",
+      });
+    } else if (ev.type === "content_block_delta" && ev.index !== undefined) {
+      const slot = acc.get(ev.index);
+      if (!slot) continue;
+      if (ev.delta?.type === "text_delta" && ev.delta.text) {
+        slot.text += ev.delta.text;
+        onDelta(ev.delta.text);
+      } else if (ev.delta?.type === "input_json_delta" && ev.delta.partial_json) {
+        slot.json += ev.delta.partial_json;
+      }
+    }
+  }
+
+  const blocks: LlmContentBlock[] = [];
+  for (const [, slot] of [...acc.entries()].sort((a, b) => a[0] - b[0])) {
+    if (slot.type === "text") {
+      if (slot.text) blocks.push({ type: "text", text: slot.text });
+      continue;
+    }
+    let input: Record<string, unknown> = {};
+    try {
+      input = slot.json ? JSON.parse(slot.json) : {};
+    } catch {
+      input = {};
+    }
+    blocks.push({ type: "tool_use", id: slot.id, name: slot.name, input });
+  }
+  return { content: blocks, stop_reason: stopReason, provider: "anthropic", usage: nativeUsage(usage) };
+}
+
 /**
  * Streaming counterpart to `callCompanionModel`: calls `onDelta` with text
  * fragments as they arrive instead of returning only once the reply is ready.
@@ -393,6 +626,7 @@ export async function streamCompanionModel(
   const gw = gateway(model);
   if (!gw) throw new LlmError("The AI companion isn't configured yet.");
 
+  if (gw.native) return streamAnthropicNative(gw, maxTokens, system, messages, tools, onDelta);
   return streamOpenRouter(gw, model, maxTokens, system, messages, tools, onDelta);
 }
 
@@ -411,5 +645,6 @@ export async function callCompanionModel(options: {
   const gw = gateway(model);
   if (!gw) throw new LlmError("The AI companion isn't configured yet.");
 
+  if (gw.native) return callAnthropicNative(gw, maxTokens, system, messages, tools);
   return callOpenRouter(gw, model, maxTokens, system, messages, tools);
 }

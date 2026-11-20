@@ -14,13 +14,32 @@ const PRICING: Record<string, Price> = {
   "google/gemini-3.6-flash": { inPerM: 0.3, outPerM: 2.5 },
 };
 
-export function estimateCostUsd(model: string, inputTokens: number, outputTokens: number): number {
+/**
+ * inputTokens is the TOTAL prompt. When cache counts are given, cache reads are
+ * priced at 0.1x and cache writes at 1.25x the input rate; the rest at 1x.
+ */
+export function estimateCostUsd(
+  model: string,
+  inputTokens: number,
+  outputTokens: number,
+  cacheReadTokens = 0,
+  cacheWriteTokens = 0,
+): number {
   const price = PRICING[model] ?? FALLBACK;
-  return (inputTokens / 1_000_000) * price.inPerM + (outputTokens / 1_000_000) * price.outPerM;
+  const plain = Math.max(0, inputTokens - cacheReadTokens - cacheWriteTokens);
+  const inputCost =
+    plain * price.inPerM + cacheReadTokens * price.inPerM * 0.1 + cacheWriteTokens * price.inPerM * 1.25;
+  return inputCost / 1_000_000 + (outputTokens / 1_000_000) * price.outPerM;
 }
 
 export function estimateRecordCostUsd(usage: UsageRecord): number {
-  return estimateCostUsd(usage.model, usage.inputTokens, usage.outputTokens);
+  return estimateCostUsd(
+    usage.model,
+    usage.inputTokens,
+    usage.outputTokens,
+    usage.cacheReadTokens,
+    usage.cacheWriteTokens,
+  );
 }
 
 // --- Live voice calls -------------------------------------------------------
