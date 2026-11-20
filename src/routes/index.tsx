@@ -2,6 +2,11 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useId, useRef, useState } from "react";
 import type { FormEvent, ReactNode } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { HeroNight } from "@/components/landing/illustrations/HeroNight";
+import { BreatheOutdoors } from "@/components/landing/illustrations/BreatheOutdoors";
+import { WalkTogether } from "@/components/landing/illustrations/WalkTogether";
+import { SleepPeace } from "@/components/landing/illustrations/SleepPeace";
+import { TalkAloud } from "@/components/landing/illustrations/TalkAloud";
 
 const SITE = "https://www.calmai.site";
 const OG_IMAGE = `${SITE}/screens/chat.jpg`;
@@ -62,10 +67,37 @@ const SAFETY_CARDS = [
   { title: "A human coach", body: "Request support from inside the app." },
 ];
 
+const FEATURE_ROWS = [
+  {
+    eyebrow: "Breathing exercises",
+    title: "Slow your breathing down, together",
+    body: "Box breathing and 5-4-3-2-1 grounding, with a gentle circle to follow. Start one when your chest is tight, and leave whenever you like.",
+    Art: BreatheOutdoors,
+  },
+  {
+    eyebrow: "A few minutes each",
+    title: "Paced for you, not for a streak",
+    body: "Short sessions: reframing a thought, grounding, a quiet check-in. Leave any of them halfway, and nothing nags you to come back.",
+    Art: WalkTogether,
+  },
+  {
+    eyebrow: "Winding down",
+    title: "Help getting ready for sleep",
+    body: "When your mind won't settle, a wind-down exercise helps you set the day down. It's not a cure for insomnia, just a calmer way to end the night.",
+    Art: SleepPeace,
+  },
+  {
+    eyebrow: "Voice, coming soon",
+    title: "Some things you can't type",
+    body: "Talk out loud when typing is too much. Voice calls are coming with the paid plans. It's an AI voice, not a person, and the app tells you up front what is kept. The Privacy notice has the detail.",
+    Art: TalkAloud,
+  },
+];
+
 const FOCUS =
-  "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5b60c4] focus-visible:ring-offset-2 focus-visible:ring-offset-[#f4f4fb]";
+  "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#B5603F] focus-visible:ring-offset-2 focus-visible:ring-offset-[#FBF6EF]";
 const FOCUS_DARK =
-  "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#9ea1e6] focus-visible:ring-offset-2 focus-visible:ring-offset-[#171728]";
+  "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#F4C7A8] focus-visible:ring-offset-2 focus-visible:ring-offset-[#4A3428]";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -105,12 +137,20 @@ export const Route = createFileRoute("/")({
   component: Index,
 });
 
-function Logo({ size = 26, bg = "#171728" }: { size?: number; bg?: string }) {
+function Logo({
+  size = 26,
+  bg = "#4A3428",
+  fill = "#B9B3F0",
+}: {
+  size?: number;
+  bg?: string;
+  fill?: string;
+}) {
   return (
     <svg width={size} height={size} viewBox="0 0 100 100" aria-hidden="true">
       <path
         d="M25,27 a25,25 0 1,1 50,0 a25,25 0 1,1 -50,0 M48,50 a25,25 0 1,1 50,0 a25,25 0 1,1 -50,0 M25,73 a25,25 0 1,1 50,0 a25,25 0 1,1 -50,0 M2,50 a25,25 0 1,1 50,0 a25,25 0 1,1 -50,0"
-        fill="#9ea1e6"
+        fill={fill}
       ></path>
       <circle cx="50" cy="50" r="15" fill={bg}></circle>
     </svg>
@@ -132,7 +172,7 @@ function Section({
     <section
       id={id}
       aria-labelledby={labelledBy}
-      className={`scroll-mt-24 px-6 py-20 md:py-28 ${className}`}
+      className={`scroll-mt-24 px-6 py-16 md:py-20 ${className}`}
     >
       <div className="ca-reveal mx-auto w-full max-w-[1120px]">{children}</div>
     </section>
@@ -155,13 +195,13 @@ function SectionHead({
       <h2
         id={id}
         className="m-0 text-balance text-[clamp(30px,4.2vw,46px)] font-extrabold leading-[1.08] tracking-[-0.035em]"
-        style={{ color: tone === "warm" ? "#3a2521" : "#171728" }}
+        style={{ color: tone === "warm" ? "#4A3428" : "#4A3428" }}
       >
         {title}
       </h2>
       <p
         className="mx-auto mb-0 mt-4 max-w-[540px] text-pretty text-[17px] leading-[1.6]"
-        style={{ color: tone === "warm" ? "#6d534c" : "#4a4c6b" }}
+        style={{ color: tone === "warm" ? "#6B5244" : "#6B5244" }}
       >
         {lead}
       </p>
@@ -180,8 +220,8 @@ function PrimaryCta({
   return (
     <Link
       to="/auth"
-      className={`ca-btn inline-flex min-h-[54px] items-center justify-center rounded-full px-9 text-base font-extrabold ${dark ? `shadow-[0_18px_40px_-18px_rgba(0,0,0,.6)] hover:bg-[#dedef6] ${FOCUS_DARK}` : `shadow-[0_18px_40px_-18px_rgba(23,23,40,.75)] hover:bg-[#2a2a42] ${FOCUS}`} ${className}`}
-      style={dark ? { background: "#fff", color: "#171728" } : { background: "#171728", color: "#fff" }}
+      className={`ca-btn inline-flex min-h-[54px] items-center justify-center rounded-full px-9 text-base font-extrabold ${dark ? `shadow-[0_18px_40px_-18px_rgba(0,0,0,.6)] hover:bg-[#F1E4D3] ${FOCUS_DARK}` : `shadow-[0_18px_40px_-18px_rgba(74,52,40,.75)] hover:bg-[#5E4538] ${FOCUS}`} ${className}`}
+      style={dark ? { background: "#FBF6EF", color: "#4A3428" } : { background: "#4A3428", color: "#FBF6EF" }}
     >
       Start free
     </Link>
@@ -192,86 +232,9 @@ function CtaBlock() {
   return (
     <div className="mt-12 flex flex-col items-center gap-3 text-center">
       <PrimaryCta />
-      <p className="m-0 text-sm" style={{ color: "#4a4c6b" }}>
+      <p className="m-0 text-sm" style={{ color: "#6B5244" }}>
         Free to start · no card · works in your browser
       </p>
-    </div>
-  );
-}
-
-// Looping chat demo timeline (seconds). Each step fades in, holds, then everything
-// resets together. Only opacity/transform animate; reduced-motion shows the end state.
-const DEMO_LOOP = 16;
-const pc = (s: number) => +((s / DEMO_LOOP) * 100).toFixed(2);
-const demoStep = (n: number, a: number, b: number, c: number) =>
-  `@keyframes caD${n}{0%,${pc(a)}%{opacity:0;transform:translateY(10px)}${pc(a + 0.7)}%,${pc(b)}%{opacity:1;transform:none}${pc(c)}%,100%{opacity:0;transform:translateY(-4px)}}`;
-const DEMO_CSS = [
-  demoStep(1, 0.8, 13.6, 14.6),
-  demoStep(2, 2.4, 4.6, 5.0),
-  demoStep(3, 5.0, 13.6, 14.6),
-  demoStep(4, 7.6, 13.6, 14.6),
-].join("");
-
-function ChatDemo() {
-  return (
-    <div
-      role="img"
-      aria-label="Demo of a Calm AI chat: someone says they can't switch their brain off at 2am, and the companion replies calmly and offers a short box breathing exercise."
-      className="relative rounded-[46px] bg-[#171728] p-[9px] shadow-[0_50px_90px_-40px_rgba(50,54,140,.75),0_0_0_1px_rgba(255,255,255,.08)_inset]"
-    >
-      <div className="relative flex h-[548px] flex-col overflow-hidden rounded-[38px] bg-[#f7f7fd]">
-        <div className="mx-auto mt-2.5 h-[22px] w-24 rounded-full bg-[#171728]"></div>
-        <div className="flex items-center gap-3 border-b border-[#e8e8f5] px-5 pb-3 pt-3">
-          <span className="grid size-9 place-items-center rounded-full bg-[#171728]">
-            <Logo size={20} />
-          </span>
-          <div className="text-start leading-tight">
-            <div className="text-[14px] font-extrabold text-[#171728]">Calm AI</div>
-            <div className="text-[11px] font-semibold text-[#5a5c7c]">Here, whenever you are</div>
-          </div>
-        </div>
-        <div className="flex flex-1 flex-col gap-3 px-4 pb-3 pt-5 text-start text-[13.5px] leading-[1.5]">
-          <div className="ca-d ca-d1 ms-auto max-w-[82%] rounded-[20px] rounded-ee-md bg-[#171728] px-4 py-2.5 text-white">
-            I can't switch my brain off. It's 2am and I have a meeting at nine.
-          </div>
-          <div className="grid">
-            <div className="ca-d ca-d2 ca-typing col-start-1 row-start-1 flex h-10 w-[62px] items-center justify-center gap-1.5 self-start rounded-[20px] rounded-es-md bg-white shadow-[0_6px_16px_-10px_rgba(70,74,150,.5)]">
-              <span className="ca-dot size-1.5 rounded-full bg-[#8f94e0]"></span>
-              <span className="ca-dot size-1.5 rounded-full bg-[#8f94e0]" style={{ animationDelay: ".18s" }}></span>
-              <span className="ca-dot size-1.5 rounded-full bg-[#8f94e0]" style={{ animationDelay: ".36s" }}></span>
-            </div>
-            <div className="ca-d ca-d3 col-start-1 row-start-1 max-w-[88%] self-start rounded-[20px] rounded-es-md bg-white px-4 py-3 text-[#2a2c4a] shadow-[0_6px_16px_-10px_rgba(70,74,150,.5)]">
-              That sounds exhausting. You don't have to solve tomorrow tonight. Want to slow your
-              breathing down for a minute first?
-            </div>
-          </div>
-          <div className="ca-d ca-d4 flex items-center gap-3 rounded-[22px] border border-[#e0e1f4] bg-white p-3.5 shadow-[0_14px_30px_-20px_rgba(70,74,150,.6)]">
-            <span className="relative grid size-12 shrink-0 place-items-center">
-              <span
-                className="ca-breathe absolute inset-0 rounded-full"
-                style={{ background: "radial-gradient(circle,rgba(143,148,224,.85),rgba(143,148,224,.15) 70%)" }}
-              ></span>
-              <span className="relative size-3.5 rounded-full bg-[#5b60c4]"></span>
-            </span>
-            <span className="min-w-0 flex-1 leading-tight">
-              <span className="block text-[14px] font-extrabold text-[#171728]">Box breathing</span>
-              <span className="mt-0.5 block text-[12px] text-[#5a5c7c]">3 min · in 4, hold 4, out 4, hold 4</span>
-            </span>
-            <span className="shrink-0 rounded-full bg-[#171728] px-3.5 py-1.5 text-[12px] font-bold text-white">
-              Begin
-            </span>
-          </div>
-        </div>
-        <div className="mx-4 mb-4 flex items-center justify-between rounded-full border border-[#e0e1f4] bg-white py-2 pe-2 ps-4 text-[13px] text-[#8a8cab]">
-          Say what's on your mind
-          <span className="grid size-8 place-items-center rounded-full bg-[#eceefb]">
-            <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">
-              <rect x="5" y="1" width="4" height="8" rx="2" fill="#5b60c4" />
-              <path d="M2.5 7a4.5 4.5 0 009 0M7 11.5V13" stroke="#5b60c4" strokeWidth="1.4" strokeLinecap="round" />
-            </svg>
-          </span>
-        </div>
-      </div>
     </div>
   );
 }
@@ -289,7 +252,7 @@ function Phone({
 }) {
   return (
     <div
-      className={`rounded-[2.5rem] bg-[#171728] p-2 shadow-[0_30px_60px_-28px_rgba(70,74,150,.6)] ring-1 ring-[#171728]/80 ${className}`}
+      className={`rounded-[2.5rem] bg-[#4A3428] p-2 shadow-[0_30px_60px_-28px_rgba(120,75,45,.6)] ring-1 ring-[#4A3428]/80 ${className}`}
     >
       <img
         src={src}
@@ -364,7 +327,7 @@ function WaitlistForm({
           <label
             htmlFor={inputId}
             className="text-start text-sm font-semibold"
-            style={{ color: dark ? "#c9cbf2" : "#3f4160" }}
+            style={{ color: dark ? "#F1E4D3" : "#4A3428" }}
           >
             Email address
           </label>
@@ -379,12 +342,12 @@ function WaitlistForm({
               onChange={(e) => setEmail(e.target.value)}
               placeholder="you@example.com"
               disabled={status === "loading"}
-              className={`min-h-12 w-full min-w-0 flex-1 rounded-full border px-5 text-base placeholder:text-[#8a8cab] disabled:opacity-60 ${dark ? "border-white/25 bg-white/10 text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#9ea1e6]" : "border-[#c9cbe8] bg-white text-[#171728] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5b60c4]"}`}
+              className={`min-h-12 w-full min-w-0 flex-1 rounded-full border px-5 text-base disabled:opacity-60 ${dark ? "border-white/25 bg-white/10 text-white placeholder:text-[#CBB49D] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#B5603F]" : "border-[#D9C4AC] bg-white text-[#4A3428] placeholder:text-[#85705F] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#B5603F]"}`}
             />
             <button
               type="submit"
               disabled={status === "loading"}
-              className={`min-h-12 shrink-0 rounded-full px-6 text-[15px] font-extrabold disabled:opacity-60 ${dark ? `bg-white text-[#171728] hover:bg-[#dedef6] ${FOCUS_DARK}` : `bg-[#171728] text-white hover:bg-[#2a2a42] ${FOCUS}`}`}
+              className={`min-h-12 shrink-0 rounded-full px-6 text-[15px] font-extrabold disabled:opacity-60 ${dark ? `bg-white text-[#4A3428] hover:bg-[#F1E4D3] ${FOCUS_DARK}` : `bg-[#4A3428] text-white hover:bg-[#5E4538] ${FOCUS}`}`}
             >
               {status === "loading" ? "Sending…" : "Notify me"}
             </button>
@@ -396,7 +359,7 @@ function WaitlistForm({
         aria-live="polite"
         className={`m-0 text-start text-sm font-semibold ${message ? "mt-3" : ""}`}
         style={{
-          color: status === "error" ? (dark ? "#ffb4b4" : "#9b2c2c") : dark ? "#c9cbf2" : "#2f6b4f",
+          color: status === "error" ? (dark ? "#ffb4b4" : "#9b2c2c") : dark ? "#F1E4D3" : "#2f6b4f",
         }}
       >
         {message}
@@ -404,12 +367,12 @@ function WaitlistForm({
       {status !== "success" && (
         <p
           className="mb-0 mt-3 text-start text-[13px] leading-[1.5]"
-          style={{ color: dark ? "#9ea1e6" : "#4a4c6b" }}
+          style={{ color: dark ? "#E9D5C0" : "#6B5244" }}
         >
           We'll only email you about the launch.{" "}
           <Link
             to="/privacy"
-            className={`underline underline-offset-2 ${dark ? "text-[#c9cbf2]" : "text-[#3f4499]"}`}
+            className={`underline underline-offset-2 ${dark ? "text-[#F1E4D3]" : "text-[#9A4F33]"}`}
           >
             Privacy notice
           </Link>
@@ -421,9 +384,9 @@ function WaitlistForm({
 
 function Faq({ q, children }: { q: string; children: ReactNode }) {
   return (
-    <details className="group border-b border-[#d9d9ee]">
+    <details className="group border-b border-[#E8D8C4]">
       <summary
-        className={`flex min-h-14 cursor-pointer list-none items-center justify-between gap-4 py-4 text-start text-[17px] font-bold text-[#171728] [&::-webkit-details-marker]:hidden ${FOCUS}`}
+        className={`flex min-h-14 cursor-pointer list-none items-center justify-between gap-4 py-4 text-start text-[17px] font-bold text-[#4A3428] [&::-webkit-details-marker]:hidden ${FOCUS}`}
       >
         {q}
         <svg
@@ -434,10 +397,10 @@ function Faq({ q, children }: { q: string; children: ReactNode }) {
           aria-hidden="true"
           className="shrink-0 transition-transform group-open:rotate-45 motion-reduce:transition-none"
         >
-          <path d="M9 3v12M3 9h12" stroke="#5b60c4" strokeWidth="2" strokeLinecap="round" />
+          <path d="M9 3v12M3 9h12" stroke="#B5603F" strokeWidth="2" strokeLinecap="round" />
         </svg>
       </summary>
-      <div className="pb-5 pe-8 text-[16px] leading-[1.65]" style={{ color: "#4a4c6b" }}>
+      <div className="pb-5 pe-8 text-[16px] leading-[1.65]" style={{ color: "#6B5244" }}>
         {children}
       </div>
     </details>
@@ -517,28 +480,22 @@ function Index() {
       <style>{`#ca-page{font-family:Manrope,system-ui,sans-serif}
 #ca-page a{text-decoration:none}
 #ca-page summary{outline:none}
-.ca-typing{opacity:0}
 @media (prefers-reduced-motion:no-preference){
-.ca-orb{animation:caOrb 24s ease-in-out infinite}.ca-orb-b{animation-duration:30s;animation-delay:-14s}
+.ca-orb{animation:caOrb 28s ease-in-out infinite}.ca-orb-b{animation-duration:30s;animation-delay:-14s}
 .ca-breathe{animation:caBreathe 8s ease-in-out infinite}.ca-breathe-b{animation-delay:-2.6s}
-.ca-d{animation-duration:${DEMO_LOOP}s;animation-timing-function:ease-out;animation-iteration-count:infinite;animation-fill-mode:both}
-.ca-d1{animation-name:caD1}.ca-d2{animation-name:caD2}.ca-d3{animation-name:caD3}.ca-d4{animation-name:caD4}
-.ca-dot{animation:caDot 1.1s ease-in-out infinite}
 .ca-pre{opacity:0;transform:translateY(18px)}
 .ca-in{opacity:1;transform:none;transition:opacity 1.2s ease-out,transform 1.2s ease-out}
-.ca-card{transition:transform .6s ease,box-shadow .6s ease}.ca-card:hover{transform:translateY(-4px);box-shadow:0 30px 60px -34px rgba(90,95,180,.6)}
+.ca-card{transition:transform .6s ease,box-shadow .6s ease}.ca-card:hover{transform:translateY(-4px);box-shadow:0 30px 60px -34px rgba(120,75,45,.6)}
 .ca-btn{transition:transform .3s ease,background-color .3s ease}.ca-btn:hover{transform:translateY(-1px)}}
-@media (prefers-reduced-motion:reduce){.ca-orb,.ca-breathe,.ca-d,.ca-dot{animation:none}.ca-pre{opacity:1;transform:none}}
-@keyframes caOrb{0%,100%{transform:translate(0,0) scale(1)}50%{transform:translate(70px,40px) scale(1.12)}}
+@media (prefers-reduced-motion:reduce){.ca-orb,.ca-breathe{animation:none}.ca-pre{opacity:1;transform:none}}
+@keyframes caOrb{0%,100%{transform:translate(0,0) scale(1) rotate(0)}50%{transform:translate(40px,26px) scale(1.07) rotate(6deg)}}
 @keyframes caBreathe{0%,100%{transform:scale(.8);opacity:.5}50%{transform:scale(1.04);opacity:1}}
-@keyframes caDot{0%,100%{transform:translateY(0);opacity:.5}50%{transform:translateY(-4px);opacity:1}}
-${DEMO_CSS}
-.ca-hov-1:hover,.ca-hov-2:hover,.ca-hov-3:hover,.ca-hov-4:hover{color:#fff}
-.ca-hov-5:hover{background:#dedef6}`}</style>
+.ca-hov-1:hover,.ca-hov-2:hover,.ca-hov-3:hover,.ca-hov-4:hover{color:#4A3428}
+.ca-hov-5:hover{background:#5E4538}`}</style>
       <div
         id="ca-page"
         className="pb-[calc(5.5rem+env(safe-area-inset-bottom))] md:pb-0"
-        style={{ width: "100%", overflowX: "clip", background: "#f4f4fb" }}
+        style={{ width: "100%", overflowX: "clip", background: "#FBF6EF", color: "#4A3428" }}
       >
         <div
           id="ca-nav"
@@ -562,76 +519,78 @@ ${DEMO_CSS}
               padding: "10px 12px",
               paddingInlineStart: "20px",
               borderRadius: "999px",
-              background: "rgba(23,23,40,.94)",
-              boxShadow: "0 18px 40px -22px rgba(23,23,40,.8)",
+              background: "rgba(251,246,239,.97)",
+              backdropFilter: "blur(14px)",
+              border: "1px solid #E8D8C4",
+              boxShadow: "0 14px 34px -24px rgba(120,75,45,.55)",
             }}
           >
             <div
               className="me-auto md:me-0"
               style={{ display: "flex", alignItems: "center", gap: "10px", flex: "none" }}
             >
-              <Logo />
+              <Logo bg="#FBF6EF" fill="#D98B6A" />
               <span
                 style={{
                   font: "800 17px Manrope,sans-serif",
-                  color: "#fff",
+                  color: "#4A3428",
                   letterSpacing: "-.4px",
                 }}
               >
-                Calm <span style={{ color: "#9ea1e6" }}>AI</span>
+                Calm <span style={{ color: "#B5603F" }}>AI</span>
               </span>
             </div>
             <div className="hidden flex-1 flex-wrap justify-center gap-[26px] md:flex">
               <a
                 href="#how"
                 className="ca-hov-1"
-                style={{ fontSize: "14px", fontWeight: "600", color: "rgba(255,255,255,.72)" }}
+                style={{ fontSize: "14px", fontWeight: "600", color: "#6B5244" }}
               >
                 How it works
               </a>
               <a
                 href="#features"
                 className="ca-hov-2"
-                style={{ fontSize: "14px", fontWeight: "600", color: "rgba(255,255,255,.72)" }}
+                style={{ fontSize: "14px", fontWeight: "600", color: "#6B5244" }}
               >
                 Features
               </a>
               <a
                 href="#safety"
                 className="ca-hov-3"
-                style={{ fontSize: "14px", fontWeight: "600", color: "rgba(255,255,255,.72)" }}
+                style={{ fontSize: "14px", fontWeight: "600", color: "#6B5244" }}
               >
                 Safety
               </a>
               <a
                 href="#plans"
                 className="ca-hov-4"
-                style={{ fontSize: "14px", fontWeight: "600", color: "rgba(255,255,255,.72)" }}
+                style={{ fontSize: "14px", fontWeight: "600", color: "#6B5244" }}
               >
                 Plans
               </a>
             </div>
             <Link
               to="/auth"
-              className="inline-flex min-h-11 items-center rounded-full px-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#9ea1e6]"
+              className="inline-flex min-h-11 items-center rounded-full px-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#B5603F]"
               style={{
                 flex: "none",
                 fontSize: "14px",
                 fontWeight: "600",
-                color: "rgba(255,255,255,.72)",
+                color: "#6B5244",
               }}
             >
               Sign in
             </Link>
             <Link
               to="/auth"
-              className="ca-hov-5 hidden min-h-11 items-center rounded-full px-5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#9ea1e6] md:inline-flex"
+              className="ca-hov-5 hidden min-h-11 items-center rounded-full px-5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#B5603F] md:inline-flex"
               style={{
                 flex: "none",
-                background: "#fff",
+                background: "#4A3428",
                 fontSize: "14px",
                 fontWeight: "700",
-                color: "#171728",
+                color: "#FBF6EF",
               }}
             >
               Start free
@@ -642,7 +601,7 @@ ${DEMO_CSS}
               aria-expanded={menuOpen}
               aria-controls="ca-mobile-menu"
               onClick={() => setMenuOpen((o) => !o)}
-              className="inline-flex size-11 shrink-0 items-center justify-center rounded-full border-0 bg-white/10 text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#9ea1e6] md:hidden"
+              className="inline-flex size-11 shrink-0 items-center justify-center rounded-full border-0 bg-[#4A3428]/10 text-[#4A3428] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#B5603F] md:hidden"
               ref={menuButtonRef}
             >
               <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
@@ -671,16 +630,16 @@ ${DEMO_CSS}
           >
             <nav
               aria-label="Sections"
-              className="flex flex-col gap-1 rounded-3xl p-3 shadow-[0_26px_54px_-24px_rgba(23,23,40,.9)]"
-              style={{ background: "#171728" }}
+              className="flex flex-col gap-1 rounded-3xl p-3 shadow-[0_26px_54px_-24px_rgba(74,52,40,.9)]"
+              style={{ background: "#FBF6EF", border: "1px solid #E8D8C4" }}
             >
               {MENU_LINKS.map((l) => (
                 <a
                   key={l.href}
                   href={l.href}
                   onClick={() => setMenuOpen(false)}
-                  className="flex min-h-11 items-center rounded-2xl px-4 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#9ea1e6]"
-                  style={{ fontSize: "16px", fontWeight: "600", color: "rgba(255,255,255,.88)" }}
+                  className="flex min-h-11 items-center rounded-2xl px-4 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#B5603F]"
+                  style={{ fontSize: "16px", fontWeight: "600", color: "#4A3428" }}
                 >
                   {l.label}
                 </a>
@@ -688,12 +647,12 @@ ${DEMO_CSS}
               <Link
                 to="/auth"
                 onClick={() => setMenuOpen(false)}
-                className="mt-2 flex min-h-12 items-center justify-center rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#9ea1e6]"
+                className="mt-2 flex min-h-12 items-center justify-center rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#B5603F]"
                 style={{
-                  background: "#fff",
+                  background: "#4A3428",
                   fontSize: "15px",
                   fontWeight: "700",
-                  color: "#171728",
+                  color: "#FBF6EF",
                 }}
               >
                 Start free
@@ -707,90 +666,84 @@ ${DEMO_CSS}
           <section
             id="ca-hero"
             aria-labelledby="hero-title"
-            className="relative px-6 pb-20 pt-10 md:pb-28 md:pt-16"
+            className="relative px-6 pb-12 pt-6 md:pb-20 md:pt-14"
           >
-            {/* Aurora: transform/opacity only, masked so it dissolves with no hard edge */}
+            {/* Organic blobs: transform only, masked so they dissolve with no hard edge */}
             <div
               aria-hidden="true"
-              className="pointer-events-none absolute inset-x-0 top-0 h-[1100px] overflow-hidden"
+              className="pointer-events-none absolute inset-x-0 top-0 h-[1000px] overflow-hidden"
               style={{
-                WebkitMaskImage: "linear-gradient(to bottom,#000 35%,transparent 100%)",
-                maskImage: "linear-gradient(to bottom,#000 35%,transparent 100%)",
+                WebkitMaskImage: "linear-gradient(to bottom,transparent 0,#000 14%,#000 40%,transparent 100%)",
+                maskImage: "linear-gradient(to bottom,transparent 0,#000 14%,#000 40%,transparent 100%)",
               }}
             >
               <div
-                className="ca-orb absolute -start-40 -top-24 size-[620px] rounded-full"
-                style={{ background: "radial-gradient(circle,rgba(150,165,240,.55),transparent 66%)" }}
-              ></div>
-              <div
-                className="ca-orb ca-orb-b absolute -end-40 top-10 size-[700px] rounded-full"
-                style={{ background: "radial-gradient(circle,rgba(190,160,235,.45),transparent 66%)" }}
-              ></div>
-              <div
-                className="ca-orb absolute start-1/3 top-72 size-[520px] rounded-full"
+                className="ca-orb absolute -start-40 -top-32 h-[560px] w-[640px]"
                 style={{
-                  background: "radial-gradient(circle,rgba(143,200,235,.3),transparent 66%)",
-                  animationDelay: "-8s",
+                  borderRadius: "58% 42% 61% 39% / 47% 56% 44% 53%",
+                  background: "radial-gradient(circle at 40% 40%,rgba(244,199,168,.7),rgba(244,199,168,0) 70%)",
+                }}
+              ></div>
+              <div
+                className="ca-orb ca-orb-b absolute -end-32 top-10 h-[620px] w-[680px]"
+                style={{
+                  borderRadius: "42% 58% 39% 61% / 55% 44% 56% 45%",
+                  background: "radial-gradient(circle at 55% 45%,rgba(227,165,160,.45),rgba(227,165,160,0) 70%)",
+                }}
+              ></div>
+              <div
+                className="ca-orb absolute start-1/3 top-80 h-[420px] w-[520px]"
+                style={{
+                  borderRadius: "55% 45% 50% 50% / 45% 55% 45% 55%",
+                  background: "radial-gradient(circle,rgba(157,181,154,.35),rgba(157,181,154,0) 70%)",
+                  animationDelay: "-9s",
                 }}
               ></div>
             </div>
 
-            <div className="relative mx-auto grid w-full max-w-[1120px] items-center gap-16 lg:grid-cols-[1.05fr_.95fr] lg:gap-10">
+            <div className="relative mx-auto grid w-full max-w-[1120px] items-center gap-8 lg:grid-cols-[1fr_1.08fr] lg:gap-6">
               <div className="text-start">
-                <p className="m-0 inline-flex items-center gap-2 rounded-full border border-[#d9daf3] bg-white/70 px-4 py-1.5 text-[13px] font-bold text-[#3f4499] backdrop-blur">
-                  <span aria-hidden="true" className="size-1.5 rounded-full bg-[#5b60c4]"></span>
+                <p className="m-0 inline-flex items-center gap-2 rounded-full border border-[#E8D8C4] bg-white/70 px-4 py-1.5 text-[13px] font-bold text-[#9A4F33] backdrop-blur">
+                  <span aria-hidden="true" className="size-1.5 rounded-full bg-[#D98B6A]"></span>
                   An AI companion, not therapy
                 </p>
                 <h1
                   id="hero-title"
-                  className="m-0 mt-6 max-w-[640px] text-balance text-[clamp(44px,6.2vw,80px)] font-extrabold leading-[1.02] tracking-[-0.045em] text-[#171728]"
+                  className="m-0 mt-6 max-w-[600px] text-balance text-[clamp(42px,5.6vw,72px)] font-extrabold leading-[1.04] tracking-[-0.04em] text-[#4A3428]"
                 >
                   Somewhere to start at 2am
                 </h1>
-                <p className="mb-0 mt-6 max-w-[520px] text-pretty text-[clamp(17px,2vw,20px)] leading-[1.6] text-[#4a4c6b]">
+                <p className="mb-0 mt-6 max-w-[500px] text-pretty text-[clamp(17px,2vw,19px)] leading-[1.65] text-[#6B5244]">
                   An AI companion for the days between appointments, or before you've managed to
                   book one. Type, or actually talk. It's not therapy, and it says so.
                 </p>
-                <div className="mt-9 flex flex-col items-start gap-3 sm:flex-row sm:items-center sm:gap-6">
+                <div className="mt-7 flex flex-row flex-wrap items-center gap-x-6 gap-y-2 sm:mt-9">
                   <PrimaryCta />
                   <a
                     href="#how"
-                    className={`inline-flex min-h-11 items-center rounded-full text-[15px] font-bold text-[#3f4499] underline-offset-4 hover:underline ${FOCUS}`}
+                    className={`inline-flex min-h-11 items-center rounded-full text-[15px] font-bold text-[#9A4F33] underline-offset-4 hover:underline ${FOCUS}`}
                   >
                     See how it works →
                   </a>
                 </div>
-                <p className="mb-0 mt-5 text-sm text-[#5a5c7c]">
+                <p className="mb-0 mt-4 text-sm text-[#6B5244]">
                   Free to start · no card · works in your browser
                 </p>
               </div>
 
-              {/* Product demo: a CSS-built phone with a looping, quiet chat */}
-              <div className="relative mx-auto w-full max-w-[320px] lg:ms-auto lg:me-0">
-                <div
-                  aria-hidden="true"
-                  className="pointer-events-none absolute start-1/2 top-1/2 size-[min(560px,150vw)] -translate-x-1/2 -translate-y-1/2 rtl:translate-x-1/2"
-                >
-                  <div
-                    className="ca-breathe size-full rounded-full"
-                    style={{
-                      background: "radial-gradient(circle,rgba(143,148,224,.55),transparent 66%)",
-                    }}
-                  ></div>
-                  <div className="ca-breathe ca-breathe-b absolute inset-[16%] rounded-full border-2 border-[#8f94e0]/50"></div>
-                </div>
-                <ChatDemo />
+              <div className="relative mx-auto w-full max-w-[640px] lg:me-0 lg:ms-auto">
+                <HeroNight className="block h-auto w-full drop-shadow-[0_30px_40px_rgba(120,75,45,.22)]" />
               </div>
             </div>
           </section>
 
           {/* Trust bar */}
           <section aria-label="Trust and safety at a glance" className="relative px-6">
-            <ul className="mx-auto m-0 grid w-full max-w-[1120px] list-none gap-x-6 gap-y-4 rounded-[28px] border border-white bg-white/85 p-6 shadow-[0_24px_60px_-40px_rgba(70,74,150,.55)] backdrop-blur sm:grid-cols-2 lg:grid-cols-4 lg:gap-0 lg:p-0">
+            <ul className="mx-auto m-0 grid w-full max-w-[1120px] list-none gap-x-6 gap-y-4 rounded-[28px] border border-white bg-white/85 p-6 shadow-[0_24px_60px_-40px_rgba(120,75,45,.55)] backdrop-blur sm:grid-cols-2 lg:grid-cols-4 lg:gap-0 lg:p-0">
               {TRUST.map((t) => (
                 <li
                   key={t}
-                  className="flex items-start gap-3 text-[14px] font-semibold leading-[1.4] text-[#3f4160] lg:items-center lg:px-7 lg:py-6 lg:[&:not(:first-child)]:border-s lg:[&:not(:first-child)]:border-[#e4e5f3]"
+                  className="flex items-start gap-3 text-[14px] font-semibold leading-[1.4] text-[#4A3428] lg:items-center lg:px-7 lg:py-6 lg:[&:not(:first-child)]:border-s lg:[&:not(:first-child)]:border-[#E8D8C4]"
                 >
                   <svg
                     width="20"
@@ -800,10 +753,10 @@ ${DEMO_CSS}
                     aria-hidden="true"
                     className="mt-px shrink-0"
                   >
-                    <circle cx="9" cy="9" r="9" fill="#e4e5f8" />
+                    <circle cx="9" cy="9" r="9" fill="#F1E4D3" />
                     <path
                       d="M5.5 9.2l2.4 2.4 4.6-4.9"
-                      stroke="#5b60c4"
+                      stroke="#9A4F33"
                       strokeWidth="1.8"
                       strokeLinecap="round"
                       strokeLinejoin="round"
@@ -837,7 +790,7 @@ ${DEMO_CSS}
                   >
                     <figure className="m-0 flex flex-col items-center">
                       <Phone src={s.src} alt={s.alt} className="w-full" />
-                      <figcaption className="mt-5 text-center text-[15px] font-bold text-[#171728]">
+                      <figcaption className="mt-5 text-center text-[15px] font-bold text-[#4A3428]">
                         {s.caption}
                       </figcaption>
                     </figure>
@@ -858,72 +811,72 @@ ${DEMO_CSS}
               {STEPS.map((s, i) => (
                 <li
                   key={s.title}
-                  className="ca-card rounded-[28px] border border-white bg-white/90 p-8 shadow-[0_20px_46px_-34px_rgba(90,95,180,.5)]"
+                  className="ca-card rounded-[28px] border border-white bg-white/90 p-8 shadow-[0_20px_46px_-34px_rgba(120,75,45,.5)]"
                 >
-                  <span className="inline-flex size-9 items-center justify-center rounded-full bg-[#e4e5f8] text-sm font-extrabold text-[#3f4499]">
+                  <span className="inline-flex size-9 items-center justify-center rounded-full bg-[#F1E4D3] text-sm font-extrabold text-[#9A4F33]">
                     {i + 1}
                   </span>
-                  <h3 className="m-0 mt-5 text-[21px] font-extrabold leading-[1.2] tracking-[-0.02em] text-[#171728]">
+                  <h3 className="m-0 mt-5 text-[21px] font-extrabold leading-[1.2] tracking-[-0.02em] text-[#4A3428]">
                     {s.title}
                   </h3>
-                  <p className="mb-0 mt-2 text-[15px] leading-[1.6] text-[#4a4c6b]">{s.body}</p>
+                  <p className="mb-0 mt-2 text-[15px] leading-[1.6] text-[#6B5244]">{s.body}</p>
                 </li>
               ))}
             </ol>
             <CtaBlock />
           </Section>
 
-          {/* Features */}
+          {/* Features: illustrated rows, text and picture alternating */}
           <Section id="features" labelledBy="features-title">
             <SectionHead
               id="features-title"
               title="Everything quiet. Nothing that nags."
               lead="Chat or talk, with a few tools that stay out of your way."
             />
-            <div className="grid gap-5 lg:grid-cols-2">
-              <div className="flex flex-col items-center gap-8 overflow-hidden rounded-[32px] bg-[#171728] p-8 sm:p-10">
-                <div className="text-start">
-                  <h3 className="m-0 text-[clamp(24px,3vw,32px)] font-extrabold leading-[1.1] tracking-[-0.03em] text-white">
-                    Some things you can't type
-                  </h3>
-                  <p className="mb-0 mt-3 max-w-[420px] text-[16px] leading-[1.6] text-[#b4b7ee]">
-                    Talk out loud when typing is too much. Voice calls are part of the paid plans,
-                    coming soon. It's an AI voice, not a person, and the app tells you up front what
-                    is kept. The Privacy notice has the detail.
-                  </p>
-                </div>
-                <Phone
-                  src="/screens/call.jpg"
-                  alt="Calm AI voice call screen: an AI voice, not a person, with a note about microphone access and a Start the call button"
-                  className="w-[min(240px,70%)] !bg-[#2a2a42]"
-                />
-              </div>
-              <div className="grid gap-5 lg:grid-rows-3">
-                {[
-                  {
-                    title: "It knows when to stop being clever",
-                    body: "Every message is checked for crisis language before the companion answers. When it sees it, you get real people and real numbers.",
-                  },
-                  {
-                    title: "A few minutes each, paced for you",
-                    body: "Box breathing, 5-4-3-2-1 grounding, reframing a thought, winding down for sleep. Leave any of them halfway.",
-                  },
-                  {
-                    title: "Patterns, not streaks",
-                    body: "Mood over the week and habits you chose yourself, plus PHQ-9 and GAD-7 check-ins when they're due.",
-                  },
-                ].map((f) => (
-                  <div
-                    key={f.title}
-                    className="ca-card flex flex-col justify-center rounded-[28px] border border-white bg-white/90 p-8 shadow-[0_20px_46px_-34px_rgba(90,95,180,.5)]"
-                  >
-                    <h3 className="m-0 text-[21px] font-extrabold leading-[1.2] tracking-[-0.02em] text-[#171728]">
+            <div className="grid gap-16 md:gap-24">
+              {FEATURE_ROWS.map((f, i) => (
+                <div
+                  key={f.title}
+                  className="grid items-center gap-8 md:grid-cols-2 md:gap-14"
+                >
+                  <div className={i % 2 === 1 ? "md:order-2" : ""}>
+                    <p className="m-0 text-[13px] font-extrabold uppercase tracking-[0.12em] text-[#9A4F33]">
+                      {f.eyebrow}
+                    </p>
+                    <h3 className="m-0 mt-3 text-balance text-[clamp(26px,3.4vw,38px)] font-extrabold leading-[1.1] tracking-[-0.03em] text-[#4A3428]">
                       {f.title}
                     </h3>
-                    <p className="mb-0 mt-2 text-[15px] leading-[1.6] text-[#4a4c6b]">{f.body}</p>
+                    <p className="mb-0 mt-4 max-w-[460px] text-pretty text-[17px] leading-[1.65] text-[#6B5244]">
+                      {f.body}
+                    </p>
                   </div>
-                ))}
-              </div>
+                  <div className={i % 2 === 1 ? "md:order-1" : ""}>
+                    <f.Art className="mx-auto block h-auto w-full max-w-[520px] drop-shadow-[0_24px_32px_rgba(120,75,45,.18)]" />
+                  </div>
+                </div>
+              ))}
+            </div>
+            <div className="mt-20 grid gap-5 md:grid-cols-2">
+              {[
+                {
+                  title: "It knows when to stop being clever",
+                  body: "Every message is checked for crisis language before the companion answers. When it sees it, you get real people and real numbers.",
+                },
+                {
+                  title: "Patterns, not streaks",
+                  body: "Mood over the week and habits you chose yourself, plus PHQ-9 and GAD-7 check-ins when they're due.",
+                },
+              ].map((f) => (
+                <div
+                  key={f.title}
+                  className="ca-card rounded-[28px] border border-[#E8D8C4] bg-[#F1E4D3]/60 p-8"
+                >
+                  <h3 className="m-0 text-[21px] font-extrabold leading-[1.2] tracking-[-0.02em] text-[#4A3428]">
+                    {f.title}
+                  </h3>
+                  <p className="mb-0 mt-2 text-[15px] leading-[1.6] text-[#6B5244]">{f.body}</p>
+                </div>
+              ))}
             </div>
           </Section>
 
@@ -932,18 +885,18 @@ ${DEMO_CSS}
             <div
               className="grid items-center gap-10 rounded-[36px] p-6 sm:p-10 lg:grid-cols-[1.3fr_1fr] lg:gap-14 lg:p-14"
               style={{
-                background: "linear-gradient(160deg,#fdf6f3,#f4ebe7)",
-                border: "1px solid rgba(143,59,59,.12)",
+                background: "linear-gradient(160deg,#FBEDE4,#F4DCCB)",
+                border: "1px solid rgba(154,79,51,.18)",
               }}
             >
               <div>
                 <h2
                   id="safety-title"
-                  className="m-0 text-balance text-[clamp(28px,4.2vw,40px)] font-extrabold leading-[1.1] tracking-[-0.03em] text-[#3a2521]"
+                  className="m-0 text-balance text-[clamp(28px,4.2vw,40px)] font-extrabold leading-[1.1] tracking-[-0.03em] text-[#4A3428]"
                 >
                   You don't have to hold this alone
                 </h2>
-                <p className="mb-0 mt-4 max-w-[560px] text-[17px] leading-[1.6] text-[#6d534c]">
+                <p className="mb-0 mt-4 max-w-[560px] text-[17px] leading-[1.6] text-[#6B5244]">
                   Calm AI is wellness support, not therapy, not a diagnosis, not emergency care. If
                   you're in danger, please use one of these instead. Crisis resources are always
                   free.
@@ -952,12 +905,12 @@ ${DEMO_CSS}
                   {SAFETY_CARDS.map((c) => (
                     <li
                       key={c.title}
-                      className="rounded-[20px] border border-[rgba(143,59,59,.14)] bg-white/90 px-5 py-4"
+                      className="rounded-[20px] border border-[rgba(154,79,51,.16)] bg-white/90 px-5 py-4"
                     >
-                      <div className="text-[19px] font-extrabold tracking-[-0.02em] text-[#5b3d36]">
+                      <div className="text-[19px] font-extrabold tracking-[-0.02em] text-[#4A3428]">
                         {c.title}
                       </div>
-                      <div className="mt-1 text-[14px] leading-[1.5] text-[#6d534c]">{c.body}</div>
+                      <div className="mt-1 text-[14px] leading-[1.5] text-[#6B5244]">{c.body}</div>
                     </li>
                   ))}
                 </ul>
@@ -979,19 +932,19 @@ ${DEMO_CSS}
             />
             <div className="grid items-stretch gap-5 md:grid-cols-2">
               <div className="flex flex-col rounded-[32px] border border-white bg-white/90 p-8">
-                <h3 className="m-0 text-[15px] font-bold uppercase tracking-[0.1em] text-[#4a4c6b]">
+                <h3 className="m-0 text-[15px] font-bold uppercase tracking-[0.1em] text-[#6B5244]">
                   Free
                 </h3>
-                <p className="mb-0 mt-3 text-[40px] font-extrabold leading-none tracking-[-0.04em] text-[#171728]">
+                <p className="mb-0 mt-3 text-[40px] font-extrabold leading-none tracking-[-0.04em] text-[#4A3428]">
                   Free{" "}
-                  <span className="text-[15px] font-medium tracking-normal text-[#4a4c6b]">
+                  <span className="text-[15px] font-medium tracking-normal text-[#6B5244]">
                     available now
                   </span>
                 </p>
-                <p className="mb-0 mt-3 text-[15px] leading-[1.55] text-[#4a4c6b]">
+                <p className="mb-0 mt-3 text-[15px] leading-[1.55] text-[#6B5244]">
                   A first conversation with Calm AI after setup. No card needed.
                 </p>
-                <ul className="m-0 mt-6 grid list-none gap-3 p-0 text-[15px] text-[#171728]">
+                <ul className="m-0 mt-6 grid list-none gap-3 p-0 text-[15px] text-[#4A3428]">
                   {[
                     "Companion chat",
                     "Guided exercises",
@@ -999,7 +952,7 @@ ${DEMO_CSS}
                     "Crisis resources, always free",
                   ].map((t) => (
                     <li key={t} className="flex gap-3">
-                      <span aria-hidden="true" className="font-bold text-[#5b60c4]">
+                      <span aria-hidden="true" className="font-bold text-[#B5603F]">
                         ·
                       </span>
                       {t}
@@ -1010,19 +963,19 @@ ${DEMO_CSS}
                 <PrimaryCta className="mt-6 w-full" />
               </div>
 
-              <div className="flex flex-col rounded-[32px] bg-[#171728] p-8 shadow-[0_34px_74px_-40px_rgba(23,23,40,.85)]">
+              <div className="flex flex-col rounded-[32px] bg-[#4A3428] p-8 shadow-[0_34px_74px_-40px_rgba(74,52,40,.85)]">
                 <div className="flex flex-wrap items-center gap-3">
-                  <h3 className="m-0 text-[15px] font-bold uppercase tracking-[0.1em] text-[#b4b7ee]">
+                  <h3 className="m-0 text-[15px] font-bold uppercase tracking-[0.1em] text-[#E9D5C0]">
                     Paid plans
                   </h3>
-                  <span className="rounded-full bg-[rgba(158,161,230,.22)] px-3 py-1 text-[11px] font-bold uppercase tracking-[0.08em] text-[#c9cbf2]">
+                  <span className="rounded-full bg-[rgba(158,161,230,.22)] px-3 py-1 text-[11px] font-bold uppercase tracking-[0.08em] text-[#F1E4D3]">
                     Coming soon
                   </span>
                 </div>
                 <p className="mb-0 mt-3 text-[clamp(26px,3.4vw,32px)] font-extrabold leading-[1.1] tracking-[-0.03em] text-white">
                   More, when you want it
                 </p>
-                <p className="mb-0 mt-3 text-[15px] leading-[1.55] text-[#b4b7ee]">
+                <p className="mb-0 mt-3 text-[15px] leading-[1.55] text-[#E9D5C0]">
                   Get notified when paid plans, voice calls and the iPhone and Android apps launch.
                   Nothing to buy yet, and we'll say so here when that changes.
                 </p>
@@ -1041,7 +994,7 @@ ${DEMO_CSS}
               title="Questions, answered plainly"
               lead="The short version. The Privacy notice and Terms have the full detail."
             />
-            <div className="mx-auto max-w-[760px] border-t border-[#d9d9ee]">
+            <div className="mx-auto max-w-[760px] border-t border-[#E8D8C4]">
               <Faq q="Is Calm AI therapy?">
                 <p className="m-0">
                   No. Calm AI is wellness support: somewhere to think things through, with short
@@ -1061,7 +1014,7 @@ ${DEMO_CSS}
                   The{" "}
                   <Link
                     to="/privacy"
-                    className="font-semibold text-[#3f4499] underline underline-offset-2"
+                    className="font-semibold text-[#9A4F33] underline underline-offset-2"
                   >
                     Privacy notice
                   </Link>{" "}
@@ -1095,7 +1048,7 @@ ${DEMO_CSS}
                   AI language models from third-party providers, which the{" "}
                   <Link
                     to="/privacy"
-                    className="font-semibold text-[#3f4499] underline underline-offset-2"
+                    className="font-semibold text-[#9A4F33] underline underline-offset-2"
                   >
                     Privacy notice
                   </Link>{" "}
@@ -1113,17 +1066,17 @@ ${DEMO_CSS}
           >
             <div
               className="ca-reveal relative mx-auto flex w-full max-w-[1120px] flex-col items-center overflow-hidden rounded-[40px] px-6 py-16 text-center sm:px-14 md:py-24"
-              style={{ background: "linear-gradient(160deg,#1c1c33,#171728 60%,#222246)" }}
+              style={{ background: "linear-gradient(160deg,#5A3A2C,#4A3428 55%,#6A4333)" }}
             >
               <div
                 aria-hidden="true"
                 className="ca-orb pointer-events-none absolute -start-32 -top-32 size-[420px] rounded-full opacity-60"
-                style={{ background: "radial-gradient(circle,rgba(143,148,224,.45),transparent 65%)" }}
+                style={{ background: "radial-gradient(circle,rgba(217,139,106,.5),transparent 65%)" }}
               ></div>
               <div
                 aria-hidden="true"
                 className="ca-orb ca-orb-b pointer-events-none absolute -bottom-40 -end-24 size-[460px] rounded-full opacity-60"
-                style={{ background: "radial-gradient(circle,rgba(190,160,235,.35),transparent 65%)" }}
+                style={{ background: "radial-gradient(circle,rgba(227,165,160,.35),transparent 65%)" }}
               ></div>
               <h2
                 id="final-title"
@@ -1131,12 +1084,12 @@ ${DEMO_CSS}
               >
                 Talk tonight. It's free to start.
               </h2>
-              <p className="relative mb-0 mt-5 max-w-[480px] text-pretty text-[18px] leading-[1.55] text-[#c9cbf2]">
+              <p className="relative mb-0 mt-5 max-w-[480px] text-pretty text-[18px] leading-[1.55] text-[#F1E4D3]">
                 Set up in a minute, then start talking. No card, no streak to keep alive.
               </p>
               <div className="relative mt-9 flex flex-col items-center gap-3">
                 <PrimaryCta tone="dark" />
-                <p className="m-0 text-sm text-[#b4b7ee]">
+                <p className="m-0 text-sm text-[#E9D5C0]">
                   Free to start · no card · works in your browser
                 </p>
               </div>
@@ -1152,24 +1105,24 @@ ${DEMO_CSS}
 
         {/* Footer */}
         <footer id="ca-footer" className="px-6 pb-6">
-          <div className="mx-auto w-full max-w-[1120px] rounded-[36px] bg-[#171728] p-8 sm:p-12">
+          <div className="mx-auto w-full max-w-[1120px] rounded-[36px] bg-[#4A3428] p-8 sm:p-12">
             <div className="grid gap-10 sm:grid-cols-2 lg:grid-cols-[1.4fr_1fr_1fr]">
               <div>
                 <div className="flex items-center gap-[10px]">
                   <Logo />
                   <span className="text-[18px] font-extrabold tracking-[-0.02em] text-white">
-                    Calm <span className="text-[#9ea1e6]">AI</span>
+                    Calm <span className="text-[#B9B3F0]">AI</span>
                   </span>
                 </div>
-                <p className="mb-0 mt-4 max-w-[300px] text-[14px] leading-[1.6] text-[#b4b7ee]">
+                <p className="mb-0 mt-4 max-w-[300px] text-[14px] leading-[1.6] text-[#E9D5C0]">
                   Calm AI is wellness support, not therapy or emergency care.
                 </p>
-                <p className="mb-0 mt-3 text-[14px] text-[#b4b7ee]">
+                <p className="mb-0 mt-3 text-[14px] text-[#E9D5C0]">
                   iPhone and Android apps coming soon.
                 </p>
               </div>
               <nav aria-label="Product">
-                <h2 className="m-0 font-mono text-[11px] font-medium uppercase tracking-[0.14em] text-[#9094b8]">
+                <h2 className="m-0 font-mono text-[11px] font-medium uppercase tracking-[0.14em] text-[#CBB49D]">
                   Product
                 </h2>
                 <ul className="m-0 mt-3 grid list-none gap-1 p-0">
@@ -1186,7 +1139,7 @@ ${DEMO_CSS}
                 </ul>
               </nav>
               <nav aria-label="Legal">
-                <h2 className="m-0 font-mono text-[11px] font-medium uppercase tracking-[0.14em] text-[#9094b8]">
+                <h2 className="m-0 font-mono text-[11px] font-medium uppercase tracking-[0.14em] text-[#CBB49D]">
                   Legal
                 </h2>
                 <ul className="m-0 mt-3 grid list-none gap-1 p-0">
@@ -1210,10 +1163,10 @@ ${DEMO_CSS}
               </nav>
             </div>
             <div className="mt-10 flex flex-wrap items-center justify-between gap-3 border-t border-white/15 pt-5">
-              <span className="font-mono text-[11px] tracking-[0.12em] text-[#9094b8]">
+              <span className="font-mono text-[11px] tracking-[0.12em] text-[#CBB49D]">
                 CALMAI.SITE · © 2026
               </span>
-              <span className="text-[13px] text-[#b4b7ee]">
+              <span className="text-[13px] text-[#E9D5C0]">
                 In crisis? Call your local emergency number.
               </span>
             </div>
@@ -1223,11 +1176,11 @@ ${DEMO_CSS}
 
       {/* Mobile sticky CTA */}
       {showBar && (
-        <div className="fixed inset-x-0 bottom-0 z-40 border-t border-[#d9d9ee] bg-white/95 px-4 pt-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] backdrop-blur md:hidden">
+        <div className="fixed inset-x-0 bottom-0 z-40 border-t border-[#E8D8C4] bg-white/95 px-4 pt-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] backdrop-blur md:hidden">
           <Link
             to="/auth"
-            className={`flex min-h-12 w-full items-center justify-center rounded-full text-[16px] font-extrabold hover:bg-[#2a2a42] ${FOCUS}`}
-            style={{ background: "#171728", color: "#fff" }}
+            className={`flex min-h-12 w-full items-center justify-center rounded-full text-[16px] font-extrabold hover:bg-[#5E4538] ${FOCUS}`}
+            style={{ background: "#4A3428", color: "#fff" }}
           >
             Start free — no card
           </Link>
