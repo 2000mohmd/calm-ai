@@ -99,7 +99,7 @@ function toGatewayMessages(system: string, messages: LlmMessage[]): GatewayMessa
     {
       role: "system",
       // Static across the whole conversation -> cache it.
-      content: [{ type: "text", text: system, cache_control: { type: "ephemeral" } }],
+      content: [{ type: "text", text: stripDynamicMarker(system), cache_control: { type: "ephemeral" } }],
     },
   ];
 
@@ -406,6 +406,24 @@ type NativeMessage = { role: "user" | "assistant"; content: NativeBlock[] };
 
 const EPHEMERAL: CacheControl = { type: "ephemeral" };
 
+// The companion prompt is "<stable instructions><MARKER><per-turn context>". Anthropic
+// caches an exact prefix, so the stable part gets the breakpoint and the per-turn part
+// follows uncached. Keep in sync with SYSTEM_DYNAMIC_MARKER in ai-companion.server.ts.
+const DYNAMIC_MARKER = "\n\n<<<DYNAMIC>>>\n\n";
+function stripDynamicMarker(system: string): string {
+  return system.split(DYNAMIC_MARKER).join("\n\n");
+}
+export function splitSystem(system: string) {
+  const i = system.indexOf(DYNAMIC_MARKER);
+  if (i < 0) return [{ type: "text" as const, text: system, cache_control: EPHEMERAL }];
+  const stable = system.slice(0, i);
+  const dynamic = system.slice(i + DYNAMIC_MARKER.length).trim();
+  return [
+    { type: "text" as const, text: stable, cache_control: EPHEMERAL },
+    ...(dynamic ? [{ type: "text" as const, text: dynamic }] : []),
+  ];
+}
+
 export function toNativeMessages(messages: LlmMessage[]): NativeMessage[] {
   const out: NativeMessage[] = [];
   for (const message of messages) {
@@ -437,7 +455,7 @@ export function buildNativeBody(
   return {
     model,
     max_tokens: maxTokens,
-    system: [{ type: "text", text: system, cache_control: EPHEMERAL }],
+    system: splitSystem(system),
     messages: toNativeMessages(messages),
     ...(stream ? { stream: true } : {}),
     ...(tools.length

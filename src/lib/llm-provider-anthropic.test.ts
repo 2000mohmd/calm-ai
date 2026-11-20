@@ -149,3 +149,14 @@ describe("estimateCostUsd with cache fields", () => {
     expect(estimateCostUsd("claude-haiku-4-5", 1_000_000, 0, 1_000_000, 0)).toBeCloseTo(0.1);
   });
 });
+
+describe("splitSystem (cache prefix)", () => {
+  it("caches the stable part and leaves the per-turn part uncached", async () => {
+    const { splitSystem } = await import("./llm-provider.server");
+    const blocks = splitSystem("STABLE\n\n<<<DYNAMIC>>>\n\nPER-TURN");
+    expect(blocks).toHaveLength(2);
+    expect(blocks[0]).toMatchObject({ text: "STABLE", cache_control: { type: "ephemeral" } });
+    expect(blocks[1]).toEqual({ type: "text", text: "PER-TURN" });
+    expect(splitSystem("no marker")).toHaveLength(1);
+  });
+});
